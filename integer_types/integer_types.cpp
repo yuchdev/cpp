@@ -8,40 +8,47 @@
 // https://stackoverflow.com/questions/5435841/memory-alignment-in-c-structs
 // https://en.cppreference.com/w/c/language/object
 
-/*
-Размеры типов:
-1 = sizeof(char) <= sizeof(short) <= sizeof(int) <= sizeof(long)
-1 <= sizeof(bool) <= sizeof(long)
-sizeof(char) <= sizeof(wchar_t) <= sizeof(long)
-sizeof(float) <= sizeof(double) <= sizeof(long double)
-sizeof(N) <= sizeof(signed N) <= sizeof(unsigned N)
-*/
+// Important information
+// Agreements about types size in C++:
+// 1 = sizeof(char) <= sizeof(short) <= sizeof(int) <= sizeof(long)
+// 1 <= sizeof(bool) <= sizeof(long)
+// sizeof(char) <= sizeof(wchar_t) <= sizeof(long)
+// sizeof(float) <= sizeof(double) <= sizeof(long double)
+// sizeof(N) <= sizeof(signed N) <= sizeof(unsigned N)
 
-using std::bitset;
-using std::cout;
-using std::endl;
+// 1. Facts about signed and unsigned arithmetic
+void show_unsigned()
+{
+    unsigned int i1 = 1;
+    int j1 = -1;
+    // Unreachable section will never be reached, because uint(-1) being casted to maxint
+    if (j1 < i1) {
+        std::cout << "Unreachable;";
+    }
+}
 
-/* Перечисления и их размеры */
-enum enum1{ dark, light };		// диапазон 0:1
-enum enum2{ a = 3, b = 9 };		// диапазон 0:15
-enum enum3{ c = 3, d = 900 };	// диапазон 0:1024
-enum enum4{ e = 3, f = 5000000000 };	// диапазон 0:2^32 - не входит!
+// 1. What is the size of enum
+// TODO: find in Standard
 
-void show_enumerations(){
+enum enum1{ dark, light };		// 0:1
+enum enum2{ a = 3, b = 9 };		// 0:15
+enum enum3{ c = 3, d = 900 };	// 0:1024
+enum enum4{ e = 3, f = 5000000000 };	// out of range 0:2^32
 
-    // преобразование в enum1
+void enum_size()
+{
     enum1 e1 = enum1(0);
     enum1 e2 = enum1(1);
 
-    enum1 e3 = enum1(20); // - компилируется, но неверно -
-    // 20 не принадлежит перечислению enum1
+    // UB
+    enum1 e3 = enum1(20); 
 
-    // Размер перечисления архитектурозависим
+    // enum size is platform-dependent
     size_t sz = sizeof(enum1);
     sz = sizeof(enum2);
     sz = sizeof(enum3);
 
-    // Здесть значение enum будет обрезано!
+    // out if range
     enum4 e4 = enum4::f;
     sz = sizeof(e4);
     long long l = e4;
@@ -49,124 +56,151 @@ void show_enumerations(){
 
 static int g_global = 5;
 
-void show_name_convensions(int a){
-    // Давайте переменным с большой областью видимости
-    // большие, понятные имена
-    static int test_counter = a;
-
-    // А с малой - короткие однобуквенные
-    for (int i = 0; i < test_counter; i++){
-        ::g_global += test_counter;
-        cout << ::g_global << endl;
+// 2. How to compare pointers
+void compare_pointers_1()
+{
+    int a{ 10 }, b{ 20 };
+    int* pa = &a;
+    int* pb = &b;
+    if (a < b) {
+        std::cout << "Really, what do you expect here?\n";
     }
-
-    // обращение к глобальной
-    ::g_global = 0;
-
-    // сокрытие глобальной
-    int g_global = 0; // (автоматический объект)
-
-    // Не существует способа обратиться к
-    // сокрытой локальной переменной!
+    // technically may be correct, but according to the Standard it's wrong
 }
 
-// Сравнение указателей
-template<typename T>
-bool less_ptr(const T* p1, const T* p2) {
-    return p1 < p2;
-}
+// Detailed explanation: there are two ways to compare pointers in C++:
+// * equality operators, which is != and ==
+// * more-less operators, < <= > >=
 
-//Пункт стандарта не скажу по памяти, но акцентируется разница между сравнением на == или != и сравнением на < >.
-//Сравнение на == != разрешено в любом случае, а на больше / меньше только в одном массиве,
-//в противном случае — unspecified behavior(не undefined).
+// TODO: Standard chapter
+// First operators allowed in any case
+// Second make sense ONLY if two pointers belong to the same address space
+// Otherwise we meet Unspecified Behavior (Not Undefined!)
 
-// Так что, если хочется корректности, то нужно пользоваться теми средствами, для которых гарантии даны — т.е.писать
-template<class T> bool less_ptr(T* a, T* b) {
+// Right way to compare pointers is std::less() function, which fives guarantees for correctness
+// https://en.cppreference.com/w/cpp/utility/functional/less
+// We can even create template function for pointers only
+template<typename T> 
+bool less_ptr(T* a, T* b)
+{
     return std::less<T*>()(a, b);
 }
 
-//А заодно —(вымышленный) пример реализации, которая может этим зазором воспользоваться на вред юзеру.
-//Сегментная модель памяти, указатель представляет пару(селектор, смещение).
-//Ну хотя бы large модель для 16 - битного режима x86.
-//Делается допущение, что каждый объект и каждый массив расположены в пределах одного сегмента,
-//поэтому для сравнения указателей(на неравенство) достаточно сравнить смещения.
+void compare_pointers_1()
+{
+    int a{ 10 }, b{ 20 };
+    int* pa = &a;
+    int* pb = &b;
+    if (less_ptr(pa, pb)) {
+        std::cout << "Now I feel safe comparing my pointers!\n";
+    }
+    // Example where this approach may be necessary, is segment memory model
+    // It used to be model for 16-bit CPU architectures, where memory was a pair of 
+    // [selector + offset]
+    // Let's imagine, we have some embedded architecture with the same memory model
+    // In this case, plain compare (pa < pb) between different segments make no sense!
+}
 
-void show_pointer(){
+// 3. Facts about pointers
+void pointers_facts(){
 
-    // как работает typedef для массива
-    typedef int MyNumbers[10];
-    MyNumbers numbers = { 1, 2, 3 };
-
-    // Гарантируется, что нет объектов с нулевым адресом.
-
-    const int* m;
-    const int*& o = m;
-
-    // строковый литерал - это указатель
-    size_t sz = sizeof("aaa");
-
-    // строковый литерал по умолчанию константен
-    const char* p = "literal";
-
-    // для формирования неконстантной строки используйте массив
-    char p_arr[] = "array";
-    p_arr[0] = 'A';
-    cout << sizeof(p_arr) << endl;
-
-    // Non-const pointer is assigned to const (not otherwise!)
-    int* ip = nullptr;
-    m = ip;
+    // x86 of today use little - endian storage for all types of data(integer, floating point, BCD)
 
 
-    // Арифметика указателей:
-    // Вычитание числа - перемещение по массиву назад
-    // Прибавление числа - перемещение по массиву вперед
-    // Вычитание указателей - расстояние между ними в элементах
-    // Сложение указателей - не имеет смысла и запрещено
+    // Every object has an address
+    // Guaranteed that there are no objects with NULL address
+    int a{};
+    int* ptr_a = &a;
 
-    // Результатом sizeof является беззнаковый int = size_t (cstddef)
-    // Типом разности указателей - int = ptrdiff_t (cstddef)
+    // Standard output prints pointers as hexadecimal
+    std::cout << "ptr_a = " << ptr_a << '\n';
 
-    // Interesting notation of arrays
-    int x = 2;
-    cout << x["ABCDEF"] << endl;
-    cout << 2["ABCDEF"] << endl;
+    // Always take notice about constant semantic of POINTER or OBJECT,
+    // which pointer points on
 
-    // error C2166: l-value specifies const object
-    //x["ABCDEF"] = 'Z';
+    // pointer is constant, integer does not
+    int* const ptr1 = &a;
 
-    // 1[array] == array[1], грубо говоря
-    // 1 + *pointer == *pointer + 1
-    // correct!
-    x[p_arr] = 'Z';
+    // Integer is constant, pointer does not
+    const int* ptr2 = &a;
+    // .. basically the same
+    int const* ptr3 = &a;
 
-    // Ещё со времён C, для массивов 1[x] тождественно равно *(1 + x)
-    // ISO / IEC 9899:TC2 : 6.5.2.1 Array subscripting
+    // Both pointer and integer are constant
+    const int* const ptr4 = &a;
 
-    // Thus, &*E is equivalent to E (even if E is a null pointer), and &(E1[E2]) to ((E1)+(E2))
+    // Pointer arithmetic
+    int some_array[10] = {0,1,2,3,4,5,6,7,8,9};
+    int* ptr_to_first = some_array;
 
-    // ...a pointer to a nonarray object behaves the same as a pointer to the
-    // first element of an array of length one with the type of the object as its element type
-    int* p1 = new int;
-    int* p2 = new int;
+
+    // 1.pointer + integer: moves forward from the pointer
+    int* fifth_element = ptr_to_first + 5;
+
+    // 2.pointer - integer: moves backward from the pointer
+    int* second_element = ptr_to_first -3;
+
+    // 3.pointer - pointer: is important and means distance between pointers
+    // Pointer distance has a special type, defined in <cstddef> include file
+    ptrdiff_t some_distance = fifth_element - second_element;
+
+    // 4.++ or -- moves to the pointee size!
+    ++ptr_to_first; // moves 4 bytes forward!
+    ptrdiff_t other_distance = ptr_to_first - some_array;
+    
+    // Exception from this rule is void*
+    void* vp = reinterpret_cast<void*>(some_array);
+    // ++vp; there's no increment/decrement for void*
+
+
+    // 4.pointer + pointer: why do we even need this?
+
+    // A pointer to a non-array dynamic object behaves the same as a pointer to the
+    // first element of an array of length one
+    int* p1 = new int(1);
+    int* p2 = new int(2);
     bool p1_less_p2 = less_ptr(p1, p2);
     delete p1;
     delete p2;
 }
 
-void show_pointer_arithmetic(){
+// 4. Facts about arrays
+void array_facts()
+{
+    // typedef for array
+    typedef int Vector3D[10];
+    Vector3D numbers = { 1, 2, 3 };
 
-    int ia[10] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-    int* ip = ia;
+    // string literal is an array
+    const char* str = "Some string";
+    std::cout << "Size of the string '" << str << "' is " << sizeof(str);
 
-    // ++ moves to the pointee size!
-    cout << "ip = " << ip << "; *ip = " << *ip << endl;
-    ++ip;
-    cout << "++ip = " << ip << "; *ip = " << *ip << endl;
+    // string literal is constant by default
+    char* const_string = "Other string";
+    // p[0] = 'o' - can't touch this!
 
-    void* vp = reinterpret_cast<void*>(ip);
-    cout << "vp = " << vp << endl;
-    // ++vp; unable to ++ void* : error C2036: 'void *' : unknown size
+    // If you want to operate non-const string literal, use array instead
+    char non_const_string[] = "this string is non-constant";
+    non_const_string[0] = 'T';
+    std::cout << non_const_string << '\n';
+
+    // Interesting notation of arrays
+    int x = 2;
+    std::cout << x["ABCDEF"] << '\n';
+    std::cout << 2["ABCDEF"] << '\n';
+
+    // Is this code correct?
+    // Yes! // It is correct!
+
+    // Sincs plain ANSI C times, for array x[1] is equal  to 1[x] is equal to *(1 + x)
+    // ISO / IEC 9899:TC2 : 6.5.2.1 Array subscripting
+    // Thus, &*E is equivalent to E (even if E is a null pointer), and &(E1[E2]) to ((E1)+(E2))
+
+    // Simply says, 1[array] == array[1]
+    // 1 + *pointer == *pointer + 1
+
+    // However, don't try to change it, since l-value specifies constant object
+    //x["ABCDEF"] = 'Z'; error C2166
 }
 
 
@@ -176,32 +210,33 @@ void show_pointer_arithmetic(){
 // то адрес массива и сам массив — это одно и тоже
 // Нет. Выражения &array и array имеют разные типы, не подлежащие даже сравнению.
 
+// 5. Array and pointer are not the same!
+// Some developers think if array could be implicitly casted to pointer,
+// it means they array address and array itself basically the same. Right?..
+// Wrong! 
+// Expressions 'array' and '&array' have different types and could not even be compared
 
-// Для иллюстрации примера в show_array_pointers()
+
+// Helper function 
 int stack_address_increment(int i)
 {
-    // значение на стеке по нулевому смещению от i (0)
+    // 0 offset from i (i itself)
     int a = 0[&i];
 
-    // значение на стеке по смещению 1 от i (0xcccccccc в msvc)
+    // 1 offset from i (usually some garbage)
     int b = 1[&i];
 
     // Memory dump 0[&i]       1[&i] ...
     // 0x002CF9E8  00 00 00 00 cc cc cc cc cc cc cc cc 00 00 00 00 00 fa 2c 00 c8 56 26 01 50
     // 0x002CFA01  fa 2c 00 89 64 26 01 01 00 00 00 28 81 49 00 70 6e 49 00 8c 37 2a 52 00 00
 
-    // возвращаем данные за стековым значением,
-    // переданным в функцию
-
-    // выражения *(1 + &i) и 1[&i] ЭКВИВАЛЕНТНЫ
-    return 1[&i];
-    //return *(&i + 1);
+    // returns address where object of type int ends
+    return 1[&i]; //which is equal to *(&i + 1);
 }
 
-// Размер массива
-// Для иллюстрации примера в show_array_pointers()
+// Array size
 template <typename T, std::size_t N>
-inline std::size_t countof(T(&arr)[N]) {
+inline std::size_t arraysize(T(&arr)[N]) {
     return N;
 }
 
@@ -272,8 +307,7 @@ void show_references(){
 
     int ii = 10;
 
-    // ссылку нужно инициализировать
-    // перенаправить ее уже нельзя
+    // Reference must be initialized, and could not be re-initialized
     int& rr = ii;
 
     // ссылки на константы более предпочтительны
@@ -281,14 +315,8 @@ void show_references(){
     const int ic = 0;
     const int& rc = ic;
 
-    // ссылки можно возвращать - тогда возвращающая функция будет lvalue
-
-    //Когда встречается конструкция T& ref = fun()
-    //- ожидается, что fun() возвращает ссылку, живущую достаточно долго(например, some_container.front())
-    //- ad - hoc - полиморфизм(т.е.мы хотим создать автоматический объект, но не можем явно указать его тип)
-
-    // Const ref makes rvalue object live the same time as ref
-    const long& lr = 12;
+    // When we meet function T& ref = boo(),
+    // we expect that object lives long enough not to create "dead" reference
 }
 
 // This is correct.  The else actually matches with the second if (C++ Standard 6.4.1/1).
@@ -296,162 +324,11 @@ void show_references(){
 // (clang warning)
 int show_ifs(int x){
     if (x > 0)
-    if (x > 100)
-        return 1;
+        if (x > 100)
+            return 1;
     else
         return 2;
     return 0;
-}
-
-int my_negate(int i){
-    return ~(i - 1);
-}
-
-int my_abs(int i){
-    // x32 specific!
-    return (i & 0x10000000) ? my_negate(i) : i;
-}
-
-// для положительных чисел битовый сдвиг числа вправо на n равносилен целочисленному делению на 2^n
-// Аналогично, битовый сдвиг влево на n бит равносилен(для положительных чисел) умножению на 2^n
-int divide_2(int i){
-    return i >> 1;
-}
-
-bool raised_to2(int x){
-
-    const int intsize = sizeof(int)* 8;
-    cout << "x = \t\t" << bitset<intsize>(x) << '\n';
-    cout << "(x - 1) = \t" << bitset<intsize>(x - 1) << '\n';
-    cout << "(x - 1) & x = \t" << bitset<intsize>((x - 1) & x) << '\n';
-
-    if (!((x - 1) & x))
-        return true;
-    return false;
-}
-
-int multiply_2(int i){
-    return i << 1;
-}
-
-void show_integers(){
-
-    // !!! x86 of today use little - endian storage for all types of data(integer, floating point, BCD)
-
-    const int intsize = sizeof(int)* 8;
-    // Битовое представление 1
-    int i = 1;
-    cout << bitset<intsize>(i) << '\n';
-
-    // Битовое представление 2^8
-    i = pow(2, 8);
-    cout << bitset<intsize>(i) << '\n';
-
-    // Битовое представление 2^16
-    i = pow(2, 16);
-    cout << bitset<intsize>(i) << '\n';
-
-    // Битовое представление -1
-    i = -1;
-    cout << bitset<intsize>(i) << '\n';
-
-    // Битовое представление -2
-    i = -2;
-    cout << bitset<intsize>(i) << '\n';
-
-    // Проверим ручной negate
-    i = my_negate(1);
-    i = my_negate(-1);
-    i = my_negate(-2);
-
-    // Проверим ручной abs
-    i = my_abs(1);
-    i = my_abs(-1);
-    i = my_abs(-2);
-
-    // Проверим ручное деление-умножение на 2
-    i = divide_2(10);
-    i = divide_2(64);
-    i = multiply_2(10);
-    i = multiply_2(64);
-
-    bool r = raised_to2(2);
-    r = raised_to2(4);
-    r = raised_to2(8);
-    r = raised_to2(16);
-    r = raised_to2(24);
-
-    unsigned int i1 = 1;
-    int j1 = -1;
-    // Секция Unreachable не достигается, т.к. uint -1 -> maxint
-    if (j1 < i1){
-        cout << "Unreachable" << endl;
-    }
-}
-
-void show_close_enough(){
-
-    // nextafter() returns the next representable value after x in the direction of y
-    double d = 1.0;
-    double e = nextafter(d, 1000.0);
-    if (close_enough(d, e))
-        cout << d << " == " << e << endl;
-
-
-    d = 0.00000000000000000001;
-    e = nextafter(d, 1.0);
-    if (close_enough(d, e))
-        cout << d << " == " << e << endl;
-}
-
-void show_fast_float2int(){
-    float f = 1.0;
-    int i = fast_float2int(f);
-    int i1 = fast_float2int_debug(f);
-    cout << f << " -> " << i << endl;
-
-
-    f = 1.1;
-    i = fast_float2int(f);
-    i1 = fast_float2int_debug(f);
-    cout << f << " -> " << i << endl;
-
-    f = 1.5;
-    i = fast_float2int(f);
-    i1 = fast_float2int_debug(f);
-    cout << f << " -> " << i << endl;
-
-    f = 2.0;
-    i = fast_float2int(f);
-    i1 = fast_float2int_debug(f);
-    cout << f << " -> " << i << endl;
-
-    f = 10.0;
-    i = fast_float2int(f);
-    cout << f << " -> " << i << endl;
-
-    double d = 1.0;
-    i = fast_double2int(d);
-    cout << d << " -> " << i << endl;
-}
-
-void show_fast_sqrt(){
-
-    float f = 4.0;
-    float i = quick_rsqrt(f);
-    cout << "sqrt " << f << " = " << 1 / i << endl;
-
-    f = 16.0;
-    i = quick_rsqrt(f);
-    cout << "sqrt " << f << " = " << 1 / i << endl;
-
-    f = 2.0;
-    i = quick_rsqrt(f);
-    cout << "sqrt " << f << " = " << 1 / i << endl;
-
-    f = -1.0;
-    i = quick_rsqrt(f);
-    cout << "sqrt " << f << " = " << 1 / i << endl;
 }
 
 void show_shift(){

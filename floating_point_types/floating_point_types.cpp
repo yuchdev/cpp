@@ -969,6 +969,75 @@ int show_MXCSR_registry()
 //http://www.cplusplus.com/reference/cfenv/FENV_ACCESS/
 #pragma STDC FENV_ACCESS ON
 
+void show_close_enough()
+{
+
+    // nextafter() returns the next representable value after x in the direction of y
+    double d = 1.0;
+    double e = nextafter(d, 1000.0);
+    if (close_enough(d, e))
+        cout << d << " == " << e << endl;
+
+
+    d = 0.00000000000000000001;
+    e = nextafter(d, 1.0);
+    if (close_enough(d, e))
+        cout << d << " == " << e << endl;
+}
+
+void show_fast_float2int()
+{
+    float f = 1.0;
+    int i = fast_float2int(f);
+    int i1 = fast_float2int_debug(f);
+    cout << f << " -> " << i << endl;
+
+
+    f = 1.1;
+    i = fast_float2int(f);
+    i1 = fast_float2int_debug(f);
+    cout << f << " -> " << i << endl;
+
+    f = 1.5;
+    i = fast_float2int(f);
+    i1 = fast_float2int_debug(f);
+    cout << f << " -> " << i << endl;
+
+    f = 2.0;
+    i = fast_float2int(f);
+    i1 = fast_float2int_debug(f);
+    cout << f << " -> " << i << endl;
+
+    f = 10.0;
+    i = fast_float2int(f);
+    cout << f << " -> " << i << endl;
+
+    double d = 1.0;
+    i = fast_double2int(d);
+    cout << d << " -> " << i << endl;
+}
+
+void show_fast_sqrt()
+{
+
+    float f = 4.0;
+    float i = quick_rsqrt(f);
+    cout << "sqrt " << f << " = " << 1 / i << endl;
+
+    f = 16.0;
+    i = quick_rsqrt(f);
+    cout << "sqrt " << f << " = " << 1 / i << endl;
+
+    f = 2.0;
+    i = quick_rsqrt(f);
+    cout << "sqrt " << f << " = " << 1 / i << endl;
+
+    f = -1.0;
+    i = quick_rsqrt(f);
+    cout << "sqrt " << f << " = " << 1 / i << endl;
+}
+
+
 void show_fp_coltrol_noexcept(){
 
 	double d1 = 0., d2 = 0., d3 = 0., s = 0.;
