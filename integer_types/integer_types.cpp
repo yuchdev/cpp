@@ -4,6 +4,14 @@
 #include <ctime>
 #include <cstddef>
 
+/// Returns bitset with bitwise representation of 'value'
+template <typename T>
+std::bitset<sizeof(T) * 8> bitwise(T value)
+{
+    constexpr size_t bits_size = sizeof(T) * 8;
+    return std::bitset<bits_size>(value);
+}
+
 // TODO: alignment
 // https://stackoverflow.com/questions/5435841/memory-alignment-in-c-structs
 // https://en.cppreference.com/w/c/language/object
@@ -16,18 +24,9 @@
 // sizeof(float) <= sizeof(double) <= sizeof(long double)
 // sizeof(N) <= sizeof(signed N) <= sizeof(unsigned N)
 
-// 1. Facts about signed and unsigned arithmetic
-void show_unsigned()
-{
-    unsigned int i1 = 1;
-    int j1 = -1;
-    // Unreachable section will never be reached, because uint(-1) being casted to maxint
-    if (j1 < i1) {
-        std::cout << "Unreachable;";
-    }
-}
+// TODO: make 1
 
-// 1. What is the size of enum
+// 2. What is the size of enum
 // TODO: find in Standard
 
 enum enum1{ dark, light };		// 0:1
@@ -54,9 +53,7 @@ void enum_size()
     long long l = e4;
 }
 
-static int g_global = 5;
-
-// 2. How to compare pointers
+// 3. How to compare pointers
 void compare_pointers_1()
 {
     int a{ 10 }, b{ 20 };
@@ -80,13 +77,13 @@ void compare_pointers_1()
 // Right way to compare pointers is std::less() function, which fives guarantees for correctness
 // https://en.cppreference.com/w/cpp/utility/functional/less
 // We can even create template function for pointers only
-template<typename T> 
+template<typename T>
 bool less_ptr(T* a, T* b)
 {
     return std::less<T*>()(a, b);
 }
 
-void compare_pointers_1()
+void compare_pointers_2()
 {
     int a{ 10 }, b{ 20 };
     int* pa = &a;
@@ -101,7 +98,7 @@ void compare_pointers_1()
     // In this case, plain compare (pa < pb) between different segments make no sense!
 }
 
-// 3. Facts about pointers
+// 4. Facts about pointers
 void pointers_facts(){
 
     // x86 of today use little - endian storage for all types of data(integer, floating point, BCD)
@@ -164,10 +161,10 @@ void pointers_facts(){
     delete p2;
 }
 
-// 4. Facts about arrays
+// 5. Facts about arrays
 void array_facts()
 {
-    // typedef for array
+    // A bit obsolete typedef for array
     typedef int Vector3D[10];
     Vector3D numbers = { 1, 2, 3 };
 
@@ -203,106 +200,73 @@ void array_facts()
     //x["ABCDEF"] = 'Z'; error C2166
 }
 
-
-//http://rsdn.ru/forum/cpp/5458937.flat#5458937
-// Широко распространенное заблуждение.
-// Почему-то людям кажется, что если массив неявно преобразуется к указателю,
-// то адрес массива и сам массив — это одно и тоже
-// Нет. Выражения &array и array имеют разные типы, не подлежащие даже сравнению.
-
 // 5. Array and pointer are not the same!
 // Some developers think if array could be implicitly casted to pointer,
 // it means they array address and array itself basically the same. Right?..
 // Wrong! 
 // Expressions 'array' and '&array' have different types and could not even be compared
 
-
-// Helper function 
-int stack_address_increment(int i)
-{
-    // 0 offset from i (i itself)
-    int a = 0[&i];
-
-    // 1 offset from i (usually some garbage)
-    int b = 1[&i];
-
-    // Memory dump 0[&i]       1[&i] ...
-    // 0x002CF9E8  00 00 00 00 cc cc cc cc cc cc cc cc 00 00 00 00 00 fa 2c 00 c8 56 26 01 50
-    // 0x002CFA01  fa 2c 00 89 64 26 01 01 00 00 00 28 81 49 00 70 6e 49 00 8c 37 2a 52 00 00
-
-    // returns address where object of type int ends
-    return 1[&i]; //which is equal to *(&i + 1);
-}
-
-// Array size
+// Let's use this static type
 template <typename T, std::size_t N>
 inline std::size_t arraysize(T(&arr)[N]) {
     return N;
 }
 
+void array_pointer_and_array(){
 
-void show_array_pointers(){
-
-    // 1.
-    int i = 0;
-    // найдем содержимое по смещению + 1 на стеке
-    int ii1 = stack_address_increment(i);
-    int ii2 = stack_address_increment(1);
-
-    // 2.
-    // Массив и указатель на массив - разные типы, их нельзя даже сравнивать
-    // они молча приводятся друг к другу, но сравнивать их нельзя
-    int array[42] = {};
+    // Step 1. Let's create array of integers and pointer to integer
+    // Pointer let us assign the array address (or the first element's of array address)
+    // without any problems
+    int integer_array[42] = {};
     for (size_t s = 0; s < 42; ++s){
-        array[s] = s;
+        integer_array[s] = s;
     }
 
-    int* ii3 = array;
+    int* integer_ptr = integer_array;
 
-    // Размер массива вшит в его тип!
-    // cannot convert from 'int (*)[42]' to 'int *'
+    // Step 2. Now, what if we try to get array's address? Isn't it pointer to integer t00?
     // int* ii31 = &array;
-    int(*ii4)[42] = &array;
-
-    // Похоже, что это один и тот же указатель
-    ptrdiff_t diff1 = reinterpret_cast<int*>(ii4)-ii3;
-
-    std::cout << std::hex << ii4 << '-' << ii3 << '=' << std::dec << diff1 << '\n';
-
-    // 3.
-    // но если попробовать прибавить 1, получим интересный эффект
-    int* ii5 = 1 + array;
-
     // cannot convert from 'int (*)[42]' to 'int *'
-    // int* ii31 = 1 + &array;
-    int(*ii6)[42] = 1 + &array;
+    
+    // That's how looks pointer to array type
+    int(*array_ptr)[42] = &integer_array;
 
-    // diff2 равен 41. Т.е. (&array + 1) указывает на последний элемент + смещение 1
-    // То есть указатель на массив указывает на "весь" массив, и +1 перемещает указатель за его пределы
-    ptrdiff_t diff2 = reinterpret_cast<int*>(ii6)-ii5;
+    // Looks like the same pointer
+    ptrdiff_t diff1 = reinterpret_cast<int*>(array_ptr) - integer_ptr;
+    std::cout << std::hex << array_ptr << '-' << integer_ptr << '=' << std::dec << diff1 << '\n';
 
-    std::cout << std::hex << ii6 << '-' << ii5 << '=' << std::dec << diff2 << '\n';
+    // Step 3. Why not to add 1 to out array (and to the pointer to array)
+    int* int_array_plus = 1 + integer_array;
+    int(*ii6)[42] = 1 + &integer_array;
 
-    // 4.
-    // Модифицируем два предыдущих примера, чтобы получить размер массива
-    // &array+1 будет указывать на элемент, следующий за массивом
-    // &array[0] - на первый элемент
-    ptrdiff_t diff3 = (1[&array] - &array[0]);
+    ptrdiff_t diff2 = reinterpret_cast<int*>(ii6)-int_array_plus;
+    std::cout << std::hex << ii6 << '-' << int_array_plus << '=' << std::dec << diff2 << '\n';
+    // diff2 равен 41. It means (&array + 1) points to the LAST array item + offset 1
+    // In other words, pointer to array points to the "whole array", 
+    // and +1 pointer would be out of array bounds
 
-    // компилятор расставит приоритеты следующим образом:
+
+    // Step 4. How can we use it? For example, here is funny trick how to get the array size
+    // &array+1 points to the next "after array" element
+    // &array[0] - points to the first element
+    ptrdiff_t diff3 = (1[&integer_array] - &integer_array[0]);
+
+    // Compiler would arrange the following operations priority
     // 1( [&array] ) - &( array[0] ) == ( 1 + &array ) - &(0 + array)
-    std::cout << std::hex << 1[&array] << '-' << &array[0] << '=' << std::dec << diff3 << '\n';
+    std::cout << std::hex << 1[&integer_array] << '-' << &integer_array[0] << '=' << std::dec << diff3 << '\n';
 
-    // 5.
-    // Но лучше использовать compile-time вычисление, тем более размер зашит в тип
-    std::cout << countof(array) << '\n';
+    // 5. However, the trick is quite vague, and really not necessary,
+    // since array size is included statically in every array type
+    std::cout << arraysize(integer_array) << '\n';
 
-    // 6. multi-dimensional pointer
+    // 6. Pointer to multi-dimensional array
     int m_arr[10][20] = {};
     int(*m_dim_ptr)[10][20] = &m_arr;
 }
 
 
+// 6. Facts about references
+// TODO
 void show_references(){
 
     int ii = 10;
@@ -310,83 +274,61 @@ void show_references(){
     // Reference must be initialized, and could not be re-initialized
     int& rr = ii;
 
-    // ссылки на константы более предпочтительны
-    // т.к. неконстантный объект более подвержен ошибкам
-    const int ic = 0;
-    const int& rc = ic;
-
     // When we meet function T& ref = boo(),
     // we expect that object lives long enough not to create "dead" reference
 }
 
-// This is correct.  The else actually matches with the second if (C++ Standard 6.4.1/1).
-// show_ifs(-1) ret 0
-// (clang warning)
-int show_ifs(int x){
-    if (x > 0)
-        if (x > 100)
-            return 1;
-    else
-        return 2;
-    return 0;
+// 7. Unexpected type cast
+
+// Be careful with unsigned integers, I mean, really
+void comparing_unsigned()
+{
+    unsigned int i1 = 1;
+    int j1 = -1;
+    
+    // i1 == 1, j1 == -1, arithmetically it's bigger, right?
+    // In Soviet C++ unsigned type cast you!
+    if (j1 < i1) {
+        std::cout << "Unreachable;";
+    }
+
+    // Unreachable section will never be reached, 
+    // because unsigned(-1) being casted to maxint == 2147483647 == 0xffffffff
 }
 
+// This cast was really unexpected
+// TODO: some explanation
 void show_shift(){
+    
+    // Let's have, for example, b10(1075) == b2(10000110011)
+    // And move it right as many times how many bits in the integer type
+
+    // In our case it's going to be 64
     long long l = 0;
+
+    // 1st shift it's going to be b2(100001100110)
+    // 2nd b2(1000011001100)
+    // 3rd b2(10000110011000)
+    // Let's see how it works...
+
+    std::cout << "Wanna see some type magic?\n";
     for (size_t i = 0; i < sizeof(long long)* 8; ++i){
-        // маска обязательно должна соответствовать типу
+        l = 1075 << i;
+        std::cout << "Step " << i << " magic =  " << bitwise(l) << '\n';
+    }
+
+    l = 0;
+    std::cout << "\nNo-no, David Blaine!\n";
+    for (size_t i = 0; i < sizeof(long long) * 8; ++i) {
         l = 1075LL << i;
-        cout << " magic =  " << bitset<sizeof(l)* 8>(l) << endl;
+        std::cout << "Step " << i << " magic =  " << bitwise(l) << '\n';
     }
 }
 
-//Почему rand() - очень медленная функция ?
-//Я имею в виду вызов Enter / LeavCriticalSection или что - то такого же,
-//что блокирует шину данных, когда зовём rand при линковке с многопоточной библиотекой.
-//Если перенести этот код на многопроцессорную машину, где лок шины данных будет настоящий,
-//а не "понарошку" - то я не знаю сколько будет.Вот код для тестирования:
-void show_rand(){
-    volatile int x;
-    int n = 10000000;
-    clock_t t = clock();
-    for (int i = 0; i < n; ++i) x = rand();
-    std::cout << int(double(n) * CLOCKS_PER_SEC / (clock() - t));
-}
 
 
 
-int main(){
-
-    show_pointer_arithmetic();
-
-    show_bits();
-    show_integers();
-    show_shift();
-
-    show_floating_point();
-
-    show_universal_fast_float2int();
-
-    show_cmath_fpoint_operations();
-
-    // does not work as expected
-    show_fp_coltrol_noexcept();
-    show_fp_coltrol();
-
-    show_close_enough();
-    show_fast_float2int();
-    show_fast_sqrt();
-
-    // example from rsdn
-    show_array_pointers();
-
-    show_enumerations();
-    show_name_convensions(5);
-    show_pointer();
-    show_references();
-    show_ifs(-1);
-    show_rand();
-    show_hamming_weight();
-    show_MXCSR_registry();
+int main()
+{
     return 0;
 }

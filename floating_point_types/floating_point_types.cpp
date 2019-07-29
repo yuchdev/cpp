@@ -8,34 +8,8 @@
 #include <cfloat>
 #include <cstdint>
 
-//This header also defines the following macro constants :
-//MATH_ERRNO
-//MATH_ERREXCEPT
-//Bitmask value with the possible values math_errhandling can take.
-//
-//FP_FAST_FMA
-//FP_FAST_FMAF
-//FP_FAST_FMAL
-//Each, if defined, identifies for which type fma is at least as efficient as x*y + z.
-//
-//FP_INFINITE
-//FP_NAN
-//FP_NORMAL
-//FP_SUBNORMAL
-//FP_ZERO
-//The possible values returned by fpclassify.
-//
-//FP_ILOGB0
-//FP_ILOGBNAN
-//Special values the ilogb function may return.
-
 // for atan2
 #include <valarray>
-
-#include "bit_operations.h"
-
-using namespace std;
-
 
 
 /*
@@ -80,10 +54,7 @@ Two kinds of NaN: a quiet NaN (qNaN) and a signaling NaN (sNaN)
 
 Системы компьютерной алгебры, как Maxima или Mathematica, часто "знают" точное представление
 основных трансцендентных чисел (e, pi, sqrt(2), sqrt(3),...)
-*/
 
-/*
-http://habrahabr.ru/post/112953/
 s E        M
 1 11111111 11111111111111111111111
 (-1)^s * M * B^E, где s - знак, B - основание, E - порядок, M - мантисса
@@ -101,7 +72,7 @@ void print_double_binary(double d1){
     long long* double_hack = reinterpret_cast<long long*>(&d1);
     static_assert(sizeof(d1) == sizeof(*double_hack), "Double and long long should have equal size");
 
-    cout << "Binary representation of " << d1 << " =\n\t " << *double_hack
+    std::cout << "Binary representation of " << d1 << " =\n\t " << *double_hack
         << " =\n\t " << bitset<sizeof(double)*8>(*double_hack) << '\n';
 }
 
@@ -109,7 +80,7 @@ void print_float_binary(float f1){
     long* float_hack = reinterpret_cast<long*>(&f1);
     static_assert(sizeof(f1) == sizeof(*float_hack), "Float and long should have equal size");
 
-    cout << "Binary representation of " << f1 << " =\n\t " << *float_hack
+    std::cout << "Binary representation of " << f1 << " =\n\t " << *float_hack
         << " =\n\t " << bitset<sizeof(float)* 8>(*float_hack) << '\n';
 }
 
@@ -167,9 +138,9 @@ void extract_fp_components(T val){
         (f.dw & 0x7FFFFF) << 1;
 
     e -= 127;
-    cout << "sign = " << s
+    std::cout << "sign = " << s
         << " mantissa = " << m
-        << " exponent = " << e << endl;
+        << " exponent = " << e << '\n';
 }
 
 // объяснение формата мантиссы
@@ -195,7 +166,7 @@ void extract_fp_components(float val){
     // extract mantissa
     int mantissa = f.dw & 0x7FFFFF;
 
-    cout << "Mantissa binary representation = "<< bitset<32>(mantissa) << endl;
+    std::cout << "Mantissa binary representation = "<< bitset<32>(mantissa) << '\n';
 
     int m =
         e ?
@@ -207,7 +178,7 @@ void extract_fp_components(float val){
     // exponenta shift
     e -= 127;
 
-    cout << "s = " << s << "; e =  " << e << "; m(2) = " << m << "; m(10) = " << m1 << endl;
+    std::cout << "s = " << s << "; e =  " << e << "; m(2) = " << m << "; m(10) = " << m1 << '\n';
 
 }
 
@@ -312,13 +283,9 @@ void show_double(){
 }
 
 
-void show_floating_point(){
-    show_float();
-    show_double();
-}
 
 void print_roundings_header(){
-    cout
+    std::cout
         << "val" << '\t'
         << "ceil" << '\t'
         << "floor" << '\t'
@@ -332,9 +299,9 @@ void print_roundings_header(){
 
 
 void print_roundings(double val){
-    cout << fixed;
-    cout << setprecision(4);
-    cout
+    std::cout << fixed;
+    std::cout << setprecision(4);
+    std::cout
         << val << '\t'
         << ceil(val) << '\t'
         << floor(val) << '\t'
@@ -348,34 +315,32 @@ void print_roundings(double val){
 
 void print_fpclassify(double val){
     int val_type = fpclassify(val);
-    cout << val << " is ";
+    std::cout << val << " is ";
     switch (val_type)
     {
     case FP_INFINITE:
-        cout << "infinite" << endl;
+        std::cout << "infinite" << '\n';
         break;
     case FP_NAN:
-        cout << "NaN" << endl;
+        std::cout << "NaN" << '\n';
         break;
     case FP_ZERO:
-        cout << "zero" << endl;
+        std::cout << "zero" << '\n';
         break;
     case FP_SUBNORMAL:
-        cout << "subnormal" << endl;
+        std::cout << "subnormal" << '\n';
         break;
     case FP_NORMAL:
-        cout << "normal";
-        if (signbit(val))
-        {
-            cout << " negative" << endl;
+        std::cout << "normal";
+        if (signbit(val)) {
+            std::cout << " negative" << '\n';
         }
-        else
-        {
-            cout << " positive or unsigned" << endl;
+        else {
+            std::cout << " positive or unsigned" << '\n';
         }
         break;
     default:
-        cout << "Error! Should not be here!" << endl;
+        std::cout << "Error! Should not be here!" << '\n';
     }
 }
 
@@ -386,25 +351,25 @@ void show_cmath_fpoint_operations(){
     double pi = M_PI;
 
     double c1 = cos(pi);
-    cout << "cos PI = " << c1 << '\n';
+    std::cout << "cos PI = " << c1 << '\n';
 
     double s1 = sin(pi); // close to 0, but not a 0
-    cout << "sin PI = " << s1 << '\n';
+    std::cout << "sin PI = " << s1 << '\n';
 
     double t1 = tan(pi);
-    cout << "tan PI = " << t1 << '\n';
+    std::cout << "tan PI = " << t1 << '\n';
 
     double ac1 = acos(c1);
-    cout << "acos c1 = " << ac1 << '\n';
+    std::cout << "acos c1 = " << ac1 << '\n';
 
     double as1 = asin(s1);
-    cout << "asin s1 = " << as1 << '\n';
+    std::cout << "asin s1 = " << as1 << '\n';
 
     double at1 = atan(t1);
-    cout << "atan t1 = " << at1 << '\n';
+    std::cout << "atan t1 = " << at1 << '\n';
 
     double at2 = atan2( 1.0, 2.0 );
-    cout << "atan2 1/2 = " << at2 << '\n';
+    std::cout << "atan2 1/2 = " << at2 << '\n';
 
     // Hyperbolic supported as well
 
@@ -412,7 +377,7 @@ void show_cmath_fpoint_operations(){
     double param = 5.0;
 
     double result = exp(param);
-    cout << "exp (" << param << ") = " << result << "\n";
+    std::cout << "exp (" << param << ") = " << result << "\n";
 
     // Breaks the floating point number x into its binary significand
     // (a floating point value between 0.5(included)and 1.0(excluded))
@@ -421,11 +386,11 @@ void show_cmath_fpoint_operations(){
     int n = 0;
     param = 8.0;
     result = frexp(param, &n);
-    cout << param << " = " << result << "*2^" << n << '\n';
+    std::cout << param << " = " << result << "*2^" << n << '\n';
 
     // Compose value back
     double back = ldexp(result, n);
-    cout << back << " = " << result << "*2^" << n << '\n';
+    std::cout << back << " = " << result << "*2^" << n << '\n';
 
     // ln and lg are calculated as well
 
@@ -433,34 +398,34 @@ void show_cmath_fpoint_operations(){
     double fractpart = 0.0;
     double intpart = 0.0;
     fractpart = modf(pi, &intpart);
-    cout << pi << " = " << intpart << " + " << fractpart << '\n';
+    std::cout << pi << " = " << intpart << " + " << fractpart << '\n';
 
     // exp2() returns the base-2 exponential function of x
     // which is 2 raised to the power x
     param = 8.0;
     double e2 = exp2(param);
-    cout << "2 ^ " << param << " = " << e2 << '\n';
+    std::cout << "2 ^ " << param << " = " << e2 << '\n';
 
     // expm1() returns e raised to the power x minus one : e^x - 1
-    cout << "expm1(1.0) = e^x - 1 = " << expm1(1.0) << '\n';
+    std::cout << "expm1(1.0) = e^x - 1 = " << expm1(1.0) << '\n';
 
     // logb() returns the integral part of the logarithm of |x|, using FLT_RADIX as base
     // log1p() returns the natural logarithm of one plus x (log(1+x))
     // log2() returns the binary(base - 2) logarithm of x
-    cout << "log(10.0) = " << log(10.0) << '\n';
-    cout << "logb(10.0) = " << ilogb(10.0) << '\n';
-    cout << "log1p(10.0) = log(1+x) = " << log1p(10.0) << '\n';
-    cout << "log2(1024) = " << log2(1024) << '\n';
+    std::cout << "log(10.0) = " << log(10.0) << '\n';
+    std::cout << "logb(10.0) = " << ilogb(10.0) << '\n';
+    std::cout << "log1p(10.0) = log(1+x) = " << log1p(10.0) << '\n';
+    std::cout << "log2(1024) = " << log2(1024) << '\n';
 
     // scalbn(x, n) = x * FLT_RADIX^n
     // scalbln(x, n) = ?
     double x = 2.0;
     int n1 = 4;
-    cout << "FLT_RADIX = " << FLT_RADIX << '\n';
-    cout << "x = " << x << '\n';
-    cout << "n1 = " << n1 << '\n';
-    cout << "scalbn(x, n) = x * FLT_RADIX^n = " << scalbn(x, n1) << '\n';
-    cout << "scalbln(x, n) (?)= " << scalbln(x, n1) << '\n';
+    std::cout << "FLT_RADIX = " << FLT_RADIX << '\n';
+    std::cout << "x = " << x << '\n';
+    std::cout << "n1 = " << n1 << '\n';
+    std::cout << "scalbn(x, n) = x * FLT_RADIX^n = " << scalbn(x, n1) << '\n';
+    std::cout << "scalbln(x, n) (?)= " << scalbln(x, n1) << '\n';
 
     // Roundings
     print_roundings_header();
@@ -474,28 +439,28 @@ void show_cmath_fpoint_operations(){
     print_roundings(2.8);
 
     // Power functions
-    cout << "sqrt(2.0) = " << sqrt(2.0) << '\n';
-    cout << "cbrt(2.0) = " << cbrt(2.0) << '\n';
+    std::cout << "sqrt(2.0) = " << sqrt(2.0) << '\n';
+    std::cout << "cbrt(2.0) = " << cbrt(2.0) << '\n';
 
     // hypot() returns the hypotenuse of a right - angled triangle whose legs are x and y
-    cout << "Hypotenuse of (3, 4) =" << hypot(3, 4) << '\n';
+    std::cout << "Hypotenuse of (3, 4) =" << hypot(3, 4) << '\n';
 
     // Error function/Gamma function (probability, statistics, PDE)
     // http://en.wikipedia.org/wiki/Error_function
     // http://en.wikipedia.org/wiki/Gamma_function
-    cout << "Error function of 1 =" << erf(1.0) << '\n';
-    cout << "Complimentary error function of 1 =" << erfc(1.0) << '\n';
-    cout << "Gamma function of 1 =" << tgamma(1.0) << '\n';
-    cout << "Log of Gamma function of 1 =" << tgammal(1.0) << '\n';
+    std::cout << "Error function of 1 =" << erf(1.0) << '\n';
+    std::cout << "Complimentary error function of 1 =" << erfc(1.0) << '\n';
+    std::cout << "Gamma function of 1 =" << tgamma(1.0) << '\n';
+    std::cout << "Log of Gamma function of 1 =" << tgammal(1.0) << '\n';
 
     // copysign copies sign of second value to the first
-    cout << "copysign(-10.0, 1.0)" << copysign(-10.0, 1.0) << '\n';
-    cout << "copysign(-10.0, -1.0)" << copysign(-10.0, -1.0) << '\n';
-    cout << "copysign(10.0, -1.0)" << copysign(10.0, -1.0) << '\n';
+    std::cout << "copysign(-10.0, 1.0)" << copysign(-10.0, 1.0) << '\n';
+    std::cout << "copysign(-10.0, -1.0)" << copysign(-10.0, -1.0) << '\n';
+    std::cout << "copysign(10.0, -1.0)" << copysign(10.0, -1.0) << '\n';
 
     // nextafter() returns the next representable value after x in the direction of y
-    cout << "Next representable value after 0 = " << nextafter(0.0, 1.0) << '\n';
-    cout << "Next representable value before 0 = " << nextafter(0.0, -1.0) << '\n';
+    std::cout << "Next representable value after 0 = " << nextafter(0.0, 1.0) << '\n';
+    std::cout << "Next representable value before 0 = " << nextafter(0.0, -1.0) << '\n';
     // nexttoward() the same with long y
 
     // NAN (not a number)
@@ -504,27 +469,27 @@ void show_cmath_fpoint_operations(){
     // Generate quiet NAN (const char* param is implementation-specific)
     double nn = nan("");
     float nf = nanf("");
-    cout << "For " << nn << " isnan(nn) = " << std::isnan(nn) << '\n';
-    cout << "For " << nf << " isnan(nf) = " << std::isnan(nf) << '\n';
-    cout << "For " << "isnan sqrt(-1.0) = " << std::isnan(sqrt(-1.0)) << '\n';
+    std::cout << "For " << nn << " isnan(nn) = " << std::isnan(nn) << '\n';
+    std::cout << "For " << nf << " isnan(nf) = " << std::isnan(nf) << '\n';
+    std::cout << "For " << "isnan sqrt(-1.0) = " << std::isnan(sqrt(-1.0)) << '\n';
     // isnormal is opposite to isnan, but also checks for INF and 0
-    cout << "For " << "isnormal sqrt(-1.0) = " << isnormal(sqrt(-1.0)) << '\n';
+    std::cout << "For " << "isnormal sqrt(-1.0) = " << isnormal(sqrt(-1.0)) << '\n';
 
     // isunordered() check at least one of values is NAN
     if (isunordered(sqrt(-1.0), 0.0))
-        cout << "sqrt(-1.0) and 0.0 cannot be ordered\n";
+        std::cout << "sqrt(-1.0) and 0.0 cannot be ordered\n";
 
     double myinf = INFINITY;
     if ((1 / sin(0.0) == myinf) && (!isnormal(myinf)))
     {
-        cout << "1/0 is " << myinf << '\n';
+        std::cout << "1/0 is " << myinf << '\n';
     }
 
     // Value is too large
     double huge = pow(10.0, 1000000000);
     if (huge == HUGE_VAL)
     {
-        cout << huge << " is HUGE_VAL\n";
+        std::cout << huge << " is HUGE_VAL\n";
     }
 
     // fpclassify() returns a value of type int that matches one of the classification macro constants
@@ -721,29 +686,29 @@ typename TPTraits<FP>::ret_type fast_fp2long(FP f)
 void show_universal_fast_float2int(){
     float f = 1.0;
     int i = fast_fp2long(f);
-    cout << f << " -> " << i << endl;
+    std::cout << f << " -> " << i << '\n';
 
     f = 1.5;
     i = fast_fp2long(f);
-    cout << f << " -> " << i << endl;
+    std::cout << f << " -> " << i << '\n';
 
     f = -1.5;
     i = fast_fp2long(f);
-    cout << f << " -> " << i << endl;
+    std::cout << f << " -> " << i << '\n';
 
 
 
     double d = 1.0;
     i = fast_fp2long(d);
-    cout << d << " -> " << i << endl;
+    std::cout << d << " -> " << i << '\n';
 
     d = 1.5;
     i = fast_fp2long(d);
-    cout << d << " -> " << i << endl;
+    std::cout << d << " -> " << i << '\n';
 
     d = -1.5;
     i = fast_fp2long(d);
-    cout << d << " -> " << i << endl;
+    std::cout << d << " -> " << i << '\n';
 }
 
 
@@ -770,15 +735,15 @@ int fast_float2int_debug(float x)
     равна целой части нашего исходного аргумента.
 
     */
-    cout << "\nConverting to int x = " << x << endl;
+    std::cout << "\nConverting to int x = " << x << '\n';
     const int magic1 = (150 << 23);
-    cout << "magic1 = " << bitset<32>(magic1) << endl;
+    std::cout << "magic1 = " << bitset<32>(magic1) << '\n';
 
     const int magic2 = (1 << 22);
-    cout << "magic2 = " << bitset<32>(magic2) << endl;
+    std::cout << "magic2 = " << bitset<32>(magic2) << '\n';
 
     int magic = magic1 | magic2;
-    cout << "magic =  " << bitset<32>(magic) << endl;
+    std::cout << "magic =  " << bitset<32>(magic) << '\n';
 
     /*
     С отрицательным же числом этот номер не пройдет, потому что после сложений произойдет
@@ -792,11 +757,11 @@ int fast_float2int_debug(float x)
 
     // append to the converted number
     // float representation of the magic integer mask
-    cout << "x =  " << x << ", x2 = " << bitset<32>(x) << endl;
-    cout << "magic =  " << *(reinterpret_cast<float*>(&magic)) << ", magic2 = " << bitset<32>(magic) << endl;
-    cout << "x += magic" << endl;
+    std::cout << "x =  " << x << ", x2 = " << bitset<32>(x) << '\n';
+    std::cout << "magic =  " << *(reinterpret_cast<float*>(&magic)) << ", magic2 = " << bitset<32>(magic) << '\n';
+    std::cout << "x += magic" << '\n';
     x += *(reinterpret_cast<float*>(&magic));
-    cout << "x  = " << x << " x2 = " << bitset<32>(x) << endl;
+    std::cout << "x  = " << x << " x2 = " << bitset<32>(x) << '\n';
 
     /*
     После сдвига хорошо бы почистить старшие разряды от экспоненты и знака.
@@ -818,11 +783,11 @@ int fast_float2int_debug(float x)
 
     // subtract from integer representation of the converted number
     // magic int mask
-    cout << "x = " << bitset<32>(*(reinterpret_cast<int*>(&x))) << endl;
-    cout << "magic = " << bitset<32>(magic) << endl;
+    std::cout << "x = " << bitset<32>(*(reinterpret_cast<int*>(&x))) << '\n';
+    std::cout << "magic = " << bitset<32>(magic) << '\n';
     int res = *(reinterpret_cast<int*>(&x)) - magic;
 
-    cout << "x - magic = " << res << " res2 = " << bitset<32>(res) << endl;
+    std::cout << "x - magic = " << res << " res2 = " << bitset<32>(res) << '\n';
     return res;
     /*
     Сишное приведение вызовет функцию _ftol, которая помимо использования медленной инструкции для конверсии
@@ -946,23 +911,24 @@ static int popcount(uint32_t i)
 void show_hamming_weight()
 {
     int bits1 = popcount_1(1);
-    cout << "Hamming weight(1) = " << bits1 << endl;
+    std::cout << "Hamming weight(1) = " << bits1 << '\n';
 
     int bits2 = popcount_2(2);
-    cout << "Hamming weight(2) = " << bits2 << endl;
+    std::cout << "Hamming weight(2) = " << bits2 << '\n';
 
     int bits3 = popcount_3(3);
-    cout << "Hamming weight(3) = " << bits3 << endl;
+    std::cout << "Hamming weight(3) = " << bits3 << '\n';
 
     int bits4 = popcount_4(8);
-    cout << "Hamming weight(8) = " << bits4 << endl;
+    std::cout << "Hamming weight(8) = " << bits4 << '\n';
 }
 
 int show_MXCSR_registry()
 {
-    set_fp_exceptions();
+    // TODO:
+    // set_fp_exceptions();
     // Floating-point overflow
-    cout << exp(3671.81) << endl;
+    std::cout << exp(3671.81) << '\n';
 }
 
 // Switch on access to floating-point environment
@@ -976,13 +942,13 @@ void show_close_enough()
     double d = 1.0;
     double e = nextafter(d, 1000.0);
     if (close_enough(d, e))
-        cout << d << " == " << e << endl;
+        std::cout << d << " == " << e << '\n';
 
 
     d = 0.00000000000000000001;
     e = nextafter(d, 1.0);
     if (close_enough(d, e))
-        cout << d << " == " << e << endl;
+        std::cout << d << " == " << e << '\n';
 }
 
 void show_fast_float2int()
@@ -990,31 +956,31 @@ void show_fast_float2int()
     float f = 1.0;
     int i = fast_float2int(f);
     int i1 = fast_float2int_debug(f);
-    cout << f << " -> " << i << endl;
+    std::cout << f << " -> " << i << '\n';
 
 
     f = 1.1;
     i = fast_float2int(f);
     i1 = fast_float2int_debug(f);
-    cout << f << " -> " << i << endl;
+    std::cout << f << " -> " << i << '\n';
 
     f = 1.5;
     i = fast_float2int(f);
     i1 = fast_float2int_debug(f);
-    cout << f << " -> " << i << endl;
+    std::cout << f << " -> " << i << '\n';
 
     f = 2.0;
     i = fast_float2int(f);
     i1 = fast_float2int_debug(f);
-    cout << f << " -> " << i << endl;
+    std::cout << f << " -> " << i << '\n';
 
     f = 10.0;
     i = fast_float2int(f);
-    cout << f << " -> " << i << endl;
+    std::cout << f << " -> " << i << '\n';
 
     double d = 1.0;
     i = fast_double2int(d);
-    cout << d << " -> " << i << endl;
+    std::cout << d << " -> " << i << '\n';
 }
 
 void show_fast_sqrt()
@@ -1022,19 +988,19 @@ void show_fast_sqrt()
 
     float f = 4.0;
     float i = quick_rsqrt(f);
-    cout << "sqrt " << f << " = " << 1 / i << endl;
+    std::cout << "sqrt " << f << " = " << 1 / i << '\n';
 
     f = 16.0;
     i = quick_rsqrt(f);
-    cout << "sqrt " << f << " = " << 1 / i << endl;
+    std::cout << "sqrt " << f << " = " << 1 / i << '\n';
 
     f = 2.0;
     i = quick_rsqrt(f);
-    cout << "sqrt " << f << " = " << 1 / i << endl;
+    std::cout << "sqrt " << f << " = " << 1 / i << '\n';
 
     f = -1.0;
     i = quick_rsqrt(f);
-    cout << "sqrt " << f << " = " << 1 / i << endl;
+    std::cout << "sqrt " << f << " = " << 1 / i << '\n';
 }
 
 
@@ -1147,11 +1113,11 @@ void show_fp_coltrol(){
 
 	// получить текущее окружение FP
 	ret = fegetenv(&fenv);
-	cout << "fegetenv() returned " << ret << endl; // 0 is no errors
+	std::cout << "fegetenv() returned " << ret << '\n'; // 0 is no errors
 
 	// pair function setting fenv_t
 	ret = fesetenv(&fenv);
-	cout << "fesetenv() returned " << ret << endl; // 0 is no errors
+	std::cout << "fesetenv() returned " << ret << '\n'; // 0 is no errors
 
 	// Attempts to clear the floating-point exceptions specified
 	feclearexcept(FE_ALL_EXCEPT);
@@ -1169,9 +1135,9 @@ void show_fp_coltrol(){
 	// Подобные манипуляции полезны, когда массовые вычисления производятся в безостановочном режиме, 
 	// а затем режим меняется и обрабатывается все то нехорошее, что накопилось за это время.
 	feupdateenv(&fe);
-	cout << "log 0 = " << x << endl;
+	std::cout << "log 0 = " << x << '\n';
 	if (!fetestexcept(FE_ALL_EXCEPT))
-		cout << "no exceptions raised" << endl;
+		std::cout << "no exceptions raised" << '\n';
 }
 
 
