@@ -25,4 +25,4 @@ endif()
 
 ########################################################
 
-add_subdirectory(bitwise_operations)
+add_subdirectory(integer_types)
