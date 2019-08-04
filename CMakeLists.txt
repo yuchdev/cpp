@@ -2,10 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 project(cpp CXX)
 set(TARGET cpp)
 
-# CMake policies
-cmake_policy(SET CMP0015 NEW)
-
-
 if( ("UNIX") AND ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang") )
 
     # using Clang
