@@ -11,15 +11,129 @@
 // for atan2
 #include <valarray>
 
+/// Returns bitset with bitwise representation of 'value'
+template <typename T>
+std::bitset<sizeof(T) * 8> bitwise(T value)
+{
+    constexpr size_t bits_size = sizeof(T) * 8;
+    return std::bitset<bits_size>(value);
+}
+
+
+// 1.Floating-point format
+// https://en.wikipedia.org/wiki/Floating-point_arithmetic
+
+// The term floating point (FP) refers to the fact that a number's decimal point can "float",
+// in the other words, it can be placed anywhere relative to the significant digits of the number.
+// For example:
+// 0.1
+// 0.001
+// 0.00...0001
+// 10000000000
+// 5*10^-10; 7*10^9
+
+// In computing, floating-point arithmetic (FP) is arithmetic 
+// using formulaic representation of real numbers as an approximation 
+// so as to support a trade-off between range and precision.
+// Representation:
+// FP_Number = Significand * Base^Exponent
+// 1.2345 = 12345 * 10^-4
+// All these numbers are "packed" in 32, 64 or 128 bit value
+void floating_point_representation()
+{
+    // Single precision
+    float float_numbers[] = {1.0, 1.5, 0.75};
+
+    for (auto float_number : float_numbers) {
+
+        long* float_hack = reinterpret_cast<long*>(&float_number);
+        static_assert(sizeof(float_number) == sizeof(*float_hack), "Float and long should have equal size");
+        std::cout << "Binary representation of " << float_number << " =\n\t " << *float_hack
+            << " =\n\t " << bitwise(*float_hack) << '\n';
+    }
+
+    // Double precision
+    double double_numbers[] = { 1.0, 1.5, 0.75 };
+
+    for (auto double_number : double_numbers) {
+        long long* double_hack = reinterpret_cast<long long*>(&double_number);
+        static_assert(sizeof(double_number) == sizeof(*double_hack), "Double and long long should have equal size");
+
+        std::cout << "Binary representation of " << double_number << " =\n\t " << *double_hack
+            << " =\n\t " << bitwise(*double_hack) << '\n';
+    }
+}
+
+// 2."Extract" sign bit, significand and exponent
+// * Before significand we always assume 1.
+// * Effective exponent is exponent_value-127
+void extract_fp_components(float val)
+{
+    static_assert(sizeof(long) == sizeof(float), "sizeof(long) should be equal sizeof(float)");
+
+    union
+    {
+        float floating_number;
+        long bitwise_representation;
+    } float_bits;
+
+    float_bits.floating_number = val;
+
+    // extract sign bit
+    long sign_bit = (float_bits.bitwise_representation >> 31) ? -1 : 1;
+
+    // extract exponent
+    long exponent = (float_bits.bitwise_representation >> 23) & 0xFF;
+
+    // extract significand
+    long significand = float_bits.bitwise_representation & 0x7FFFFF;
+
+    std::cout << "Mantissa binary representation = " << bitwise(significand) << '\n';
+
+    int m =
+        exponent ?
+        significand | 0x800000 :
+        significand << 1;
+
+    double m1 = double(m) / pow(2., 23.);
+
+    // exponent shift
+    exponent -= 127;
+
+    std::cout << "s = " << sign_bit << "; e =  " << exponent << "; m(2) = " << m << "; m(10) = " << m1 << '\n';
+}
+
+// 1.0 = 0 01111111 00000000000000000000000
+// E = 01111111 = 127 - 127 = 0
+// 1.0 = (-1)^s * 1.M * 2^E = (1-)^0 * 1.000 * 2^0 = 1.0
+
+//       s E        M
+// 1.5 = 0 01111111 10000000000000000000000
+// E = 01111111 = 127 - 127 = 0
+// 1.1(2) = 2^0 + 2^(-1) = 1 + 1/2 = 1.5
+// 1.5 = (-1)^s * 1.M * 2^E = (1-)^0 * 1.1(2) * 2^0 = 1.5
+
+
+// 3.Why should we "trade off between range and precision"?
+// 4.Floating point comparation
+
+void compare_floating_point()
+{
+    double d1 = 0;
+    double d2 = sin(1.0);
+
+    if (d1 == d2) {
+        // it's not that scary
+    }
+
+    // TODO: get PI 2 methods
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 
 /*
 http://en.wikipedia.org/wiki/Floating_point
-
-Число с плавающей запятой состоит из:
-Знака мантиссы(указывающего на отрицательность или положительность числа)
-Мантиссы(выражающей значение числа без учёта порядка) (Significand)
-Знака порядка
-Порядка(выражающего степень основания числа, на которое умножается мантисса) (Exponent)
 
 Нормальной формой числа с плавающей запятой называется такая форма, в которой мантисса
 (без учёта знака) в десятичной системе находится на полуинтервале [0; 1).
@@ -67,22 +181,6 @@ B=2
 Эффективный порядок определяется как E-127
 */
 
-void print_double_binary(double d1){
-
-    long long* double_hack = reinterpret_cast<long long*>(&d1);
-    static_assert(sizeof(d1) == sizeof(*double_hack), "Double and long long should have equal size");
-
-    std::cout << "Binary representation of " << d1 << " =\n\t " << *double_hack
-        << " =\n\t " << bitset<sizeof(double)*8>(*double_hack) << '\n';
-}
-
-void print_float_binary(float f1){
-    long* float_hack = reinterpret_cast<long*>(&f1);
-    static_assert(sizeof(f1) == sizeof(*float_hack), "Float and long should have equal size");
-
-    std::cout << "Binary representation of " << f1 << " =\n\t " << *float_hack
-        << " =\n\t " << bitset<sizeof(float)* 8>(*float_hack) << '\n';
-}
 
 // Порядок записан со сдвигом - 15.
 // То есть чтобы получить актуально значение порядка нужно вычесть из него сдвиг.
@@ -98,9 +196,7 @@ void print_float_binary(float f1){
 //Целые от 32769 до 65535 округляются до ближайшего целого, делящегося на 32.
 
 
-// Bit access to float
-// http://en.wikipedia.org/wiki/Single-precision_floating-point_format
-// (see russian version)
+// 
 
 // fraction same as mantissa
 template <typename T>
@@ -108,21 +204,21 @@ struct floating_point_traits{};
 
 template <>
 struct floating_point_traits<float>{
-    static const size_t significand = 23;
-    static const size_t exponent = 31;
+    static constexpr size_t significand = 23;
+    static constexpr size_t exponent = 31;
 };
 
 template <>
 struct floating_point_traits<double>{
-    static const size_t significand = 52;
-    static const size_t exponent = 63;
+    static constexpr size_t significand = 52;
+    static constexpr size_t exponent = 63;
 };
 
 template <typename T>
 void extract_fp_components(T val){
 
-    static const size_t exponent = floating_point_traits<T>::exponent;
-    static const size_t fraction = floating_point_traits<T>::significand;
+    static constexpr size_t exponent = floating_point_traits<T>::exponent;
+    static constexpr size_t significand = floating_point_traits<T>::significand;
 
     union
     {
@@ -131,7 +227,7 @@ void extract_fp_components(T val){
     } f;
     f.fl = val;
     int s = (f.dw >> exponent) ? -1 : 1;
-    int e = (f.dw >> fraction) & 0xFF;
+    int e = (f.dw >> significand) & 0xFF;
     int m =
         e ?
         (f.dw & 0x7FFFFF) | 0x800000 :
@@ -143,146 +239,34 @@ void extract_fp_components(T val){
         << " exponent = " << e << '\n';
 }
 
-// объяснение формата мантиссы
-// http://www.rsdn.ru/forum/cpp/5573790.1
-void extract_fp_components(float val){
-
-    static_assert(sizeof(long) == sizeof(float), "sizeof(long) should be equal sizeof(float)");
-
-    union
-    {
-        float fl;
-        long dw;
-    }f;
-
-    f.fl = val;
-
-    // extract sign bit
-    int s = (f.dw >> 31) ? -1 : 1;
-
-    // extract exponent
-    int e = (f.dw >> 23) & 0xFF;
-
-    // extract mantissa
-    int mantissa = f.dw & 0x7FFFFF;
-
-    std::cout << "Mantissa binary representation = "<< bitset<32>(mantissa) << '\n';
-
-    int m =
-        e ?
-        mantissa | 0x800000 :
-        mantissa << 1;
-
-    double m1 = double(m) / pow(2., 23.);
-
-    // exponenta shift
-    e -= 127;
-
-    std::cout << "s = " << s << "; e =  " << e << "; m(2) = " << m << "; m(10) = " << m1 << '\n';
-
-}
-
-
-void show_float(){
-
-    // Перед мантиссой всегда 1.!
-    // Эффективный порядок определяется как E-127!
-
-    // see float conversion formula at
-    // http://en.wikipedia.org/wiki/Single-precision_floating-point_format
-
-    //       s E        M
-    // 1.0 = 0 01111111 00000000000000000000000
-    // E = 01111111 = 127 - 127 = 0
-    // 1.0 = (-1)^s * 1.M * 2^E = (1-)^0 * 1.000 * 2^0 = 1.0
-    float d = 1.0;
-    print_float_binary(d);
-    extract_fp_components(d);
-
-
-    //       s E        M
-    // 1.5 = 0 01111111 10000000000000000000000
-    // E = 01111111 = 127 - 127 = 0
-    // 1.1(2) = 2^0 + 2^(-1) = 1 + 1/2 = 1.5
-    // 1.5 = (-1)^s * 1.M * 2^E = (1-)^0 * 1.1(2) * 2^0 = 1.5
-    d = 1.5;
-    print_float_binary(d);
-    extract_fp_components(d);
-
-    // 0.15 = 0 01111100 00110011001100110011010
-    // E = 01111100 = 124-127 = -3
-    // 1.00110011001100110011010 = 2^(-3) + 0^(-4) + 0^(-5) + 2^(-5) + 2^(-6) + ...
-    // 0.15 = (-1)^s * 1.M * 2^E = (1-)^0 * 1.00110011001100110011010(2) * 2^(-3) = 1.5
-    d = 0.15;
-    print_float_binary(d);
-    extract_fp_components(d);
-}
-
-
-
-
-void show_double(){
-
-    // Double slower than float (single-precision)
-    //  On average, on a PC of year 2012 build,
-    // on CPUs calculations with double precision are 1.1–1.6 times slower than with single precision
-    // on GPUs calculations with double precision are 3 to 8 times slower than float
-
-    // 1.0 = 0 01111111111 0000000000000000000000000000000000000000000000000000
-    // s = 0 (+)
-    // E = 01111111111(2)-1023(10) = 1023-1023 = 0
-    // M = 0
-    // 1.0 = s * 1.M * 2^E = 1 * 1.0 * 2^0
-    print_double_binary(1.0);
-
-    // changed sign bit
-
-    //-1.0 = 1 01111111111 0000000000000000000000000000000000000000000000000000
-    // s = 1 (-)
-    // E = 01111111111(2)-1023(10) = 1023-1023 = 0
-    // M = 0
-    //-1.0 = s * 1.M * 2^E = -1 * 1.0 * 2^0
-    print_double_binary(-1.0);
-
-    // 1.5 = 0 01111111111 1000000000000000000000000000000000000000000000000000
-    // s = 0 (+)
-    // E = 01111111111(2)-1023(10) = 1023-1023 = 0
-    // M = 1(2) = 1 * 2^(-1) = 1/2 = 0.5
-    // 1.0 = s * 1.M * 2^E = 1 * 1.M * 2^0 = 1 * 1.5 * 2^0
-    print_double_binary(1.5);
-
-    // 2.0 = 0 10000000000 0000000000000000000000000000000000000000000000000000
-    // s = 0 (+)
-    // E = (2)-1023(10) = 1024-1023 = 1
-    // M = 0
-    // 2.0 = s * 1.M * 2^E = 1 * 1.M * 2^E = 1 * 1.0 * 2^1
-    print_double_binary(2.0);
-
-
-    // 1e9 = 0 10000011100 1101110011010110010100000000000000000000000000000000
-    // s = 0 (+)
-    // E = 10000011100(2)-1023(10) = 1052-1023 = 29
-    // M = 1101110011010110010100000000000000000000000000000000
-    // 1.1101110011010110010100000000000000000000000000000000 = 1*2^(-29) + 1*2^(-28) + 0*2^(-27) + ...
-    // 1e9 = s * 1.M * 2^E
-    print_double_binary(1000000000.0);
-
-    // etc
-
-    //1.5e9= 0 10000011101 0110010110100000101111000000000000000000000000000000
-    print_double_binary(1500000000.0);
-
-    // 2e9 = 0 10000011101 1101110011010110010100000000000000000000000000000000
-    print_double_binary(2000000000.0);
-
     //0x 0000 0000 0000 0000 = 0
     //0x 8000 0000 0000 0000 = -0
     //0x 7ff0 0000 0000 0000 = Infinity
     //0x fff0 0000 0000 0000 = -Infinity
     //0x 7fff ffff ffff ffff = NaN
+
+
+// Switch on access to floating-point environment
+//http://www.cplusplus.com/reference/cfenv/FENV_ACCESS/
+#pragma STDC FENV_ACCESS ON
+
+void show_close_enough()
+{
+
+    // nextafter() returns the next representable value after x in the direction of y
+    double d = 1.0;
+    double e = nextafter(d, 1000.0);
+    if (close_enough(d, e))
+        std::cout << d << " == " << e << '\n';
+
+
+    d = 0.00000000000000000001;
+    e = nextafter(d, 1.0);
+    if (close_enough(d, e))
+        std::cout << d << " == " << e << '\n';
 }
 
-
+// 4.Floating point functions and applications
 
 void print_roundings_header(){
     std::cout
@@ -299,8 +283,8 @@ void print_roundings_header(){
 
 
 void print_roundings(double val){
-    std::cout << fixed;
-    std::cout << setprecision(4);
+    std::cout << std::fixed;
+    std::cout << std::setprecision(4);
     std::cout
         << val << '\t'
         << ceil(val) << '\t'
@@ -312,6 +296,17 @@ void print_roundings(double val){
         << lrint(val) << '\t'
         << nearbyint(val) << '\n';
 }
+
+//// Roundings
+//print_roundings_header();
+//print_roundings(0.0);
+//print_roundings(0.3);
+//print_roundings(0.5);
+//print_roundings(0.8);
+//print_roundings(1.3);
+//print_roundings(2.3);
+//print_roundings(2.5);
+//print_roundings(2.8);
 
 void print_fpclassify(double val){
     int val_type = fpclassify(val);
@@ -392,8 +387,6 @@ void show_cmath_fpoint_operations(){
     double back = ldexp(result, n);
     std::cout << back << " = " << result << "*2^" << n << '\n';
 
-    // ln and lg are calculated as well
-
     // modf() splits value
     double fractpart = 0.0;
     double intpart = 0.0;
@@ -409,6 +402,7 @@ void show_cmath_fpoint_operations(){
     // expm1() returns e raised to the power x minus one : e^x - 1
     std::cout << "expm1(1.0) = e^x - 1 = " << expm1(1.0) << '\n';
 
+    // Logarithms
     // logb() returns the integral part of the logarithm of |x|, using FLT_RADIX as base
     // log1p() returns the natural logarithm of one plus x (log(1+x))
     // log2() returns the binary(base - 2) logarithm of x
@@ -426,17 +420,6 @@ void show_cmath_fpoint_operations(){
     std::cout << "n1 = " << n1 << '\n';
     std::cout << "scalbn(x, n) = x * FLT_RADIX^n = " << scalbn(x, n1) << '\n';
     std::cout << "scalbln(x, n) (?)= " << scalbln(x, n1) << '\n';
-
-    // Roundings
-    print_roundings_header();
-    print_roundings(0.0);
-    print_roundings(0.3);
-    print_roundings(0.5);
-    print_roundings(0.8);
-    print_roundings(1.3);
-    print_roundings(2.3);
-    print_roundings(2.5);
-    print_roundings(2.8);
 
     // Power functions
     std::cout << "sqrt(2.0) = " << sqrt(2.0) << '\n';
@@ -485,7 +468,7 @@ void show_cmath_fpoint_operations(){
         std::cout << "1/0 is " << myinf << '\n';
     }
 
-    // Value is too large
+    // HUGE_VAL macro
     double huge = pow(10.0, 1000000000);
     if (huge == HUGE_VAL)
     {
@@ -504,7 +487,7 @@ void show_cmath_fpoint_operations(){
     print_fpclassify(1.0);
     print_fpclassify(-1.0);
 
-    // subnormal numbers could not be representet a normal double
+    // subnormal numbers could not be represent a normal double
     // (less than minimal double)
     // requires expanded representation, works slower (10-100 times)
     double subnorm = 1.0;
@@ -517,12 +500,12 @@ void show_cmath_fpoint_operations(){
 }
 
 
+
+
+
 /*
-Так. Тут начался беспредел с ужасами про сравнение плавающей точки на равенство.
-Требуется ликбез.Сравнивать плавающие числа(для педантов — значения переменных типа float или double)
-вполне можно и даже нужно.
-Но надо понимать сущность этой плавающей точки.
-А сущность заключается в том, что числа с фиксированной точкой (целые — это частный случай
+
+А сущность заключается в том, что числа с фиксированной точкой (целые - это частный случай
 чисел с фиксированной точкой) имеют абсолютное значение погрешности, в отличие от чисел с плавающей точкой,
 где значение погрешности находится в прямой пропорциональности от модуля числа.
 
@@ -585,14 +568,14 @@ bool close_enough(double a, double b){
 
 // We can take advantage of this
 // alignment shift to change the bit representation of a floating-point number
-// until it’s the same as an integer’s bit representation,
+// until it's the same as an integer's bit representation,
 // and then we can just read it like a normal integer
 
 // This trick works for positive numbers,
 // but if you try to convert a negative number it will fail
 
-// the normalization step screws it up because now that we’ve
-// borrowed from the implicit 1 bit, it’s no longer the most significant bit
+// the normalization step screws it up because now that we've
+// borrowed from the implicit 1 bit, it's no longer the most significant bit
 
 // We can get this 1 bit simply by multiplying our large number by 1.5. 1.5 in binary is
 // 1.1, and the first 1 becomes the implicit 1 bit, and the second becomes the
@@ -816,11 +799,19 @@ float quick_rsqrt(float number)
 
     x2 = number * 0.5F;
     y = number;
-    i = *(long *)&y;                       // evil floating point bit level hacking
-    i = 0x5f3759df - (i >> 1);               // what the fuck?
+    
+    // evil floating point bit level hacking
+    i = *(long *)&y;                       
+    
+    // WFT?
+    i = 0x5f3759df - (i >> 1);               
     y = *(float *)&i;
-    y = y * (threehalfs - (x2 * y * y));   // 1st iteration
-    //y  = y * ( threehalfs - ( x2 * y * y ) );   // 2nd iteration, this can be removed
+
+    // 1st iteration
+    y = y * (threehalfs - (x2 * y * y));
+
+    // 2nd iteration, this can be removed
+    y  = y * ( threehalfs - ( x2 * y * y ) );
 
     return y;
 }
@@ -931,25 +922,6 @@ int show_MXCSR_registry()
     std::cout << exp(3671.81) << '\n';
 }
 
-// Switch on access to floating-point environment
-//http://www.cplusplus.com/reference/cfenv/FENV_ACCESS/
-#pragma STDC FENV_ACCESS ON
-
-void show_close_enough()
-{
-
-    // nextafter() returns the next representable value after x in the direction of y
-    double d = 1.0;
-    double e = nextafter(d, 1000.0);
-    if (close_enough(d, e))
-        std::cout << d << " == " << e << '\n';
-
-
-    d = 0.00000000000000000001;
-    e = nextafter(d, 1.0);
-    if (close_enough(d, e))
-        std::cout << d << " == " << e << '\n';
-}
 
 void show_fast_float2int()
 {

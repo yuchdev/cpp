@@ -325,9 +325,6 @@ void show_shift(){
     }
 }
 
-
-
-
 int main()
 {
     return 0;

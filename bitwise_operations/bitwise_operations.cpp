@@ -190,6 +190,5 @@ void raised_to2_examples_and_explanation()
 
 int main()
 {
-    raised_to2_examples_and_explanation();
     return 0;
 }
