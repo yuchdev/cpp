@@ -1,16 +1,6 @@
-cmake_minimum_required(VERSION 2.8)
-project(floating_point_types CXX)
-set(TARGET floating_point_types)
+add_subdirectory(01_floating_point_representation)
+add_subdirectory(02_extract_fp_components)
+add_subdirectory(03_compare_fp)
+add_subdirectory(04_fp_functions)
+add_subdirectory(05_integer_cast)
 
-########################################################
-# source files
-# source files
-file(GLOB SOURCES *.cpp *.h *.txt)
-
-########################################################
-# include directories
-set(INCLUDE_DIRS ${INCLUDE_DIRS} . )
-include_directories(${INCLUDE_DIRS})
-
-########################################################
-add_executable(${TARGET} ${SOURCES})

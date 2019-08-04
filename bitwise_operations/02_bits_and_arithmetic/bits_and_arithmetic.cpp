@@ -1,0 +1,127 @@
+#include <iostream>
+#include <algorithm>
+
+#include <utilities.h>
+
+// Using bitwise operations for arithmetic for mathematical operations
+
+// Positive integer representation more or less clear
+// Sign bit is 0, rest 31 bits are binary representation
+// Is the negative integer sign bit is 1, and the rest is BINARY REVERSE representation
+
+// Therefore we can "emulate" unary arithmetical minus
+int my_negate(long i)
+{
+    return ~(i - 1);
+}
+
+void negative_integer()
+{
+    long a = 1;
+    std::cout << "a(2) = " << bitwise(a) << '\n';
+
+    long b = -1;
+    std::cout << "b(2) = " << bitwise(b) << '\n';
+
+    std::cout << my_negate(1) << '\n';
+    std::cout << my_negate(-1) << '\n';
+
+}
+
+void shift_operations()
+{
+    int a = 1;
+    std::cout << "a(10) = " << a << '\t' << "a(2) = " << bitwise(a) << '\n';
+
+    a = a << 1;
+    std::cout << "a(10) = " << a << '\t' << "a(2) = " << bitwise(a) << '\n';
+
+    a = a << 1;
+    std::cout << "a(10) = " << a << '\t' << "a(2) = " << bitwise(a) << '\n';
+
+    // Every left shift operation is multiplication by 2
+
+    int b = 1024;
+    std::cout << "b(10) = " << b << '\t' << "b(2) = " << bitwise(b) << '\n';
+
+    b = b >> 1;
+    std::cout << "b(10) = " << b << '\t' << "b(2) = " << bitwise(b) << '\n';
+
+    b = b >> 1;
+    std::cout << "b(10) = " << b << '\t' << "b(2) = " << bitwise(b) << '\n';
+
+    // Every right shift operation is division by 2
+}
+
+
+// Emulating divide by 2 and multiple by 2
+int divide_2(int i)
+{
+    return i >> 1;
+}
+
+int multiply_2(int i)
+{
+    return i << 1;
+}
+
+void multiply_and_divide()
+{
+    std::cout << multiply_2(10) << '\n';
+    std::cout << divide_2(50) << '\n';
+}
+
+// In the previous example you may notice all integers are powers of 2, 
+// and their bitwise representation has exactly one bit
+// Let's check it
+void powers_of_2()
+{
+    long a = 1;
+    for (size_t i = 0; i < 16; ++i) {
+        a *= 2;
+        std::cout << "a(10) = " << a << '\t' << "a(2) = " << bitwise(a) << '\n';
+    }
+}
+
+bool raised_to2(int x)
+{
+    if (!((x - 1) & x))
+        return true;
+    return false;
+}
+
+void raised_to2_examples_and_explanation()
+{
+    // Let's try with some numbers
+    long numbers[] = { 2, 64, 1024, 25, 120 };
+    std::for_each(std::begin(numbers), std::end(numbers), [](long val) {
+        if (raised_to2(val))
+            std::cout << val << " is a power of 2\n";
+        else
+            std::cout << val << " is not a power of 2\n";
+    });
+
+    // Explanation?
+    long x1 = 64;
+    std::cout << "x = \t\t" << bitwise(x1) << '\n';
+    std::cout << "(x - 1) = \t" << bitwise(x1 - 1) << '\n';
+    std::cout << "(x - 1) & x = \t" << bitwise((x1 - 1) & x1) << '\n';
+
+    // x and (x - 1) always occupy non-intersecting bits, if the integer is a power of 2
+
+    long x2 = 82;
+    std::cout << "x = \t\t" << bitwise(x2) << '\n';
+    std::cout << "(x - 1) = \t" << bitwise(x2 - 1) << '\n';
+    std::cout << "(x - 1) & x = \t" << bitwise((x2 - 1) & x2) << '\n';
+}
+
+int main()
+{
+    negative_integer();
+    shift_operations();
+    multiply_and_divide();
+    powers_of_2();
+    raised_to2_examples_and_explanation();
+
+    return 0;
+}

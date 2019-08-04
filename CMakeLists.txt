@@ -26,6 +26,3 @@ endif()
 ########################################################
 
 add_subdirectory(bitwise_operations)
-add_subdirectory(floating_point_types)
-add_subdirectory(integer_types)
-add_subdirectory(cpp_tricks)
