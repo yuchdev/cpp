@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdint>
+#include <utilities.h>
 
 // This is a question from one interview. The question is 
 // "What value boo(-1) function call return?"
@@ -25,10 +26,13 @@ void show_rand()
 {
     volatile int x;
     int n = 10000000;
-    // TODO: measure time
+    MeasureTime m;
+
+    std::cout << "Start random number generation with rand()\n";
     for (int i = 0; i < n; ++i) {
         x = rand();
     } 
+    std::cout << "Random number generation with rand() took " <<  m.elapsed_mcsec() << '\n';
 }
 
 

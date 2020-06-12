@@ -1,2 +1,0 @@
-add_subdirectory(01_bitwise_operations)
-add_subdirectory(02_bits_and_arithmetic)

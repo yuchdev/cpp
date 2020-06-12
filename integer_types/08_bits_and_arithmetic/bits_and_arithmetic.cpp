@@ -1,7 +1,38 @@
 #include <iostream>
-#include <algorithm>
 
 #include <utilities.h>
+
+// Bitwise operation review
+void bitwise_ops()
+{
+    // Bitwise AND is usually applied for checking if some particular bit is set
+    long b = 50;
+    std::cout << "b(10) = " << b << '\t' << "b(2) = " << bitwise(b) << '\n';
+    if (b & 0x02) {
+        std::cout << "Fourth bit is set\n";
+    }
+
+    // OR could be useful to set particular bit
+    // Ex: set 3rd bit to 1
+    long b = 0x01;
+    b = b | 0x04;
+    std::cout << "b(10) = " << b << '\t' << "b(2) = " << bitwise(b) << '\n';
+
+    // You can switch any bit using XOR; 
+    // if it was 1 and you pass 1, it becomes 0
+    // if it was 0 and you pass 1, it becomes 1
+
+    // Ex: switch 2nd bit
+    long b = 0xff;
+    std::cout << "b(10) = " << b << '\t' << "b(2) = " << bitwise(b) << '\n';
+    b = b ^ 0x02;
+    std::cout << "b(10) = " << b << '\t' << "b(2) = " << bitwise(b) << '\n';
+
+    // Bitwise NOT
+    // Let's say, we want to set all bits to 1, except 1st and 2nd (0x03)
+    long b = ~0x03;
+    std::cout << "b(10) = " << b << '\t' << "b(2) = " << bitwise(b) << '\n';
+}
 
 // Using bitwise operations for arithmetic for mathematical operations
 
@@ -94,12 +125,13 @@ void raised_to2_examples_and_explanation()
 {
     // Let's try with some numbers
     long numbers[] = { 2, 64, 1024, 25, 120 };
-    std::for_each(std::begin(numbers), std::end(numbers), [](long val) {
+    for (auto val : numbers) {
         if (raised_to2(val))
             std::cout << val << " is a power of 2\n";
         else
             std::cout << val << " is not a power of 2\n";
-    });
+
+    }
 
     // Explanation?
     long x1 = 64;

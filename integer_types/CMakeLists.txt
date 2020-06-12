@@ -4,5 +4,5 @@ add_subdirectory(03_array_facts)
 add_subdirectory(05_reference_facts)
 add_subdirectory(06_enum_facts)
 add_subdirectory(07_unexpected_cast)
-add_subdirectory(08_hamming_weight)
-
+add_subdirectory(08_bits_and_arithmetic)
+add_subdirectory(09_hamming_weight)
