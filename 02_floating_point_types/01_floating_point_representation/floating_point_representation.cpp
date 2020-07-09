@@ -1,24 +1,13 @@
 #define _USE_MATH_DEFINES
 #include <iostream>
 #include <iomanip>
-#include <bitset>
 #include <cmath>
 
 // OsX workaround
 #include <cfloat>
 #include <cstdint>
 
-// for atan2
-#include <valarray>
-
-/// Returns bitset with bitwise representation of 'value'
-template <typename T>
-std::bitset<sizeof(T) * 8> bitwise(T value)
-{
-    constexpr size_t bits_size = sizeof(T) * 8;
-    return std::bitset<bits_size>(value);
-}
-
+#include <utilities.h>
 
 // 1.Floating-point format
 // https://en.wikipedia.org/wiki/Floating-point_arithmetic
@@ -32,6 +21,8 @@ std::bitset<sizeof(T) * 8> bitwise(T value)
 // 10000000000
 // 5*10^-10; 7*10^9
 
+
+
 // In computing, floating-point arithmetic (FP) is arithmetic 
 // using formulaic representation of real numbers as an approximation 
 // so as to support a trade-off between range and precision.
@@ -41,7 +32,10 @@ std::bitset<sizeof(T) * 8> bitwise(T value)
 // All these numbers are "packed" in 32, 64 or 128 bit value
 void floating_point_representation()
 {
-    // Single precision
+    // Single-precision format is a computer number format, usually occupying 32 bits in computer memory
+    // Sign bit: 1 bit
+    // Exponent width: 8 bits
+    // Significand precision: 24 bits (23 explicitly stored)
     float float_numbers[] = {1.0, 1.5, 0.75};
 
     for (auto float_number : float_numbers) {
@@ -52,7 +46,10 @@ void floating_point_representation()
             << " =\n\t " << bitwise(*float_hack) << '\n';
     }
 
-    // Double precision
+    // Double precision is a computer number format, usually occupying 64 bits in computer memory
+    // Sign bit: 1 bit
+    // Exponent: 11 bits
+    // Significand precision: 53 bits (52 explicitly stored)
     double double_numbers[] = { 1.0, 1.5, 0.75 };
 
     for (auto double_number : double_numbers) {
@@ -62,9 +59,23 @@ void floating_point_representation()
         std::cout << "Binary representation of " << double_number << " =\n\t " << *double_hack
             << " =\n\t " << bitwise(*double_hack) << '\n';
     }
+    // Unlike integers, distribution of floating-point numbers is not uniform
+    // It is more dense for smaller and dense for larger numbers
+    // Using floating-point numbers is a constant trade off between range and precision
+    
+    // Epsilon is a floating-point positive number, as such (1 +/- Epsilon) != 1
+    // DBL_EPSILON C++ Standard library == 10 ^ -16
+
+    // Standard library  also have several special values
+    // +/- INF and NaN (Not a number)
+    // Two kinds of NaN: a quiet NaN (qNaN) and a signaling NaN (sNaN)
+
+    // Numerical computing solutions like Maxima or Mathematica 
+    // often "knows" very precise representation of numbers like Pi or e
 }
 
 int main()
 {
+    floating_point_representation();
     return 0;
 }

@@ -1,67 +1,112 @@
 #define _USE_MATH_DEFINES
 #include <iostream>
 #include <iomanip>
-#include <bitset>
 #include <cmath>
 
 // OsX workaround
 #include <cfloat>
 #include <cstdint>
 
-// for atan2
-#include <valarray>
+#include <utilities.h>
 
-/// Returns bitset with bitwise representation of 'value'
-template <typename T>
-std::bitset<sizeof(T) * 8> bitwise(T value)
+
+// 2."Extract" sign bit, significand and exponent
+// * Before significand we always assume 1.
+// * Effective exponent is exponent_value-127
+void extract_fp_components(float val)
 {
-    constexpr size_t bits_size = sizeof(T) * 8;
-    return std::bitset<bits_size>(value);
+    static_assert(sizeof(long) == sizeof(float), "sizeof(long) should be equal sizeof(float)");
+
+    union
+    {
+        float floating_number;
+        long bitwise_representation;
+    } float_bits;
+
+    float_bits.floating_number = val;
+
+    // extract sign bit
+    long sign_bit = (float_bits.bitwise_representation >> 31) ? -1 : 1;
+
+    // extract exponent
+    long exponent = (float_bits.bitwise_representation >> 23) & 0xFF;
+
+    // extract significand
+    long significand = float_bits.bitwise_representation & 0x7FFFFF;
+
+    std::cout << "Significand binary representation = " << bitwise(significand) << '\n';
+
+    int m =
+        exponent ?
+        significand | 0x800000 :
+        significand << 1;
+
+    double m1 = double(m) / pow(2., 23.);
+
+    // exponent shift
+    exponent -= 127;
+
+    std::cout << "s = " << sign_bit << "; e =  " << exponent << "; m(2) = " << m << "; m(10) = " << m1 << '\n';
 }
 
+// 1.0 = 0 01111111 00000000000000000000000
+// E = 01111111 = 127 - 127 = 0
+// 1.0 = (-1)^s * 1.M * 2^E = (1-)^0 * 1.000 * 2^0 = 1.0
 
-// 1.Floating-point format
-// https://en.wikipedia.org/wiki/Floating-point_arithmetic
+//       s E        M
+// 1.5 = 0 01111111 10000000000000000000000
+// E = 01111111 = 127 - 127 = 0
+// 1.1(2) = 2^0 + 2^(-1) = 1 + 1/2 = 1.5
+// 1.5 = (-1)^s * 1.M * 2^E = (1-)^0 * 1.1(2) * 2^0 = 1.5
 
-// The term floating point (FP) refers to the fact that a number's decimal point can "float",
-// in the other words, it can be placed anywhere relative to the significant digits of the number.
-// For example:
-// 0.1
-// 0.001
-// 0.00...0001
-// 10000000000
-// 5*10^-10; 7*10^9
 
-// In computing, floating-point arithmetic (FP) is arithmetic 
-// using formulaic representation of real numbers as an approximation 
-// so as to support a trade-off between range and precision.
-// Representation:
-// FP_Number = Significand * Base^Exponent
-// 1.2345 = 12345 * 10^-4
-// All these numbers are "packed" in 32, 64 or 128 bit value
-void floating_point_representation()
+// Let's create generic, template-based floating-point components extractor
+template <typename T>
+struct floating_point_traits {};
+
+template <>
+struct floating_point_traits<float> {
+    static constexpr size_t significand = 23;
+    static constexpr size_t exponent = 31;
+};
+
+template <>
+struct floating_point_traits<double> {
+    static constexpr size_t significand = 52;
+    static constexpr size_t exponent = 63;
+};
+
+template <typename T>
+void extract_fp_components(T val)
 {
-    // Single precision
-    float float_numbers[] = {1.0, 1.5, 0.75};
 
-    for (auto float_number : float_numbers) {
+    static constexpr size_t exponent = floating_point_traits<T>::exponent;
+    static constexpr size_t significand = floating_point_traits<T>::significand;
 
-        long* float_hack = reinterpret_cast<long*>(&float_number);
-        static_assert(sizeof(float_number) == sizeof(*float_hack), "Float and long should have equal size");
-        std::cout << "Binary representation of " << float_number << " =\n\t " << *float_hack
-            << " =\n\t " << bitwise(*float_hack) << '\n';
-    }
+    union
+    {
+        T fl;
+        long dw;
+    } f;
+    f.fl = val;
+    int s = (f.dw >> exponent) ? -1 : 1;
+    int e = (f.dw >> significand) & 0xFF;
+    int m =
+        e ?
+        (f.dw & 0x7FFFFF) | 0x800000 :
+        (f.dw & 0x7FFFFF) << 1;
 
-    // Double precision
-    double double_numbers[] = { 1.0, 1.5, 0.75 };
+    e -= 127;
+    std::cout << "sign = " << s
+        << " mantissa = " << m
+        << " exponent = " << e << '\n';
+}
 
-    for (auto double_number : double_numbers) {
-        long long* double_hack = reinterpret_cast<long long*>(&double_number);
-        static_assert(sizeof(double_number) == sizeof(*double_hack), "Double and long long should have equal size");
-
-        std::cout << "Binary representation of " << double_number << " =\n\t " << *double_hack
-            << " =\n\t " << bitwise(*double_hack) << '\n';
-    }
+void fp_components_extract()
+{
+    extract_fp_components(1.0);
+    extract_fp_components(1.5);
+    extract_fp_components(-1.0);
 }
 
 int main()

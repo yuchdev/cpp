@@ -25,7 +25,7 @@ endif()
 
 ########################################################
 
-add_subdirectory(bitwise_operations)
-add_subdirectory(cpp_tricks)
-add_subdirectory(floating_point_types)
-add_subdirectory(integer_types)
+#add_subdirectory(00_cpp_tricks)
+#add_subdirectory(01_integer_types)
+add_subdirectory(02_floating_point_types)
+

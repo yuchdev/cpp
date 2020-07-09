@@ -26,7 +26,7 @@ void array_facts()
     std::cout << 2["ABCDEF"] << '\n';
 
     // Is this code correct?
-    // Yes! // It is correct!
+    // Yes! It is correct!
 
     // Sincs plain ANSI C times, for array x[1] is equal  to 1[x] is equal to *(1 + x)
     // ISO / IEC 9899:TC2 : 6.5.2.1 Array subscripting
