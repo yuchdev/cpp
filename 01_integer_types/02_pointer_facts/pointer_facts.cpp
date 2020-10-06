@@ -4,6 +4,8 @@
 // Facts about pointers
 void pointers_facts()
 {
+    // fact: a pointer to a non-array dynamic object behaves the same as a pointer to the
+    // first element of an array of length one
 
     // x86 of today use little-endian storage for all types of data(integer, floating point, BCD)
     long example = 1L;
@@ -13,13 +15,12 @@ void pointers_facts()
         std::cout << i << " byte of long " << example << " is " << explore_bytes++ << '\n';
     }
 
-    // fact: a pointer to a non-array dynamic object behaves the same as a pointer to the
-    // first element of an array of length one
-
     // Every object has an address
     // Guaranteed that there are no objects with NULL address
     int a{};
     int* ptr_a = &a;
+
+    // fact: pointer size
 
     // Standard output prints pointers as hexadecimal
     std::cout << "ptr_a = " << ptr_a << '\n';
