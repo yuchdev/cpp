@@ -1,5 +1,4 @@
 #include <iostream>
-#include <utilities.h>
 
 // How to compare pointers
 void compare_pointers_1()

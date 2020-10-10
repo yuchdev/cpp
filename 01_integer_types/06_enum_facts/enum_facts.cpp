@@ -7,12 +7,17 @@
 // sizeof(float) <= sizeof(double) <= sizeof(long double)
 // sizeof(N) <= sizeof(signed N) <= sizeof(unsigned N)
 
+// Suppress counter-example of enum overflow
+#ifdef _MSC_VER
+#pragma warning( disable : 4309)
+#endif
+
 // What is the size of enum
 
 enum enum1{ dark, light };		// 0:1
 enum enum2{ a = 3, b = 9 };		// 0:15
 enum enum3{ c = 3, d = 900 };	// 0:1024
-enum enum4{ e = 3, f = 5000000000 };	// out of range 0:2^32
+enum enum4{ e = 3, f = 5000000000 };	// out of range 0:2^32, behaves like integer, gives warning
 
 void enum_size()
 {

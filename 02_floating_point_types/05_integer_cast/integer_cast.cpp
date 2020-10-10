@@ -8,8 +8,6 @@
 #include <cfloat>
 #include <cstdint>
 
-#include <utilities.h>
-
 int main()
 {
     return 0;

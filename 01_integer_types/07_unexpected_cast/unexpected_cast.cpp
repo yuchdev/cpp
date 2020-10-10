@@ -1,6 +1,11 @@
 #include <iostream>
 
-#include <utilities.h>
+#include <bitwise.h>
+
+// warning C4018: '<': signed/unsigned mismatch as a counter-example
+#ifdef _MSC_VER
+#pragma warning( disable : 4018)
+#endif
 
 // Unexpected type cast
 

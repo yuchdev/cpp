@@ -3,10 +3,10 @@ cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-configure_file(Cpp.h.in Cpp.h)
+configure_file(cpp.h.in version.h)
 
 # This is name and version of your project
-set(PROJECT_NAME Cpp)
+set(PROJECT_NAME cpp)
 project(
   ${PROJECT_NAME}
   VERSION 0.1
@@ -22,16 +22,16 @@ if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
   )
 endif()
 
-include_directories(
-    ${CMAKE_SOURCE_DIR}/utilities
-)
-
-
 if(MSVC)
-  add_compile_options(PUBLIC "/W3 /WX /EHa /FC /MP" 
-    "$<$<CONFIG:Release>:/Zi /Oi /GL /Gy /O2>" 
-    "$<$<CONFIG:Debug>:/ZI>"
-  )
+#  add_compile_options(PUBLIC "/FC /EHa /W3 /MP" 
+#    "$<$<CONFIG:Release>:/Zi /Oi /GL /Gy>" 
+#    "$<$<CONFIG:Debug>:/ZI>"
+#  )
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /FC /EHa /W3 /MP")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /ZI")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi /Oi /GL /Gy")
+set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEBUG /OPT:REF /OPT:ICF")
+
   message("Windows MSVC++ configuration")
 
   set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -55,7 +55,7 @@ if(MSVC)
 
 endif()
 
+add_subdirectory(utilities)
 add_subdirectory(00_cpp_sortout)
 add_subdirectory(01_integer_types)
 add_subdirectory(02_floating_point_types)
-

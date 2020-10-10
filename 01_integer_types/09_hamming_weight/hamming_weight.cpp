@@ -16,7 +16,7 @@ const uint64_t h01 = 0x0101010101010101; //the sum of 256 to the power of 0,1,2,
 //This is a naive implementation, shown for comparison,
 //and to help in understanding the better functions.
 //It uses 24 arithmetic operations (shift, add, and).
-int popcount_1(uint64_t x) {
+uint64_t popcount_1(uint64_t x) {
     x = (x & m1) + ((x >> 1) & m1); //put count of each  2 bits into those  2 bits 
     x = (x & m2) + ((x >> 2) & m2); //put count of each  4 bits into those  4 bits 
     x = (x & m4) + ((x >> 4) & m4); //put count of each  8 bits into those  8 bits 
@@ -29,7 +29,7 @@ int popcount_1(uint64_t x) {
 //This uses fewer arithmetic operations than any other known  
 //implementation on machines with slow multiplication.
 //It uses 17 arithmetic operations.
-int popcount_2(uint64_t x) {
+uint64_t popcount_2(uint64_t x) {
     x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
     x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
     x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
@@ -42,7 +42,7 @@ int popcount_2(uint64_t x) {
 //This uses fewer arithmetic operations than any other known  
 //implementation on machines with fast multiplication.
 //It uses 12 arithmetic operations, one of which is a multiply.
-int popcount_3(uint64_t x) {
+uint64_t popcount_3(uint64_t x) {
     x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
     x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
     x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
@@ -61,7 +61,7 @@ int popcount_3(uint64_t x) {
 
 //This is better when most bits in x are 0
 //It uses 3 arithmetic operations and one comparison/branch per "1" bit in x.
-int popcount_4(uint64_t x) {
+uint64_t popcount_4(uint64_t x) {
     int count;
     for (count = 0; x; count++)
         x &= x - 1;
@@ -76,11 +76,12 @@ int popcount_4(uint64_t x) {
 
 
 static uint8_t wordbits[65536] = { /* bitcounts of integers 0 through 65535, inclusive */ };
-static int popcount(uint32_t i)
+static uint64_t popcount(uint32_t i)
 {
     return (wordbits[i & 0xFFFF] + wordbits[i >> 16]);
 }
 
+// TODO: https://stackoverflow.com/questions/109023/how-to-count-the-number-of-set-bits-in-a-32-bit-integer
 void show_hamming_weight()
 {
     int bits1 = popcount_1(1);

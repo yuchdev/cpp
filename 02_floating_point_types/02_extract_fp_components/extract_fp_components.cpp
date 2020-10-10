@@ -7,8 +7,7 @@
 #include <cfloat>
 #include <cstdint>
 
-#include <utilities.h>
-
+#include <bitwise.h>
 
 // 2."Extract" sign bit, significand and exponent
 // * Before significand we always assume 1.
@@ -61,40 +60,49 @@ void extract_fp_components(float val)
 
 
 // Let's create generic, template-based floating-point components extractor
-template <typename T>
+template <typename FloatingPoint, typename Bitwise>
 struct floating_point_traits {};
 
 template <>
-struct floating_point_traits<float> {
+struct floating_point_traits<float, long> {
     static constexpr size_t significand = 23;
     static constexpr size_t exponent = 31;
+    static constexpr long minus_one = 0x7FFFFF;
+    static constexpr long sign_mask = 0x800000;
 };
 
 template <>
-struct floating_point_traits<double> {
+struct floating_point_traits<double, long long> {
     static constexpr size_t significand = 52;
     static constexpr size_t exponent = 63;
+    static constexpr long long minus_one = 0x7FFFFFFFFFFF;
+    static constexpr long long sign_mask = 0x800000000000;
 };
 
-template <typename T>
-void extract_fp_components(T val)
+template <typename FloatingPoint, typename Bitwise>
+void extract_fp_components(FloatingPoint val)
 {
 
-    static constexpr size_t exponent = floating_point_traits<T>::exponent;
-    static constexpr size_t significand = floating_point_traits<T>::significand;
+    static constexpr size_t exponent = floating_point_traits<FloatingPoint, Bitwise>::exponent;
+    static constexpr size_t significand = floating_point_traits<FloatingPoint, Bitwise>::significand;
+    static constexpr size_t minus_one = floating_point_traits<FloatingPoint, Bitwise>::minus_one;
+    static constexpr size_t sign_mask = floating_point_traits<FloatingPoint, Bitwise>::sign_mask;
 
     union
     {
-        T fl;
-        long dw;
+        FloatingPoint floating_point_repr;
+        Bitwise integer_repr;
     } f;
-    f.fl = val;
+    f.floating_point_repr = val;
+
+    // TODO: warning C4293: '>>': shift count negative or too big, undefined behavior
     int s = (f.dw >> exponent) ? -1 : 1;
+    // TODO: warning C4293: '>>': shift count negative or too big, undefined behavior
     int e = (f.dw >> significand) & 0xFF;
     int m =
         e ?
-        (f.dw & 0x7FFFFF) | 0x800000 :
-        (f.dw & 0x7FFFFF) << 1;
+        (f.integer_repr & minus_one) | sign_mask :
+        (f.integer_repr & minus_one) << 1;
 
     e -= 127;
     std::cout << "sign = " << s

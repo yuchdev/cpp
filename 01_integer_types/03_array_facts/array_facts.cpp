@@ -57,7 +57,7 @@ void array_pointer_and_array(){
     // Pointer let us assign the array address (or the first element's of array address)
     // without any problems
     int integer_array[42] = {};
-    for (size_t s = 0; s < 42; ++s){
+    for (int s = 0; s < 42; ++s){
         integer_array[s] = s;
     }
 

@@ -7,15 +7,7 @@
 #include <cfloat>
 #include <cstdint>
 
-#include <utilities.h>
-
-/// Returns bitset with bitwise representation of 'value'
-template <typename T>
-std::bitset<sizeof(T) * 8> bitwise(T value)
-{
-    constexpr size_t bits_size = sizeof(T) * 8;
-    return std::bitset<bits_size>(value);
-}
+#include <bitwise.h>
 
 
 // 4.Floating point functions and applications

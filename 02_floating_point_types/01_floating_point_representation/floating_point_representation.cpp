@@ -7,7 +7,7 @@
 #include <cfloat>
 #include <cstdint>
 
-#include <utilities.h>
+#include <bitwise.h>
 
 // 1.Floating-point format
 // https://en.wikipedia.org/wiki/Floating-point_arithmetic
