@@ -62,8 +62,20 @@ void pointers_facts()
     void* vp = reinterpret_cast<void*>(some_array);
     // ++vp; there's no increment/decrement for void*
 
-
     // 4.pointer + pointer: why do we even need this?
+}
+
+void pointer_conversions()
+{
+char** p = 0;
+const char** p1 = p; // error: level 2 more cv-qualified but level 1 is not const
+const char* const * p2 = p; // OK: level 2 more cv-qualified and const added at level 1
+volatile char * const * p3 = p; // OK: level 2 more cv-qual and const added at level 1
+volatile const char* const* p4 = p2; // OK: 2 more cv-qual and const was already at 1
+
+double *a[2][3];
+double const * const (*ap)[3] = a; // OK
+double * const (*ap1)[] = a; // OK since C++20
 }
 
 int main()

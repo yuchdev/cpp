@@ -1,5 +1,4 @@
-project(07_unexpected_cast CXX)
-set(TARGET 07_unexpected_cast)
+set(TARGET 08_unexpected_cast)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 
@@ -8,7 +7,7 @@ include_directories(
 )
 
 add_executable(${TARGET} ${SOURCES})
-set_property(TARGET ${TARGET} PROPERTY FOLDER "IntegerTypes")
+set_property(TARGET ${TARGET} PROPERTY FOLDER "01_IntegerTypes")
 
 target_link_libraries(${TARGET}    
 PRIVATE

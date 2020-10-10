@@ -2,6 +2,10 @@
 
 #include <bitwise.h>
 
+
+// Execution order inside the line is not defined (v[i] = i++; - UB).
+// TODO: Operators are something to overload. The rest are statements
+
 // Bitwise operation review
 void bitwise_ops()
 {
@@ -41,6 +45,12 @@ void bitwise_ops()
         std::cout << "b(10) = " << b << '\t' << "b(2) = " << bitwise(b) << '\n';
     }
 }
+
+// TODO:
+// !(!a && !b)
+//a || b
+//This is correct.  NOT (NOT A  AND  NOT B) equals A OR B.  Conversely, NOT (NOT A  OR  NOT B) equals A AND B.
+
 
 // Using bitwise operations for arithmetic for mathematical operations
 

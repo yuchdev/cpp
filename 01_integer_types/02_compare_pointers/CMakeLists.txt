@@ -1,5 +1,4 @@
-project(02_pointer_facts CXX)
-set(TARGET 02_pointer_facts)
+set(TARGET 02_compare_pointers)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 
@@ -8,7 +7,7 @@ include_directories(
 )
 
 add_executable(${TARGET} ${SOURCES})
-set_property(TARGET ${TARGET} PROPERTY FOLDER "IntegerTypes")
+set_property(TARGET ${TARGET} PROPERTY FOLDER "01_IntegerTypes")
 
 target_link_libraries(${TARGET}    
 PRIVATE

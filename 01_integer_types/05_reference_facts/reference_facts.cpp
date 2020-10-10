@@ -2,15 +2,26 @@
 
 // Facts about references
 
-void show_references(){
+void show_references()
+{
+
+    // * Aliasing is when more than one lvalue refers to the same memory location 
+    // (when you hear lvalue, think of things (variables) that can be on the left-hand side of assignments), 
+    // i.e. that are modifiable. As an example:
+
+    int anint = 0;
+    int *intptr=&anint;
+
+    // * Reference effectively an alias
 
     // * Reference must be initialized, and could not be re-initialized
     // It always refers to one object (being an alias of that object)
     int val = 10;
     int& val_ref = val;
 
+
     // * Underneath, reference is a const pointer which can't be nullptr, 
-    // and re-reference automatically
+    // and de-reference automatically
 
     // * Reference to reference is just a reference. This is sometimes known as reference collapse
     // We cannot create the pointer to a reference either

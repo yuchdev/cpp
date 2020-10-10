@@ -1,5 +1,4 @@
-project(02_bits_and_arithmetic CXX)
-set(TARGET 02_bits_and_arithmetic)
+set(TARGET 09_bits_and_arithmetic)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 
@@ -8,7 +7,7 @@ include_directories(
 )
 
 add_executable(${TARGET} ${SOURCES})
-set_property(TARGET ${TARGET} PROPERTY FOLDER "IntegerTypes")
+set_property(TARGET ${TARGET} PROPERTY FOLDER "01_IntegerTypes")
 
 target_link_libraries(${TARGET}    
 PRIVATE
