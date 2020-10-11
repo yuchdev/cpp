@@ -1,6 +1,19 @@
 #include <iostream>
 #include <cstdint>
 
+namespace cpp {
+
+class test_me
+{
+public:
+    void point_to_me() {}
+};
+
+void point_to_me_static() {}
+
+} // namespace cpp
+
+
 // Facts about pointers
 void pointers_facts()
 {
@@ -65,17 +78,50 @@ void pointers_facts()
     // 4.pointer + pointer: why do we even need this?
 }
 
+void nullptr_type()
+{
+    // nullptr_t
+    // std::nullptr_t is the type of the null pointer literal, nullptr
+    // It is a distinct type that is not itself a pointer type or a pointer to member type
+    int* inull{ nullptr };
+    void* vnull{ nullptr };
+
+    // pointer to function
+    void(*static_func_ptr)() = &cpp::point_to_me_static;
+
+    void(cpp::test_me:: * method_ptr)() = &cpp::test_me::point_to_me;
+
+    std::cout
+        << "Function pointer void(*static_func_ptr)() = &cpp::point_to_me_static = "
+        << static_func_ptr << '\n';
+    std::cout
+        << "Static method pointer void(cpp::test_me:: * method_ptr)() = &cpp::test_me::point_to_me = "
+        << method_ptr << '\n';
+
+    // It's okay to assign nullptr to function pointers and static method pointers
+    static_func_ptr = nullptr;
+    method_ptr = nullptr;
+}
+
 void pointer_conversions()
 {
-char** p = 0;
-const char** p1 = p; // error: level 2 more cv-qualified but level 1 is not const
-const char* const * p2 = p; // OK: level 2 more cv-qualified and const added at level 1
-volatile char * const * p3 = p; // OK: level 2 more cv-qual and const added at level 1
-volatile const char* const* p4 = p2; // OK: 2 more cv-qual and const was already at 1
+    char** p = 0;
 
-double *a[2][3];
-double const * const (*ap)[3] = a; // OK
-double * const (*ap1)[] = a; // OK since C++20
+    // error: level 2 more cv-qualified but level 1 is not const
+    // const char** p1 = p; 
+    
+    // OK: level 2 more cv-qualified and const added at level 1
+    const char* const * p2 = p;
+    
+    // OK: level 2 more cv-qual and const added at level 1
+    volatile char * const * p3 = p;
+    
+    // OK: 2 more cv-qual and const was already at 1
+    volatile const char* const* p4 = p2;
+
+    double *a[2][3];
+    double const * const (*ap)[3] = a; // OK
+    double * const (*ap1)[] = a; // OK since C++20
 }
 
 int main()

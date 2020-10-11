@@ -1,96 +1,303 @@
 #include <iostream>
+#include <iomanip>
 #include <cstdint>
 #include <bitwise.h>
 
-void integer_types()
-{
-    // void - type with an empty set of values
-    // There are no arrays of void, nor references to void. However, pointers to void and functions returning type void.
-    // Type void have use in template metaprogramming
+// Fundamental C++ types
+// https://en.cppreference.com/w/cpp/language/types
 
+// void - type with an empty set of values
+// There are no arrays of void, nor references to void. However, pointers to void and functions returning type void.
+// Type void have use in template metaprogramming
+void boolean_type()
+{
     // The value of sizeof(bool) is implementation defined and might differ from 1
+    // Bitwise representation is implementation-defined
     // Naming of bool often express its boolean nature, starting from "is"
     bool is_root = true;
+    std::cout 
+        << "sizeof(bool) = " << sizeof(is_root)
+        << "; "
+        << "bitwise(bool) = " << bitwise(is_root) << '\n';
+}
 
-    // TODO: nullptr_t
+void character_types()
+{
+    // char - type for character representation
+    // It has the same representation and alignment as signed char or unsigned char
+    // the choice of signed or unsigned for a char is implementation-defined (char might be signed or unsigned)
+    // but it is distinct type
 
-/*
-    signed char - type for signed character representation.
-    unsigned char - type for unsigned character representation.
-    Also used to inspect object representations (raw memory).
-    char - type for character representation
-    It has the same representation and alignment as either signed char or unsigned char, but is always a distinct type
-*/
+    // Pointer to unsigned char often used to represent raw memory, as a pointer to byte
+    char c1 = 'A';
+    signed char c2 = -10;
+    unsigned char c3 = 0xcc;
 
+    // Output of char types
+    std::cout
+        << "char c1 = " << c1
+        << "signed char c2 = " << c2
+        << "unsigned char c3 = " << c3
+        << '\n';
+
+    // The notation int{c} gives the integer value for a character c
+    std::cout << c1 << " == " << int{c1} << '\n';
+
+    // wchar_t - type for wide character representation
+    // Required to be large enough to represent any supported character code point 
+    // (32 bits on systems that support Unicode)
+    // A notable exception is Windows, where wchar_t is 16 bits and holds UTF-16 characters
+    wchar_t w1 = L'ñ';
+
+    // Output of wide char types requires special stream object
+    std::wcout 
+        << L"wchar_t w1 =" << w1 
+        << L"; "
+        << "sizeof(wchar_t) = " << sizeof(wchar_t)
+        << L'\n';
+
+
+    // Literals of fixed size are presented as sequences 
+    // of two, four or eight hexadecimal digits
+    // Wide characters (16 and 32 bit) preceded by a u'' or U''
+    // 16-bit Unicode symbols hold most of alphabetical and pseudographic symbols
+    // 32-bit Unicode symbol may hold emoji and other extended symbols
+    // See also https://en.wikipedia.org/wiki/UTF-32
+    
+    // type for UTF - 8 character representation; Same size as unsigned char
+    char8_t c5 = 'c'; 
+    // type for UTF-16 character representation; Same size as std::uint_least16_t
+    char16_t c6 = u'\u00df';
+    // type for UTF-32 character representation; Same size as std::uint_least32_t
+    char32_t c7 = U'\U0001f34c';
+
+    // There's no system-independent and consistent way to out all Unicode symbols in console
+}
+
+void integer_types()
+{
     // int, short and pointer types are system dependent
     // On any system it's guaranteed to have a width of at least 16 bits
     // On 32/64 bit systems it is almost exclusively guaranteed 
-    // to have width of at least 32 bits (see below)
+    // to have width of at least 32 bits
     int a = 42;
+    std::cout
+        << "int a = " << a
+        << "; "
+        << "sizeof(int) = " << sizeof(int)
+        << '\n';
 
-    // long in practice almost always 32 bit
+    // long in practice almost always 32 bit, however also depends on data models (see below)
+    long b = 0xffcc;
+    std::cout
+        << "long b = " << b
+        << "; "
+        << "sizeof(long) = " << sizeof(long)
+        << '\n';
+
+    // x86/64 processors use "Little Endian" byte order
+    // "Little Endian" means that the low-order byte of the number 
+    // is stored in memory at the lowest address, and the high-order byte 
+    // at the highest address, i.e. the little end comes first
+
+    // Let's use variable of type unsigned long long and pointer to unsigned char
+    unsigned long long little_endian = 0x8899aabbccddeeff;
+    unsigned char* pbyte = reinterpret_cast<unsigned char*>(&little_endian);
+    for (size_t i = 0; i < sizeof(unsigned long long); ++i, ++pbyte) {
+        std::cout << "Byte " << i << " = " << std::hex << *pbyte << '\n';
+    }
+
+    // Look once again on bitwise representation
+    std::cout << "bitwise(little_endian) = " << bitwise(little_endian) << '\n';
+
+    // Purpose of the little-endian popularity is that LE system can read from memory 
+    // at different lengths without using different addresses
+    // For example, a 64-bit memory location with content [4A 00 00 00 00 00 00 00] 
+    // can be read at the same address as either 8-bit (value = 4A), 16-bit (004A), or 32-bit (0000004A)
+    union {
+        uint8_t u8; 
+        uint16_t u16; 
+        uint32_t u32; 
+        uint64_t u64;
+    } u = { .u64 = 0x4A };
+    
+    std::cout
+        << "8-bit value = " << u.u8
+        << "16-bit value = " << u.u16
+        << "32-bit value = " << u.u32
+        << "64-bit value = " << u.u64
+        << '\n';
+
+    
+    // Some big-endian architectures include the IBM z/Architecture, AVR32, SPARC, and OpenRISC
+    // Most of ARM processors support switching endianness, being effectively double-endian
+
+    // Regarding the size Standard guarantees
+    // 1 == sizeof(char) <= sizeof(short) <= sizeof(int) <= sizeof(long) <= sizeof(long long)
 
 /*
 Data models
 
-The choices made by each implementation about the sizes of the fundamental types 
+The choices made by each implementation about the sizes of the fundamental types
 are collectively known as data model. Four data models found wide acceptance:
 
-        LP32 or 2/4/4 (int is 16-bit, long and pointer are 32-bit)
-            16 bit systems
-            Win16 API
-
-        ILP32 or 4/4/4 (int, long, and pointer are 32-bit);
-            32 bit systems
-            Win32 API
-            Unix and Unix-like systems (32-bit Linux, macOS)
-
-        LLP64 or 4/4/8 (int and long are 32-bit, pointer is 64-bit)
-            64 bit systems
-            Win64 API
-
-        LP64 or 4/8/8 (int is 32-bit, long and pointer are 64-bit)
-            64 bit systems
-            Unix and Unix-like systems (64-bit Linux, macOS)
+1.  LP32 or 2/4/4 (int is 16-bit, long and pointer are 32-bit)
+    16 bit systems, Win16 API
+2.  ILP32 or 4/4/4 (int, long, and pointer are 32-bit): 
+    32 bit systems
+    Win32 API
+    Unix and Unix-like systems (32-bit Linux, macOS)
+3.  LLP64 or 4/4/8 (int and long are 32-bit, pointer is 64-bit)
+    64 bit systems
+    Win64 API
+4.  LP64 or 4/8/8 (int is 32-bit, long and pointer are 64-bit)
+    64 bit systems
+    Unix and Unix-like systems (64-bit Linux, macOS)
 
 Other models are very rare. For example, ILP64 (8/8/8: int, long, and pointer are 64-bit)
 only appeared in some 64-bit Unix systems
 */
+
+#if _WIN32 || _WIN64
+#if _WIN64
+    std::cout << "Current system is Win64\n";
+#else
+    std::cout << "Current system is Win32\n";
+#endif
+#endif
+
+    std::cout
+        << "Size of short, int, long and pointer on the system: \n"
+        << "sizeof(short) = " << sizeof(short)
+        << "sizeof(int) = " << sizeof(int)
+        << "sizeof(long) = " << sizeof(long)
+        << "sizeof(void*) = " << sizeof(void*)
+        << '\n';
 }
 
-void signed_types()
+void unsigned_types()
 {
-    // signed - target type will have signed representation (this is the default if omitted) 
-    // unsigned - target type will have unsigned representation 
+    // Signed is the default if 'unsigned' omitted
+    // Unsigned effectively "move" bottom of the numerical range to 0
+    // Signed long: [–2147483648; 2147483647]
+    // Unsigned long: [0; 4294967295]
 
+    // Signed bitwise representation
+    // It has a sign bit in it
+    long signed_longs[] = { 1, 255, 2147483647, -1 };
+    for (auto sig : signed_longs) {
+        std::cout
+            << "sig = " << sig << " bitwise(sig) = " << bitwise(sig)
+            << '\n';
+    }
+
+    // Unsigned bitwise representation
+    unsigned long unsigned_longs[] = { 1, 255, 2147483647, 4294967295 };
+    for (auto unsig : unsigned_longs) {
+        std::cout
+            << "unsig = " << unsig << " bitwise(unsig) = " << bitwise(unsig)
+            << '\n';
+    }
+
+    // Even though 'unsigned' allows to use new range of numbers within the same type, 
+    // using unsigned during actual mathematical computations can introduce programming errors 
+    // that are really hard to spot, and it's usually better to use signed int just to avoid them
+    
+    // 1.
+    for (unsigned i = 5; i >= 0; i--) {
+        std::cout << i << '\n';
+    }
+
+    // 2.
+    for (unsigned i = 0; i < 10; i++) {
+        for (unsigned j = 0; j < 10; j++) {
+            if (i - j >= 4) {
+                std::cout
+                    << "i = " << i
+                    << "; "
+                    << "j = " << j
+                    << '\n';
+            }
+        }
+    }
+
+    // 3.
+    unsigned int i1 = 1;
+    int j1 = -1;
+
+    // i1 == 1, j1 == -1, arithmetically it's bigger, right?
+    // In Soviet C++ unsigned type cast you!
+    if (j1 < i1) {
+        std::cout << "Unreachable;";
+    }
+
+    // Unreachable section will never be reached, 
+    // because unsigned(-1) being casted to maxint == 2147483647 == 0xffffffff
+    // Using unsigned introduces the potential for these sorts of bugs, and there's not really any upside
+
+    // Historically, unsigned is being used for size, offset, bitmask and other values of non-negative nature
     // Note: as with all type specifiers, any order is permitted: 
-    // unsigned long long int and long int unsigned long name the same type
+    // 'unsigned long long' int and 'long int unsigned long' name the same type
+    unsigned long long ull{};
+    long int unsigned long liul{};
 }
+
+namespace cpp {
+enum MyEnum : long long
+{
+    First = 1,
+    Second = 2,
+    Total = 3
+};
+} // namespace cpp
 
 void numeric_promotions()
 {
-    /*
-    Numeric types could be implicitly converted to larger type. Such convertion called promotion
-    Promotion never changes the value of converted number
+    // https://en.cppreference.com/w/cpp/language/implicit_conversion
+    //Numeric types could be implicitly converted to larger type.
+    //    Such conversion called promotion
+    //    Promotion never changes the value of converted number
 
-    signed char or signed short can be converted to int;
-    char8_t, unsigned char or unsigned short can be converted to int if it can hold its entire value range, and unsigned int otherwise;
-    signed char or unsigned char char can be converted to int or unsigned int respectively;
-    wchar_t, char16_t, and char32_t can be converted to the first type from the following list able to hold their entire value range:
-    int, unsigned int, long, unsigned long, long long, unsigned long long (since C++11);
-    an unscoped enumeration type whose underlying type is not fixed can be converted to the first type from the following list
-    able to hold their entire value range:
-    int, unsigned int, long, unsigned long, long long, or unsigned long long
-    an unscoped enumeration type whose underlying type is fixed can be converted to its underlying type
-    type bool can be converted to int with the value false becoming 0 and true becoming 1
+    // signed char or signed short can be converted to int;
+    signed char sc = -127;
+    short ss = -32768;
+    int promote_to_int = sc;
+    promote_to_int = ss;
 
-    all other conversions are not promotions, but rather convertions;
-    for example, overload resolution chooses char -> int (promotion) over char -> short (conversion)
-    Unlike the promotions, numeric conversions may change the values, with potential loss of precision
-    Narrowing convertion - from larger to smaller.
-    Integers types are usually cut; floating-point narrowing convertion is UB.
-    fp -> integer leads to truncation
-    */
+    // unsigned char or unsigned short can be converted to to unsigned int
+    unsigned char uc = 0xff;
+    unsigned short us = 0xffff;
+    unsigned int promote_to_uint = sc;
+
+    // wchar_t, char16_t, and char32_t, or any unscoped enumeration type can be converted 
+    // to the first type from the following list able to hold their entire value range:
+    // int, unsigned int, long, unsigned long, long long, unsigned long long
+
+    char32_t c32 = U'\U0001e36d';
+    promote_to_int = c32;
+    promote_to_uint = c32;
+    long promote_to_long = c32;
+    unsigned long promote_to_ulong = c32;
+    long long promote_to_ll = c32;
+    unsigned long long promote_to_ull = c32;
+
+    // unscoped enumeration type whose underlying type is fixed can be converted to its underlying type
+    cpp::MyEnum e = cpp::First;
+    long long promote_to_underlying = e;
+
+    // type bool can be converted to int with the value false becoming 0 and true becoming 1
+    int weird_promotion = true;
+
+    // all other conversions are not promotions, but rather conversions
+    // for example, overload resolution chooses char -> int (promotion) over char -> short (conversion)
+}
+
+void numeric_conversions()
+{
+    // Unlike the promotions, numeric conversions may change the values, with potential loss of precision
+    // Narrowing conversion - from larger to smaller
+    // Integers types are usually cut; floating-point narrowing convertion is UB.
+    // fp -> integer leads to truncation
 }
 
 void fixed_size_types()

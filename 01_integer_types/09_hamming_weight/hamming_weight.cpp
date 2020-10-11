@@ -84,16 +84,16 @@ static uint64_t popcount(uint32_t i)
 // TODO: https://stackoverflow.com/questions/109023/how-to-count-the-number-of-set-bits-in-a-32-bit-integer
 void show_hamming_weight()
 {
-    int bits1 = popcount_1(1);
+    uint64_t bits1 = popcount_1(1);
     std::cout << "Hamming weight(1) = " << bits1 << '\n';
 
-    int bits2 = popcount_2(2);
+    uint64_t bits2 = popcount_2(2);
     std::cout << "Hamming weight(2) = " << bits2 << '\n';
 
-    int bits3 = popcount_3(3);
+    uint64_t bits3 = popcount_3(3);
     std::cout << "Hamming weight(3) = " << bits3 << '\n';
 
-    int bits4 = popcount_4(8);
+    uint64_t bits4 = popcount_4(8);
     std::cout << "Hamming weight(8) = " << bits4 << '\n';
 }
 
