@@ -14,6 +14,12 @@ void point_to_me_static() {}
 } // namespace cpp
 
 
+// * Pointers can be converted to intptr_t and back
+// * ptrdiff_t is closely tied to the machine pointer type, so as size_t
+// * size_t holds sizes of objects, whereas ptrdiff_t the differences of addresses within the objects
+// * Legit use of intmax_t is for formatting, and probably serialization
+
+
 // Facts about pointers
 void pointers_facts()
 {

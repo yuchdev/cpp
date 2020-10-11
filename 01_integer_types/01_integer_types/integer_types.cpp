@@ -161,7 +161,8 @@ void integer_types()
         Unix and Unix-like systems (64-bit Linux, macOS)
 
     Other models are very rare. For example, ILP64 (8/8/8: int, long, and pointer are 64-bit)
-    only appeared in some 64-bit Unix systems
+    only appeared in some 64-bit Unix systems (UNICOS Cray Unix)
+    https://en.wikipedia.org/wiki/UNICOS
 */
 
 #if _WIN32 || _WIN64
@@ -260,9 +261,9 @@ enum MyEnum : long long
 void numeric_promotions()
 {
     // https://en.cppreference.com/w/cpp/language/implicit_conversion
-    //Numeric types could be implicitly converted to larger type.
-    //    Such conversion called promotion
-    //    Promotion never changes the value of converted number
+    // Numeric types could be implicitly converted to larger type.
+    // Such conversion called promotion
+    // Promotion never changes the value of converted number
 
     // signed char or signed short can be converted to int;
     signed char sc = -127;
@@ -324,6 +325,10 @@ void numeric_conversions()
 
 void fixed_size_types()
 {
+    // Problem of C++ borrowed from C: we have lots of types 
+    // whose sizes are all depend on system or architecture
+    // That's why fixed-size (or guaranteed size) types are provided
+
     // signed integer type with width of exactly 8, 16, 32 and 64 bits respectively
     // with no padding bits and using 2's complement for negative values
     int8_t i8{};
@@ -333,19 +338,53 @@ void fixed_size_types()
     // same for uint8_t, uint16_t, uint32_t, uint64_t
     // {} is the default initialization for basic types
 
+    std::cout
+        << "sizeof(int8_t) = " << sizeof(int8_t)
+        << "sizeof(int16_t) = " << sizeof(int16_t)
+        << "sizeof(int32_t) = " << sizeof(int32_t)
+        << "sizeof(int64_t) = " << sizeof(int64_t)
+        << '\n';
+
     // fastest signed integer type with width of at least 8, 16, 32 and 64 bits respectively
+    // For example, uint32_t is not even guaranteed to exist
+    // uint_fast32_t states your intent clearly: 
+    // it's a type of at least 32 bits which is the best from a performance point-of-view
+    // uint32_t or uint16_t may end up having 64 bit size
+    // Example: in a 64-bit machine, where one would expect to have int as 64-bit, 
+    // a compiler may use a mode with 32-bit int compilation for compatibility.
+    // In this mode, int_fast16_t could be 64-bit
     int_fast8_t if8{};
     int_fast16_t if16{};
     int_fast32_t if32{};
     int_fast64_t if64{};
 
+    std::cout
+        << "sizeof(int_fast8_t) = " << sizeof(int_fast8_t)
+        << "sizeof(int_fast16_t) = " << sizeof(int_fast16_t)
+        << "sizeof(int_fast32_t) = " << sizeof(int_fast32_t)
+        << "sizeof(int_fast64_t) = " << sizeof(int_fast64_t)
+        << '\n';
 
     // smallest signed integer type with width of at least 8, 16, 32 and 64 bits respectively
+    // is needed only if one believes they will ever port to an exotic architecture 
+    // where CHAR_BIT is larger than eight, which means it won't be even POSIX compatible,
+    // which totally exist though (ClearPath, OS2200)
+    // It feature 36-bit words, 9-bit char, 72-bit non-IEEE floating point, 
+    // separate address space for code and data, word-addressed
+    // and don't have dedicated stack pointer
+    // https://en.wikipedia.org/wiki/OS_2200
+    // https://www.unisys.com/offerings/high-end-servers/clearpath-systems/clearpath-dorado-systems
     int_least8_t li8{};
     int_least16_t li16{};
     int_least32_t li32{};
     int_least64_t li64{};
 
+    std::cout
+        << "sizeof(int_least8_t) = " << sizeof(int_least8_t)
+        << "sizeof(int_least16_t) = " << sizeof(int_least16_t)
+        << "sizeof(int_least32_t) = " << sizeof(int_least32_t)
+        << "sizeof(int_least64_t) = " << sizeof(int_least64_t)
+        << '\n';
 
     // (un)signed integer type capable of holding a pointer
     // intptr_t can't be assigned a nullptr, it's just an int size of pointer
@@ -353,6 +392,11 @@ void fixed_size_types()
 
     // maximum-width (un)signed integer type
     intmax_t imax{};
+
+    std::cout
+        << "sizeof(intptr_t) = " << sizeof(intptr_t)
+        << "sizeof(intmax_t) = " << sizeof(intmax_t)
+        << '\n';
 
     // Macro constants defined in header <cstdint>
     // INT8_MIN/INT8_MAX, INT16_MIN/INT16_MAX etc
