@@ -3,6 +3,13 @@
 #include <cstdint>
 #include <bitwise.h>
 
+// Suppress counter-examples
+// warning C4018: '<': signed/unsigned mismatch as a counter-example
+// warning C4244: 'initializing' : conversion from '__int64' to 'long', possible loss of data
+#ifdef _MSC_VER
+#pragma warning( disable : 4018 4244)
+#endif
+
 // Fundamental C++ types
 // https://en.cppreference.com/w/cpp/language/types
 
@@ -128,7 +135,6 @@ void integer_types()
         << "64-bit value = " << u.u64
         << '\n';
 
-    
     // Some big-endian architectures include the IBM z/Architecture, AVR32, SPARC, and OpenRISC
     // Most of ARM processors support switching endianness, being effectively double-endian
 
@@ -136,26 +142,26 @@ void integer_types()
     // 1 == sizeof(char) <= sizeof(short) <= sizeof(int) <= sizeof(long) <= sizeof(long long)
 
 /*
-Data models
+    Data models
 
-The choices made by each implementation about the sizes of the fundamental types
-are collectively known as data model. Four data models found wide acceptance:
+    The choices made by each implementation about the sizes of the fundamental types
+    are collectively known as data model. Four data models found wide acceptance:
 
-1.  LP32 or 2/4/4 (int is 16-bit, long and pointer are 32-bit)
-    16 bit systems, Win16 API
-2.  ILP32 or 4/4/4 (int, long, and pointer are 32-bit): 
-    32 bit systems
-    Win32 API
-    Unix and Unix-like systems (32-bit Linux, macOS)
-3.  LLP64 or 4/4/8 (int and long are 32-bit, pointer is 64-bit)
-    64 bit systems
-    Win64 API
-4.  LP64 or 4/8/8 (int is 32-bit, long and pointer are 64-bit)
-    64 bit systems
-    Unix and Unix-like systems (64-bit Linux, macOS)
+    1.  LP32 or 2/4/4 (int is 16-bit, long and pointer are 32-bit)
+        16 bit systems, Win16 API
+    2.  ILP32 or 4/4/4 (int, long, and pointer are 32-bit): 
+        32 bit systems
+        Win32 API
+        Unix and Unix-like systems (32-bit Linux, macOS)
+    3.  LLP64 or 4/4/8 (int and long are 32-bit, pointer is 64-bit)
+        64 bit systems
+        Win64 API
+    4.  LP64 or 4/8/8 (int is 32-bit, long and pointer are 64-bit)
+        64 bit systems
+        Unix and Unix-like systems (64-bit Linux, macOS)
 
-Other models are very rare. For example, ILP64 (8/8/8: int, long, and pointer are 64-bit)
-only appeared in some 64-bit Unix systems
+    Other models are very rare. For example, ILP64 (8/8/8: int, long, and pointer are 64-bit)
+    only appeared in some 64-bit Unix systems
 */
 
 #if _WIN32 || _WIN64
@@ -221,7 +227,7 @@ void unsigned_types()
         }
     }
 
-    // 3.
+    // 3. (this one is being caught with the compiler warning)
     unsigned int i1 = 1;
     int j1 = -1;
 
@@ -232,7 +238,7 @@ void unsigned_types()
     }
 
     // Unreachable section will never be reached, 
-    // because unsigned(-1) being casted to maxint == 2147483647 == 0xffffffff
+    // because unsigned(-1) is being casted to maxint == 2147483647 == 0xffffffff
     // Using unsigned introduces the potential for these sorts of bugs, and there's not really any upside
 
     // Historically, unsigned is being used for size, offset, bitmask and other values of non-negative nature
@@ -295,9 +301,25 @@ void numeric_promotions()
 void numeric_conversions()
 {
     // Unlike the promotions, numeric conversions may change the values, with potential loss of precision
+    
     // Narrowing conversion - from larger to smaller
-    // Integers types are usually cut; floating-point narrowing convertion is UB.
+    
+    // warning: conversion with possible loss of data, even 1 is perfectly fit
+    long long wide_ll = 1;
+    long narrow_l = wide_ll;
+
+    // When signed integer arithmetic operation overflows (the result does not fit), the behavior is undefined:
+    // it may cut value, it may trap on some platforms or due to compiler options (e.g. -ftrapv in GCC and Clang), 
+    // it can sometimes saturate to minimal or maximal value (on many DSPs), 
+    // or may be completely optimized out by the compiler
+
+    // floating-point narrowing conversion loses precision, implementation-defined
+    // If narrow type can't represent wide type, it is UB
+    float narrow_f = 1.5f;
+    double wide_d = narrow_f;
+
     // fp -> integer leads to truncation
+    int narrow_i = narrow_f;
 }
 
 void fixed_size_types()
