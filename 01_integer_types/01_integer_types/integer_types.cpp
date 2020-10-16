@@ -28,13 +28,22 @@ void boolean_type()
         << "bitwise(bool) = " << bitwise(is_root) << '\n';
 }
 
+/** @brief char - type for character representation
+ * It has the same representation and alignment as signed char or unsigned char
+ * the choice of signed or unsigned for a char is implementation-defined (char might be signed or unsigned)
+ * but it is distinct type
+ * There were "exotic" char sizes over history, sometimes need to me noticed on legacy systems
+ * CDC 6x00 char==6bit
+ * Unisys ClearPath/OS2200 char==9bit
+ * PDP-6/10, IBM 70xx char==9bit
+ * PDP-8 char==12bit
+ * PDP-11 char==16bit
+ * TexasInstruments C54/62/64x char==16bit
+ * Windows CE char==16bit
+ * Motorola dsp56k char==24bit
+ */
 void character_types()
 {
-    // char - type for character representation
-    // It has the same representation and alignment as signed char or unsigned char
-    // the choice of signed or unsigned for a char is implementation-defined (char might be signed or unsigned)
-    // but it is distinct type
-
     // Pointer to unsigned char often used to represent raw memory, as a pointer to byte
     char c1 = 'A';
     signed char c2 = -10;
@@ -54,7 +63,7 @@ void character_types()
     // Required to be large enough to represent any supported character code point 
     // (32 bits on systems that support Unicode)
     // A notable exception is Windows, where wchar_t is 16 bits and holds UTF-16 characters
-    wchar_t w1 = L'ñ';
+    wchar_t w1 = L'ï¿½';
 
     // Output of wide char types requires special stream object
     std::wcout 
@@ -186,7 +195,7 @@ void unsigned_types()
 {
     // Signed is the default if 'unsigned' omitted
     // Unsigned effectively "move" bottom of the numerical range to 0
-    // Signed long: [–2147483648; 2147483647]
+    // Signed long: [-2147483648; 2147483647]
     // Unsigned long: [0; 4294967295]
 
     // Signed bitwise representation
