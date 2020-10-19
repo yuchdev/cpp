@@ -1,6 +1,20 @@
-# C++ by examples
+# Advanced C++ By Examples
 
-* C++ tips and tricks
-* Bitwise operations
+Work under the course content is in progress. 
+
 * Integer types
-* Floating-point types
+    * Integer types representation
+    * Comparing pointers
+    * Facts about pointers
+    * C++ array tricks
+    * Facts about references
+    * Facts about enums
+    * Bits and arithmetic
+    * Hamming weights
+* Floating point types
+    * Floating point representation
+    * Extracting floating point components
+    * Comparing floating point numbers
+    * Functions working with floating point numbers
+    * Fast conversion into integer
+    * Floating point errors
