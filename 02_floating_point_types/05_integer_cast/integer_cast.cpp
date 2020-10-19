@@ -120,7 +120,7 @@ int flol_debug(float x)
 }
 
 
-int fast_dtoi(double d) 
+long long fast_dtoll(double d) 
 {
 
     union castable {
@@ -152,7 +152,7 @@ struct TPTraitsBase<float>
 template <>
 struct TPTraitsBase<double>
 {
-    typedef long ret_type;
+    typedef long long ret_type;
     typedef long long mask_type;
     typedef double convert_type;
     static const mask_type mask = (1075LL << 52) | (1LL << 51);

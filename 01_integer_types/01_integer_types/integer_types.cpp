@@ -63,7 +63,7 @@ void character_types()
     // Required to be large enough to represent any supported character code point 
     // (32 bits on systems that support Unicode)
     // A notable exception is Windows, where wchar_t is 16 bits and holds UTF-16 characters
-    wchar_t w1 = L'�';
+    wchar_t w1 = L'A';
 
     // Output of wide char types requires special stream object
     std::wcout 
