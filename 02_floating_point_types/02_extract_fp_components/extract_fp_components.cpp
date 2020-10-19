@@ -119,5 +119,6 @@ void fp_components_extract()
 
 int main()
 {
+    // TODO: insert any function call
     return 0;
 }

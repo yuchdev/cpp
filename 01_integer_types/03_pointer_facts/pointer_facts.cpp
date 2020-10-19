@@ -132,6 +132,6 @@ void pointer_conversions()
 
 int main()
 {
-    pointers_facts();
+    // TODO: insert any function call
     return 0;
 }

@@ -76,6 +76,6 @@ void floating_point_representation()
 
 int main()
 {
-    floating_point_representation();
+    // TODO: insert any function call
     return 0;
 }

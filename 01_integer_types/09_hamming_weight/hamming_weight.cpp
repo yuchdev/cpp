@@ -99,5 +99,6 @@ void show_hamming_weight()
 
 int main()
 {
+    // TODO: insert any function call
     return 0;
 }

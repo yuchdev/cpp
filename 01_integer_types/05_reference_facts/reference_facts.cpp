@@ -2,7 +2,7 @@
 
 // Facts about references
 
-void show_references()
+void lvalue_reference()
 {
 
     // * Aliasing is when more than one lvalue refers to the same memory location 
@@ -41,8 +41,7 @@ void show_references()
     // After that it refers to some garbage in memory
     // You may artificially create this situation, far example, like this:
     int* p = nullptr;
-    int& r = *p;  
-    
+    int& r = *p;
     // Nope, don't create it, it's illegal according to  C++ 2014 section 8.3.2
 
     // * keyword this has to be a reference: always points to a referent, 
@@ -52,7 +51,18 @@ void show_references()
     // * Use references when you can, and pointers when you have to
 }
 
+void rvalue_reference()
+{
+    // TODO:
+}
+
+void function_reference()
+{
+    // TODO:
+}
+
 int main()
 {
+    // TODO: insert any function call
     return 0;
 }

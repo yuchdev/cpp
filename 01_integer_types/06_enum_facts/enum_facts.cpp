@@ -38,7 +38,13 @@ void enum_size()
     long long l = e4;
 }
 
+void enum_class()
+{
+    // TODO:
+}
+
 int main()
 {
+    // TODO: insert any function call
     return 0;
 }

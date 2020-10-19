@@ -106,5 +106,6 @@ void array_pointer_and_array(){
 
 int main()
 {
+    // TODO: insert any function call
     return 0;
 }

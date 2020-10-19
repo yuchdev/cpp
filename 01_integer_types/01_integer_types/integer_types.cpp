@@ -56,7 +56,7 @@ void character_types()
         << "unsigned char c3 = " << c3
         << '\n';
 
-    // The notation int{c} gives the integer value for a character c
+    // The functional cast notation int{c} gives the integer value for a character c
     std::cout << c1 << " == " << int{c1} << '\n';
 
     // wchar_t - type for wide character representation
@@ -378,7 +378,7 @@ void fixed_size_types()
     // is needed only if one believes they will ever port to an exotic architecture 
     // where CHAR_BIT is larger than eight, which means it won't be even POSIX compatible,
     // which totally exist though (ClearPath, OS2200)
-    // It feature 36-bit words, 9-bit char, 72-bit non-IEEE floating point, 
+    // It features 36-bit words, 9-bit char, 72-bit non-IEEE floating point, 
     // separate address space for code and data, word-addressed
     // and don't have dedicated stack pointer
     // https://en.wikipedia.org/wiki/OS_2200
@@ -420,5 +420,6 @@ void fixed_size_types()
 
 int main()
 {
+    // TODO: insert any function call
     return 0;
 }

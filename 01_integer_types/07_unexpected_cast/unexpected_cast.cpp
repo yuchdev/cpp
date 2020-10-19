@@ -47,7 +47,6 @@ void show_shift(){
     }
 
     l = 0;
-    std::cout << "\nNo-no, David Blaine!\n";
     for (size_t i = 0; i < sizeof(long long) * 8; ++i) {
         l = 1075LL << i;
         std::cout << "Step " << i << " magic =  " << bitwise(l) << '\n';
@@ -56,5 +55,6 @@ void show_shift(){
 
 int main()
 {
+    // TODO: insert any function call
     return 0;
 }

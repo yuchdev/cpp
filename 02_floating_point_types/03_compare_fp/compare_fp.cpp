@@ -96,6 +96,6 @@ void show_close_enough()
 
 int main()
 {
-    show_close_enough();
+    // TODO: insert any function call
     return 0;
 }

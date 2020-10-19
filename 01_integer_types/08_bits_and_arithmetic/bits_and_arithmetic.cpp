@@ -167,11 +167,6 @@ void raised_to2_examples_and_explanation()
 
 int main()
 {
-    negative_integer();
-    shift_operations();
-    multiply_and_divide();
-    powers_of_2();
-    raised_to2_examples_and_explanation();
-
+    // TODO: insert any function call
     return 0;
 }
