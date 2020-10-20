@@ -7,14 +7,18 @@
 // OsX workaround
 #include <cfloat>
 #include <cstdint>
-#include <fenv.h>
 
+#include <fenv.h>
 #include <bitwise.h>
 
 // The floating-point environment maintains a series of status flags and specific control modes.
 // Specific about the contents of the floating-point environment depend on the implementation,
 // but the status flags generally include the floating-point exceptions and their associated information,
 // and the control modes include at least the rounding direction.
+// Working with floating-point numbers, you may face a number of situations, 
+// cause "FP error" or "FP exception". It includes, but not limited to: 
+// Rounding error, Underflow and Overflow errors, Inexact error
+// Ways of catch and process this errors are strictly system- and architecture-specific.
 
 void fp_coltrol_noexcept()
 {
