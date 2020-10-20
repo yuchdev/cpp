@@ -1,6 +1,6 @@
 # Advanced C++ By Examples
 
-The course is designed for C++ developers, students with C++ knowledge, teachers going to improve their course content.
+The course is designed for beginner C++ developers, students with basic C++ knowledge, teachers going to improve their course content.
 It assumes basic knowledge of all main C++ subjects: work with variables and program execution flow, work with pointers and memory,
 classes and OOP, templates and generic programming, Standard Library containers and algirithms, multithreading, 
 because any of chapters may refer any other chapter.
