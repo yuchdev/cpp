@@ -72,7 +72,6 @@ void character_types()
         << "sizeof(wchar_t) = " << sizeof(wchar_t)
         << L'\n';
 
-
     // Literals of fixed size are presented as sequences 
     // of two, four or eight hexadecimal digits
     // Wide characters (16 and 32 bit) preceded by a u'' or U''

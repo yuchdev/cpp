@@ -39,7 +39,7 @@ void pointers_facts()
     int a{};
     int* ptr_a = &a;
 
-    // fact: pointer size
+    // TODO fact: pointer sizes
 
     // Standard output prints pointers as hexadecimal
     std::cout << "ptr_a = " << ptr_a << '\n';
@@ -61,7 +61,6 @@ void pointers_facts()
     // Pointer arithmetic
     int some_array[10] = {0,1,2,3,4,5,6,7,8,9};
     int* ptr_to_first = some_array;
-
 
     // 1.pointer + integer: moves forward from the pointer
     int* fifth_element = ptr_to_first + 5;
