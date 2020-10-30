@@ -22,7 +22,9 @@
 *  Now we can add both number and receive 1.0003672e5
 *  Now imagine, if we keep moving 3672 to the right, eventually 2 and then 7 would be truncated,
 *  and 36 is everything what left. But this is exactly the whole part of 36.72!
+*  For 32-bit floating point value you shoud move it to the size of exponent (TODO: check)
 * 
+*  TODO:
 *  However, with negative numbers this trick won't work.
 *  In case of adding decimal numbers, we should 
 */
