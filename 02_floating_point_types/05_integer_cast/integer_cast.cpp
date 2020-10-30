@@ -46,6 +46,8 @@ void classic_ftol()
     // Let's see some assembly representation
 
     // We can take advantage of this
+    // these techniques are applicable to any high-performance application that mixes
+    // floating-point and integer math on modern processors
 
     convertible f;
     f.f = 1.0f;
