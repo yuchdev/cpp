@@ -44,6 +44,11 @@ void classic_ftol()
     // Using any type of cast, C++ or C style, we implicitly call C function ftol(),
     // which saves rounding mode, set rounding mode for the conversion, convert and restore rounding mode
     // Let's see some assembly representation
+    float fp_single = 9.99f;
+    int i = static_cast<int>(fp_single);
+
+    double fp_double = 9.99;
+    i = static_cast<int>(fp_double);
 
     // We can take advantage of this
     // these techniques are applicable to any high-performance application that mixes
