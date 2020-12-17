@@ -26,7 +26,7 @@ void pointers_facts()
     // fact: a pointer to a non-array dynamic object behaves the same as a pointer to the
     // first element of an array of length one
 
-    // x86 of today use little-endian storage for all types of data(integer, floating point, BCD)
+    // x86 of today use little-endian storage for all types of data(integer, floating point, binary-coded decimal)
     long example = 1L;
     uint8_t* explore_bytes = reinterpret_cast<uint8_t*>(&example);
 
