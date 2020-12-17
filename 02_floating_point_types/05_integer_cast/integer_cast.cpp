@@ -44,11 +44,18 @@ void classic_ftol()
     // Using any type of cast, C++ or C style, we implicitly call C function ftol(),
     // which saves rounding mode, set rounding mode for the conversion, convert and restore rounding mode
     // Let's see some assembly representation
+    // (cvttss2si == Convert with Truncation Scalar Single-Precision Floating-Point Value to Integer)
     float fp_single = 9.99f;
     int i = static_cast<int>(fp_single);
+    // movss        xmm0, DWORD PTR fp_single[rip]
+    // cvttss2si    eax, xmm0
+    // mov          DWORD PTR i[rip], eax
 
     double fp_double = 9.99;
     i = static_cast<int>(fp_double);
+    //  movsd       xmm0, QWORD PTR fp_double[rip]
+    // cvttsd2si    eax, xmm0
+    // mov          DWORD PTR i[rip], eax
 
     // We can take advantage of this
     // these techniques are applicable to any high-performance application that mixes
