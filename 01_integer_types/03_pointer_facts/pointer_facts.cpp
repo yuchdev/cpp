@@ -59,7 +59,7 @@ void pointers_facts()
     const int* const ptr4 = &a;
 
     // Pointer arithmetic
-    int some_array[10] = {0,1,2,3,4,5,6,7,8,9};
+    int some_array[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
     int* ptr_to_first = some_array;
 
     // 1.pointer + integer: moves forward from the pointer
@@ -124,7 +124,7 @@ void pointer_conversions()
     // OK: 2 more cv-qual and const was already at 1
     volatile const char* const* p4 = p2;
 
-    double *a[2][3];
+    double* a[2][3] = {};
     double const * const (*ap)[3] = a; // OK
     double * const (*ap1)[] = a; // OK since C++20
 }
