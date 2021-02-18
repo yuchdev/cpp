@@ -22,24 +22,24 @@
 
 void fp_coltrol_noexcept()
 {
-	std::cout << "Floating point state flags:\n";
+    std::cout << "Floating point state flags:\n";
     std::cout << " FE_DIVBYZERO = " << FE_DIVBYZERO << '\n';
     std::cout << " FE_INEXACT = " << FE_INEXACT << '\n';
     std::cout << " FE_INVALID = " << FE_INVALID << '\n';
     std::cout << " FE_OVERFLOW = " << FE_OVERFLOW << '\n';
-	std::cout << " FE_UNDERFLOW = " << FE_UNDERFLOW << '\n';
+    std::cout << " FE_UNDERFLOW = " << FE_UNDERFLOW << '\n';
 
-	std::cout << "Floating point rounding flags:\n";
-	std::cout << " FE_DOWNWARD = " << FE_DOWNWARD << '\n';
-	std::cout << " FE_TONEAREST = " << FE_TONEAREST << '\n';
-	std::cout << " FE_TOWARDZERO = " << FE_TOWARDZERO << '\n';
-	std::cout << " FE_UPWARD = " << FE_UPWARD << '\n';
+    std::cout << "Floating point rounding flags:\n";
+    std::cout << " FE_DOWNWARD = " << FE_DOWNWARD << '\n';
+    std::cout << " FE_TONEAREST = " << FE_TONEAREST << '\n';
+    std::cout << " FE_TOWARDZERO = " << FE_TOWARDZERO << '\n';
+    std::cout << " FE_UPWARD = " << FE_UPWARD << '\n';
 
-	std::cout << "Current exceptions flags = " << fetestexcept(FE_ALL_EXCEPT) << '\n';
-	std::cout << "Current rounding mode = " << fegetround() << '\n';
+    std::cout << "Current exceptions flags = " << fetestexcept(FE_ALL_EXCEPT) << '\n';
+    std::cout << "Current rounding mode = " << fegetround() << '\n';
 
-	// Clear exception flags
-	feclearexcept(FE_ALL_EXCEPT);
+    // Clear exception flags
+    feclearexcept(FE_ALL_EXCEPT);
 
     // Create Inexact/Underflow error
 	double d1 = 1.0;
