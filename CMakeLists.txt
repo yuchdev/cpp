@@ -23,10 +23,7 @@ if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
 endif()
 
 if(MSVC)
-#  add_compile_options(PUBLIC "/FC /EHa /W3 /MP" 
-#    "$<$<CONFIG:Release>:/Zi /Oi /GL /Gy>" 
-#    "$<$<CONFIG:Debug>:/ZI>"
-#  )
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /FC /EHa /W3 /MP")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /ZI")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi /Oi /GL /Gy")
