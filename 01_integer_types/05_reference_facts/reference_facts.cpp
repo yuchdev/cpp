@@ -42,7 +42,7 @@ void lvalue_reference()
     // You may artificially create this situation, far example, like this:
     int* p = nullptr;
     int& r = *p;
-    // Nope, don't create it, it's illegal according to  C++ 2014 section 8.3.2
+    // Nope, don't create it, it's illegal according to  C++ 2014 section 8.3.2 (UB)
 
     // * keyword this has to be a reference: always points to a referent, 
     // can't be zero, can't overlive it.

@@ -12,7 +12,7 @@ void array_facts()
     std::cout << "Size of the string '" << str << "' is " << sizeof(str);
 
     // string literal is constant by default
-    char* const_string = "Other string";
+    char* const_string = (char*)"Other string";
     // p[0] = 'o' - can't touch this!
 
     // If you want to operate non-const string literal, use array instead
@@ -80,7 +80,7 @@ void array_pointer_and_array(){
 
     ptrdiff_t diff2 = reinterpret_cast<int*>(ii6)-int_array_plus;
     std::cout << std::hex << ii6 << '-' << int_array_plus << '=' << std::dec << diff2 << '\n';
-    // diff2 равен 41. It means (&array + 1) points to the LAST array item + offset 1
+    // diff2 == 41. It means (&array + 1) points to the LAST array item + offset 1
     // In other words, pointer to array points to the "whole array", 
     // and +1 pointer would be out of array bounds
 
