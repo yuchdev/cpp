@@ -12,7 +12,8 @@ void array_facts()
     std::cout << "Size of the string '" << str << "' is " << sizeof(str);
 
     // string literal is constant by default
-    char* const_string = (char*)"Other string";
+    // Even if you skip 'const' specifier
+    const char* const_string = "Other string";
     // p[0] = 'o' - can't touch this!
 
     // If you want to operate non-const string literal, use array instead
