@@ -70,7 +70,7 @@ void compare_floating_point()
         std::cout << "Well, this does not compute...\n";
     }
 
-    if (close_enough(pi1, pi2) || close_enough2(pi1, pi2)) 
+    if (close_enough(pi1, pi2) || close_enough2(pi1, pi2)) {
         std::cout << "What about now?\n";
     }
 

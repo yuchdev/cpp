@@ -1,5 +1,6 @@
 #define _USE_MATH_DEFINES
 #include <iostream>
+#include <vector>
 #include <iomanip>
 #include <bitset>
 #include <cmath>
@@ -9,6 +10,7 @@
 #include <cstdint>
 
 #include <bitwise.h>
+#include <generate.h>
 
 /*
 *  Significand is stored without whole part, which is 1.0 anyway
@@ -38,8 +40,6 @@ union convertible {
 
 void classic_ftol()
 {
-    // TODO: code for disassembly
-
     // Converting floating point to integer
     // Using any type of cast, C++ or C style, we implicitly call C function ftol(),
     // which saves rounding mode, set rounding mode for the conversion, convert and restore rounding mode
@@ -47,15 +47,27 @@ void classic_ftol()
     // (cvttss2si == Convert with Truncation Scalar Single-Precision Floating-Point Value to Integer)
     float fp_single = 9.99f;
     int i = static_cast<int>(fp_single);
+
+    // GCC 11
     // movss        xmm0, DWORD PTR fp_single[rip]
     // cvttss2si    eax, xmm0
     // mov          DWORD PTR i[rip], eax
 
+    // Clang 12
+    // cvttss2si    eax, dword ptr [fp_single]
+    // mov          dword ptr[i1], eax
+
     double fp_double = 9.99;
     i = static_cast<int>(fp_double);
+    
+    // GCC 11
     //  movsd       xmm0, QWORD PTR fp_double[rip]
     // cvttsd2si    eax, xmm0
     // mov          DWORD PTR i[rip], eax
+
+    // Clang 12
+    // cvttsd2si    eax, qword ptr [fp_double]
+    // mov          dword ptr[i2], eax
 
     // We can take advantage of this
     // these techniques are applicable to any high-performance application that mixes
@@ -249,6 +261,12 @@ void test_fast_ftoi()
     std::cout << d << " -> " << i << '\n';
 }
 
+
+void benchmark()
+{
+    RandomReal<double> rr;
+    std::vector<double> randoms = rr.gen(10000, 0.0, 10.0);
+}
 
 int main()
 {

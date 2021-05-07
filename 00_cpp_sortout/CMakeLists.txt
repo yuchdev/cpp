@@ -1,4 +1,3 @@
-project(cpp_sortout CXX)
 set(TARGET cpp_sortout)
 
 file(GLOB SOURCES *.cpp *.h)

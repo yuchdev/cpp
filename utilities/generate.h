@@ -1,6 +1,7 @@
 #pragma once
 #include <random>
 
+template <typename T>
 class RandomReal
 {
 public:
@@ -8,7 +9,7 @@ public:
     {
     }
 
-    std::vector<double> rendom_sequence(size_t size, double from, double to)
+    std::vector<T> rendom_sequence(size_t size, double from, double to)
     {
         auto randomNumberBetween = [](int low, int high)
         {
@@ -20,7 +21,7 @@ public:
             return randomFunc;
         }
 
-        std::vector<double> result;
+        std::vector<T> result;
         std::generate_n(std::back_inserter(numbers), size, randomNumberBetween(1.0, 100.0));
     }
 
