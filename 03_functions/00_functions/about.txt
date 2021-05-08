@@ -1,0 +1,10 @@
+Functions
+
+* Function pointer types could be defined with typedef or using
+* Explicit inline makes sense if
+   - its definition is in *.cpp file
+   - in template functions (std::max)
+* inline could be cancelled by the recursion, cycle, virtual methos or taking function address
+* std lib has function pointers callback: new_handler
+* If you put the inline function's definition into a .cpp file, and if it is called from some other .cpp file, 
+  you'll get an "unresolved external" error from the linker

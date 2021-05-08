@@ -26,6 +26,9 @@ void boolean_type()
         << "sizeof(bool) = " << sizeof(is_root)
         << "; "
         << "bitwise(bool) = " << bitwise(is_root) << '\n';
+
+    // Operator sizeof() yelds size in bytes of the object representation of type or expression
+    // sizeof() cannot be used with function types, incomplete types, or bit-field glvalues
 }
 
 /** @brief char - type for character representation
@@ -41,6 +44,7 @@ void boolean_type()
  * TexasInstruments C54/62/64x char==16bit
  * Windows CE char==16bit
  * Motorola dsp56k char==24bit
+ * The exact number being recorded in macro CHAR_BIT
  */
 void character_types()
 {
@@ -91,6 +95,9 @@ void character_types()
 
 void integer_types()
 {
+    //nullptr is a special value of type nullptr_t
+    // It was ithoduces to avoid ambigious NULL (void* or int)
+
     // int, short and pointer types are system dependent
     // On any system it's guaranteed to have a width of at least 16 bits
     // On 32/64 bit systems it is almost exclusively guaranteed 
