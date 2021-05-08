@@ -18,6 +18,27 @@ int boo(int x){
     return 0;
 }
 
+void naming_conventions()
+{
+    // Give variables with large scope long and clear names
+    static int test_counter = a;
+
+    // It's okay to give short names to variables with small scope
+    for (int i = 0; i < test_counter; i++){
+        ::g_global += test_counter;
+        cout << ::g_global << endl;
+    }
+
+    // access global variable
+    ::g_global = 0;
+
+    // global variable shadowing
+    int g_global = 0;
+
+    // There's no way to access 
+    // a shadowed local variable
+}
+
 // Why rand() is a very slow function. It calls Enter/LeavCriticalSection 
 // and locks data bus, which may kill your application performance, 
 // especially if the architecture relying on multiple CPU.
@@ -35,6 +56,12 @@ void show_rand()
     std::cout << "Random number generation with rand() took " <<  m.elapsed_mcsec() << '\n';
 }
 
+
+// Alignment
+struct S { char c; int i; };
+
+// Wrong compare
+bool is_equal(S a, S b) { return 0 == memcmp(&a, &b, sizeof(S)); }
 
 int main()
 {

@@ -165,6 +165,10 @@ void raised_to2_examples_and_explanation()
     std::cout << "(x - 1) & x = \t" << bitwise((x2 - 1) & x2) << '\n';
 }
 
+// !(!a && !b)
+//a || b
+//This is correct.  NOT (NOT A  AND  NOT B) equals A OR B.  Conversely, NOT (NOT A  OR  NOT B) equals A AND B.
+
 int main()
 {
     // TODO: insert any function call
