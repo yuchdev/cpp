@@ -1,0 +1,3 @@
+add_subdirectory(00_functions)
+add_subdirectory(01_linking)
+add_subdirectory(02_namespaces)

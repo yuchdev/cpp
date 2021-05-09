@@ -1,4 +1,4 @@
-set(TARGET 00_functions)
+set(TARGET 01_linking)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 
