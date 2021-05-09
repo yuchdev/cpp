@@ -46,3 +46,5 @@ which could be just drafts or code snippets.
     * Functions working with floating point numbers
     * Fast conversion into integer
     * Floating point errors
+* Functions
+    * Calling conventions
