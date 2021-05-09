@@ -4,25 +4,15 @@
 #include <cstdlib>
 #include <iostream>
 
-// Порядок определения глобальных переменных не определен
+// Initialization order of global variable is not defined between translation units
 int g = 0;
 int d = g*g;
 
-// Используйте вместо них синглтоны
-// или статические переменные возвращаемые по ссылке
+// Using of "Meyers' Singleton" instead of global
 int& use_count()
 {
 	static int res = 0;
 	return res;
-}
-
-// Пользовательская функция глобальной очистки
-// Передаеться аргументом в функцию atexit()
-// Ненадежна, т.к. возможно ограниченное количество вызовов atexit()
-void my_cleanup()
-{
-	// нельзя увидеть из отладчика
-	std::cout << "cleanup handler" << std::endl;
 }
 
 // Static and extern examples:
@@ -48,24 +38,9 @@ namespace {
 
 int main()
 {
-	// Здесь используются внешние определения
+	// Extern declarations from different translation units
 	// в разных единицах трансляции
 	use_extern();
 	show_extern();
 
-	// Способы завершения программы.
-	// exit(); //  - вызовет деструкторы
-	// abort(); // - не вызовет деструкторы
-
-	if ( atexit( &my_cleanup ) == 0 )
-	{
-		// будет вызвана my_cleanup
-	}
-	else
-	{
-		// проблема глобальное очистки
-		return 1;
-	}
-
-	return 0;
 }

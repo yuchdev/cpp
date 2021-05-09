@@ -47,4 +47,9 @@ which could be just drafts or code snippets.
     * Fast conversion into integer
     * Floating point errors
 * Functions
-    * Calling conventions
+    * Calling conventions: cdecl, stdcall, fastcall
+    * Linkage agreements: internal&external
+    * extern "C" linkage convention
+    * Named and unnamed namespace
+    * Inline namespace
+    * Scope: file, block, function prototype, function, namespace, class

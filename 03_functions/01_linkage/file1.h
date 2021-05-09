@@ -13,12 +13,22 @@ extern "C" void c_function1();
 extern "C"{
     void c_function2();
     void c_function3();
-
-    // Passing the function pointer to a C application
-    // one also should specify the linkage convention
-    typedef void(qsort_t)(void*, size_t, size_t);
-    // points to a function which will be linked as C function
 };
+
+// Passing the function pointer to a C application
+// one also should specify the linkage convention
+// points to a function which will be linked as C function
+extern "C" int fc(int) { return 1; }      // fc has C linkage
+int fcpp(int) { return 1; }               // fcpp has C++ linkage
+
+// fp1 and fp2 have C++ linkage
+int (*fp1)(int) = fc;                     // Mismatch
+int (*fp2)(int) = fcpp;                   // OK 
+
+// fp3 and fp4 have C linkage 
+extern "C" int (*fp3)(int) = fc;          // OK 
+extern "C" int (*fp4)(int) = fcpp;        // Mismatch
+
 
 // Wrap the entire file as extern "C"
 extern "C"{
