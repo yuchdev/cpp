@@ -1,0 +1,100 @@
+Production implementation of memory pool
+http://www.pjsip.org/pjlib/docs/html/files.htm
+
+Simple memory pool example
+http://www.codeproject.com/Articles/27487/Why-to-use-memory-pool-and-how-to-implement-it
+http://www.codeproject.com/Articles/15527/C-Memory-Pool
+http://stackoverflow.com/questions/16378306/c11-memory-pool-design-pattern
+
+// Facebook jemalloc
+https://www.facebook.com/notes/facebook-engineering/scalable-memory-allocation-using-jemalloc/480222803919
+
+Windows Low fragmentation heap
+http://msdn.microsoft.com/en-us/library/aa366750.aspx
+
+As for fragmentation: it still depends. Unfortunately I can't find the link now, 
+but I remember a blog post from somebody at Microsoft who had worked on a C++ server 
+application that suffered from memory fragmentation. The team solved the problem by 
+allocating memory from two regions. Memory for all requests would come from region A 
+until it was full (requests would free memory as normal). 
+When region A was full, all memory would be allocated from region B. 
+By the time region B was full, region A was completely empty again. 
+This solved their fragmentation problem.
+
+operator delete is unique in being a non-member or static member function that is dynamically dispatched
+A type with a virtual destructor performs the call to its own delete from the most derived destructor
+http://en.cppreference.com/w/cpp/memory/new/operator_new
+http://en.cppreference.com/w/cpp/language/delete
+http://en.cppreference.com/w/cpp/memory/new/operator_delete
+
+
+Советы
+
+* Do not add many c-tors to a class, just because you think they could be useful for someone
+* Method which does not change anything in class state muct be declared const
+* Start declaring class members from public, to make emphasis on interface
+* Elements of member array could be constructed only by default. This effectively makes constant array members useless
+* Constructors for static objects are being called during first access, destructors in an order opposite to creation
+* Member of union can't have c-tors or destructors, as it is unclear which one to call
+* Default c-tor may have arguments with default values
+* If the class contains uninitialized const members of references, default c-tor can't be called
+* There are 3 standard forms of new() - defailt, placement and nothrow
+* The new() operator calls an operator new() function to allocate memory, 
+  and then, depending on the type allocated and the syntax used, initializes or calls a constructor
+* Destructor of the class could be called explicitly, for example with placement new
+* Class size not always equal the sum of all its members, because of the alignment
+* Compiler does not generate operator=(const A&) in non-const version expicitly declared
+* new_handler function is a function which is called by the default allocation functions when they fail to allocate
+* every class may have its own new handler, set by set_new_handler()
+* Mixture pattern could be used to apply some particular allocation algorithm towards the class
+* operator new() is being inherited
+* operator new() must have sibling operator new[]()
+* declaring non-default operator new() with additional arguments, also declare standard, as it is being hidden by non-default
+* delete[] usually includes object counter by offset 0
+* forward declaration decrease compilation time
+* Implement clone() as "virtual copy c-tor"
+* new/delete pointer should be compared to zero
+* static members COULD be changed in const methods
+* use "lazy evaluation" of not all of result dataset could be used
+* use "pre-evaluation" is results could be used too often
+* use ref-count and copy-on-write on big datasets in concurrent environment
+* all function prototype params and return values could be declared via "forward declaration". Even passed by value!
+* friend declarations of non-existent classes are ignored
+* Forward declarations could be used also for function prototypes params (including by value) and returning values (including by value)
+* inline is not a directive, but rather an advise to a compiler. It could be canceled by cycles, recursion, dereferencing
+
+Designing class answer following questions:
+* How class is being created and destroyes?
+* Are creation and assignment different?
+* What would passing my value mean?
+* Any impossible values?
+* Any custom type convertions?
+* Any operators coule be applied?
+* Place in hierarchy
+* Who may have access to internal state (be friend)?
+* How the type is generic?
+
+How to allow placing of the object only in heap?
+Make c-tors private, and open "virtual c-tor"
+
+How to disallow placing of the object in heap?
+Make operator new/new[] private
+
+How to determine whether the object placed in the queue?
+Stack grows top-to-bottom, heap - bottom-to-top
+
+operator new/delete implenetation notes
+Normally on the compiler-level every generated class has "heap flag"
+if it is == true, it means that objects is created on the heap, 
+and operator delete() would be called after desrtuctor 
+
+TODO: move to inheritance
+* non-terminal classes should be abstract
+* abstract class should have protected operator=()
+* abstract destructors must be amplemented
+* abstract class should not possess data
+
+C/C++ compatibility
+* C++ has name mangling, overload works thatnks to it
+* In С main is a "real" antry point, because no static c-tors are being called
+* C does not have ststic members
