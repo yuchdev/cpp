@@ -44,8 +44,9 @@ which could be just drafts or code snippets.
     * Extracting floating point components
     * Comparing floating point numbers
     * Functions working with floating point numbers
-    * Fast conversion into integer
     * Floating point errors
+    * Old algorithm of Fast converting floating point into integer
+    * Old algorithm of Fast Inverse Square Root
 * Functions
     * Calling conventions: cdecl, stdcall, fastcall
     * Linkage agreements: internal&external
