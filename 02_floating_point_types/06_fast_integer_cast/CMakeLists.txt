@@ -1,5 +1,5 @@
-project(05_integer_cast CXX)
-set(TARGET 05_integer_cast)
+project(06_fast_integer_cast CXX)
+set(TARGET 06_fast_integer_cast)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 

@@ -1,5 +1,5 @@
-project(06_fp_errors CXX)
-set(TARGET 06_fp_errors)
+project(05_fp_errors CXX)
+set(TARGET 05_fp_errors)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 
