@@ -208,22 +208,6 @@ typename TPTraits<FP>::ret_type fast_fpconvert(FP f)
     return ret.i - magic.i;
 }
 
-// http://en.wikipedia.org/wiki/Fast_inverse_square_root
-// return 1/sqrt(number)
-float quick_rsqrt(float number)
-{
-	const float x2 = number * 0.5F;
-	const float threehalfs = 1.5F;
-
-	union {
-		float f;
-		uint32_t i;
-	} conv  = { .f = number };
-	conv.i  = 0x5f3759df - ( conv.i >> 1 );
-	conv.f  *= threehalfs - ( x2 * conv.f * conv.f );
-	return conv.f;
-}
-
 void test_fast_ftoi()
 {
     float f = 1.0;
