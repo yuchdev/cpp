@@ -53,6 +53,7 @@ set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEB
 endif()
 
 add_subdirectory(utilities)
+add_subdirectory(cpp_sortout)
 add_subdirectory(00_cpp_types)
 add_subdirectory(01_integer_types)
 add_subdirectory(02_floating_point_types)
