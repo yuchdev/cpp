@@ -1,5 +1,8 @@
 #include <iostream>
+#include <vector>
+#include <string>
 #include <bitwise.h>
+
 
 // Fundamental C++ types
 // https://en.cppreference.com/w/cpp/language/types
@@ -24,14 +27,17 @@ void boolean_type()
 
 // TODO: nullptr_t, void
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wuninitialized"
 // TODO: move to appropriate lesson
 void initialization_order()
 {
-    // example of UB due to bad initialzation
+    // example of UB due to bad initialization
     int i = i * 0;
 
-    // no defined ordef of initilization within one expression
+    // no defined order of initialization within one expression
 }
+#pragma clang diagnostic pop
 
 
 // 1.
@@ -40,7 +46,7 @@ void print_map(const std::map<Key, Val>& m)
 {
     /*
     1.This function does not have 3rd map template param, 
-    if it's provided, funcion dos not work\
+    if it's provided, function dos not work
     Solution is to pass additional args
     1.1
     void print_map(const std::map<
@@ -131,25 +137,101 @@ void test_pet()
     PrintMe<Dog>::print();
 }
 
-// 5.
+// 5. What problem here (dangling ref, inefficiency, potential leak, compile error)
 class HoldRaii
 {
-    static size_t object_count = 0;
+    static size_t object_count;
 public:
     HoldRaii() = default;
     HoldRaii(const HoldRaii& other)
     {
         // increment a static counter
-        object_count++;
+        ++object_count;
     }
     ~HoldRaii()
     {
-        object_count--;
+        --object_count;
     }
+
+    // No move operation declared, which means copy-operation will be called
+    // e.g. push_back() operations
+    // See Rule of Zero
+    // https://arne-mertz.de/2015/02/the-rule-of-zero-revisited-the-rule-of-all-or-nothing/
+
+    // Let's implement move c-tor
+    // What's wrong with it?
+    HoldRaii(HoldRaii&& other)
+    {
+        // increment a static counter
+        // (object left in empty state, but not destructed yet)
+        ++object_count;
+    }
+    // Answer: miss noexcept
+    // Other noexcept c-tor won't accept it
+    // E.g. vector c-tor not move, it copies
+    // see:
+    // https://en.cppreference.com/w/cpp/utility/move_if_noexcept
+    // https://stackoverflow.com/questions/28627348/noexcept-and-copy-move-constructors
+    // TODO: implement example
+};
+
+// static
+size_t HoldRaii::object_count = 0;
+
+// 8. Rule if you want to copy, pass by value
+std::vector<std::string> strings;
+
+void save_to_list(std::string s)
+{
+    strings.push_back(std::move(s));
+    // Herb Sutter: reasons to pass std::vector and std::string by const & are largely gone
+    // So as rule "if you want to copy, pass by value"
+    // It could be used while we don't save string in a caller, just use const&
+    // If we use and copy, we should use string&& and std::move(s)
+    // Use std::forward for perfect forwarding
+    // See Howard_Hinnant_Accu_2014.pdf
+}
+
+// Right way is overload
+void save_to_list(std::string&& s)
+{
+    strings.push_back(s);
+}
+
+void save_to_list(const std::string& s)
+{
+    strings.push_back(s);
+}
+
+template <typename T> requires
+std::convertible_to<T, std::string>
+void save_to_list(const std::string& s)
+{
+    strings.push_back(std::forward<T>(s));
+}
+
+// 9. C-tor should be explicit
+// Person p = "John";
+
+// 10. Smart ptr class
+class smart_ptr
+{
+public:
+    smart_ptr(T* p) : ptr(p) {}
+    ~smart_ptr() { delete ptr; }
+
+    // Answer: code break logical const
+    // We want to use <const T> rather than const smart_ptr<T>
+    // const iterators are also potentially part of this problem!
+    T& get() const { return ptr; }
+    void set(T t) { *ptr = t; }
+
+private:
+    T* ptr;
 };
 
 int main()
 {
-    // TODO: insert any function call
+    boolean_type();
     return 0;
 }
