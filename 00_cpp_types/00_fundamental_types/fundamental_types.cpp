@@ -3,7 +3,6 @@
 #include <string>
 #include <bitwise.h>
 
-
 // Fundamental C++ types
 // https://en.cppreference.com/w/cpp/language/types
 
