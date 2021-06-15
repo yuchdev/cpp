@@ -229,6 +229,33 @@ private:
     T* ptr;
 };
 
+// 11.
+// Facebook pre-C++11 example
+// Usage example:
+// const std::string s = get_or_default(m, s1, s2);
+template <class Map, typename Key>
+const typename Map::mapped_type& get_or_default(
+        const Map& map,
+        const Key& key,
+        const typename Map::mapped_type& defaultVal)
+{
+    auto pos = map.find(key);
+    return (pos != map.end() ? pos->second : defailtVal);
+}
+
+// Answer: possible dangling reference on return type
+// rvalue defaultVal would be dangling
+// Usage example:
+// const std::string& s = get_or_default(m, "apple", "orange");
+// Solution 1: return by value 'const typename Map::mapped_type'
+// Solution 2: don't allow rvalue 'typename Map::mapped_type&& defaultVal'
+// and delete its implementation
+// Solution 3: overload for rvalue 'typename Map::mapped_type&& defaultVal'
+// and return by value
+//
+
+
+
 int main()
 {
     boolean_type();
