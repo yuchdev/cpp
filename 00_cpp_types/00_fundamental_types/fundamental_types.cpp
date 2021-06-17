@@ -252,9 +252,124 @@ const typename Map::mapped_type& get_or_default(
 // and delete its implementation
 // Solution 3: overload for rvalue 'typename Map::mapped_type&& defaultVal'
 // and return by value
-//
+// Note: ASAN sanitizer finds the problem
 
 
+// TODO: watch
+[[maybe_unused]]
+void unique_dangling_ref()
+{
+    auto& ref = *std::make_unique<int>(42);
+    std::cout << ref << '\n';
+}
+
+// 12.
+struct Person
+{
+    std::string name_;
+    Person(const std::string& n) : name_(n) {}
+    const std::string& name() { return name_; }
+};
+
+// What's wrong with iterations?
+void show_iterative()
+{
+    // [a]
+    for(char c: std::string{"hello"}) {
+        // do something with c
+    }
+    // [b]
+    for(const char& c: std::string{"hello"}) {
+        // do something with c
+    }
+    // [c]
+    for (char c: Person{"John"}.name()) {
+        // do something with c
+    }
+}
+
+// Answer: [c] using dangling reference
+// Temporary object's Person{"John"} lifetime is not extended for the loop scope
+
+// 13.
+
+class Base {};
+
+class Derived;
+
+void foo(const Base& d) {}
+
+void foo1(const Derived& d)
+{
+    // This is runtime bad casting and UB
+    // However, the code is compiling
+    // Never use C-style casting!
+    // Use static_cast or dynamic_cast
+    foo((const Base&) d);
+}
+
+// 14.
+void add_distance(double dist)
+{
+
+}
+
+void show_type_aliases()
+{
+    using meters = double;
+    meters distance = 7.5;
+    add_distance(distance);
+}
+
+// Answer: design is wrong, no type enforcement
+// Distance could be in other units
+// Use strong types and type literals
+// Chrono is a great example for type literals:
+// Examples of good measurement naming types
+// https://www.boost.org/doc/libs/1_75_0/doc/html/boost_units.html
+// https://github.com/joboccara/NamedType
+
+// Wrong Type is Actually Crashing
+// https://hownot2code.com/2016/09/02/a-space-error-370-million-for-an-integer-overflow/
+
+// ...don’t just wrap it with a struct
+// This is NOT a Strong Type
+// struct Meters { double m; }
+// Rectangle r(Meters(10), Meters(12));
+// but then this would also work:
+// Rectangle r({10}, {12});
+// Note also that this is against the encapsulation rule
+// Such structs turn to grow into fully functioning classes with public members
+
+// 15.
+
+void show_int_ub()
+{
+    int x = MAX_INT;
+    int y = x + 1;
+    if (x < y) {
+        std::cout << "x is smaller";
+    } else {
+        std::cout << "y is smaller or equal";
+    }
+}
+// Answer: this is UB, integer overflow
+// Check out UB analyzer
+// https://tsnippet.trust-in-soft.com/#
+
+// Examples of int/uint UB
+// https://stackoverflow.com/questions/18195715/why-is-unsigned-integer-overflow-defined-behavior-but-signed-integer-overflow-is
+// https://stackoverflow.com/questions/7488837/why-is-int-rather-than-unsigned-int-used-for-c-and-c-for-loops
+// https://stackoverflow.com/questions/199333/how-do-i-detect-unsigned-integer-multiply-overflow
+// https://stackoverflow.com/questions/7488837/why-is-int-rather-than-unsigned-int-used-for-c-and-c-for-loops
+// https://stackoverflow.com/questions/22587451/c-c-use-of-int-or-unsigned-int
+// TODO: watch
+// https://www.youtube.com/watch?v=93Cjg42bGEw&t=91s
+// https://www.youtube.com/watch?v=sBtAGxBh-XI
+// https://www.boost.org/doc/libs/1_70_0/libs/numeric/conversion/doc/html/index.html
+// https://www.boost.org/doc/libs/develop/libs/safe_numerics/doc/html/index.html
+// https://us-cert.cisa.gov/bsi/articles/knowledge/coding-practices/safe-integer-operations
+// http://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html
 
 int main()
 {
