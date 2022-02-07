@@ -1,4 +1,7 @@
-add_subdirectory(00_cpp_types)
+add_subdirectory(00_fundamental_types)
 add_subdirectory(01_integer_types)
 add_subdirectory(02_floating_point_types)
-add_subdirectory(02_functions)
+
+add_subdirectory(00_functions)
+add_subdirectory(01_linkage)
+add_subdirectory(02_namespaces)
