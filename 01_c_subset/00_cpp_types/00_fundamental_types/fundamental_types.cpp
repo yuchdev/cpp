@@ -1,30 +1,96 @@
 #include <iostream>
 #include <vector>
-#include <string>
+#include <type_traits>
 #include <bitwise.h>
+#include <map>
 
 // Fundamental C++ types
 // https://en.cppreference.com/w/cpp/language/types
 
-// void - type with an empty set of values
-// There are no arrays of void, nor references to void. However, pointers to void and functions returning type void.
-// Type void have use in template metaprogramming
 void boolean_type()
 {
     // The value of sizeof(bool) is implementation defined and might differ from 1
     // Bitwise representation is implementation-defined
-    // Naming of bool often express its boolean nature, starting from "is"
+    // Naming of bool variables and function often express its boolean nature, starting from "is"
     bool is_root = true;
     std::cout 
         << "sizeof(bool) = " << sizeof(is_root)
         << "; "
         << "bitwise(bool) = " << bitwise(is_root) << '\n';
 
-    // Operator sizeof() yelds size in bytes of the object representation of type or expression
-    // sizeof() cannot be used with function types, incomplete types, or bit-field glvalues
+    // Operator sizeof() yields size in bytes of the object representation of type or expression
+    // sizeof() cannot be used with function types, incomplete types, or bit-field l-values
 }
 
-// TODO: nullptr_t, void
+// Prior to C++11 standard null pointer was served by C-macro NULL
+// C++11 standard null pointer is defined as nullptr
+// The problem with NULL is that when we pass integer 0, we can't say if its a pointer or integer
+// It potentially could be a problem during function overloading over types void* and int,
+// and template metaprogramming
+void accept_null(int)
+{
+    std::cout << "accept_null(int)\n";
+}
+
+void accept_null(void*)
+{
+    std::cout << "accept_null(void*)\n";
+}
+
+void accept_null(int*)
+{
+    std::cout << "accept_intptr(int*)\n";
+}
+
+void accept_null(std::nullptr_t)
+{
+    std::cout << "accept_null(std::nullptr_t)\n";
+}
+
+void nullptr_type()
+{
+    // Trying to call with NULL
+    // error: call to 'accept_null' is ambiguous
+    // accept_null(NULL);
+    // accept_null(0);
+
+    accept_null(0);
+
+    // Since C++11, we have a null pointer literal, nullptr, of std::nullptr_t type
+    // If two or more overloads accept different pointer types (void* and int* in our case),
+    // an overload for std::nullptr_t is necessary to accept a null pointer argument.
+    // Otherwise, we got an error: call to 'accept_null' is ambiguous
+    int* ptr1 = nullptr;
+    void* ptr2 = nullptr;
+    accept_null(nullptr);
+    accept_null(ptr1);
+    accept_null(ptr2);
+
+    // nullptr is a constant expression, equal to size of void*
+    assert(sizeof(std::nullptr_t) == sizeof(void *));
+
+    // Since C++14, we have a template struct is_null_pointer()
+    std::cout
+        << "std::is_null_pointer<int*>::value"
+        << std::is_null_pointer<int*>::value << '\n';
+}
+
+// void - type with an empty set of values
+// It is an incomplete type that cannot be completed
+// (consequently, objects of type void are disallowed)
+// There are no arrays of void, nor references to void.
+// However, pointers to void and functions returning type void.
+// Type void have use in template metaprogramming
+// to show that a type is not known at compile time
+void void_type()
+{
+    // Pointer of any type can be implicitly converted to pointer to void, without changing its value
+    // The reverse conversion requires static_cast
+    int n = 0;
+    int* p_int = &n;
+    void* p_void = p;
+    int* p_int2 = static_cast<int*>(p_void);
+}
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wuninitialized"
@@ -65,19 +131,16 @@ void print_map(const std::map<Key, Val>& m)
         std::cout << p.first << '=' << p.second;
     }
 
-    std::cout << typeid(m);
+    std::cout << typeid(m).name() << '\n';
     // TODO: print pair type
     //std::cout << typeid(std::map<Key, Val>);
 
-    // Better solution is to use auto
-    // or C++17 structure binding
+    // Better solution is to use auto with C++17 structure binding
     for (const auto& [key, val]: m){
         std::cout << key << ' ' << val;
     }
     // https://google.github.io/styleguide/cppguide.html#auto
     // https://channel9.msdn.com/posts/Scott-Meyers-Andrei-Alexandrescu-and-Herb-Sutter-C-and-Beyond
-
-
 }
 
 // 2. Use C++20 auto!
@@ -202,6 +265,9 @@ void save_to_list(const std::string& s)
     strings.push_back(s);
 }
 
+// TODO: sort out std::convertible_to usage
+#if __cplusplus >= 20 and false
+
 template <typename T> requires
 std::convertible_to<T, std::string>
 void save_to_list(const std::string& s)
@@ -209,10 +275,13 @@ void save_to_list(const std::string& s)
     strings.push_back(std::forward<T>(s));
 }
 
+#endif
+
 // 9. C-tor should be explicit
 // Person p = "John";
 
 // 10. Smart ptr class
+template <typename T>
 class smart_ptr
 {
 public:
@@ -240,7 +309,7 @@ const typename Map::mapped_type& get_or_default(
         const typename Map::mapped_type& defaultVal)
 {
     auto pos = map.find(key);
-    return (pos != map.end() ? pos->second : defailtVal);
+    return (pos != map.end() ? pos->second : defaultVal);
 }
 
 // Answer: possible dangling reference on return type
@@ -259,6 +328,7 @@ const typename Map::mapped_type& get_or_default(
 [[maybe_unused]]
 void unique_dangling_ref()
 {
+    // warning: object backing the pointer will be destroyed at the end of the full-expression
     auto& ref = *std::make_unique<int>(42);
     std::cout << ref << '\n';
 }
@@ -345,7 +415,7 @@ void show_type_aliases()
 
 void show_int_ub()
 {
-    int x = MAX_INT;
+    int x = INT_MAX;
     int y = x + 1;
     if (x < y) {
         std::cout << "x is smaller";

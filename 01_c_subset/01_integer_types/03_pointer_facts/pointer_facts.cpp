@@ -110,6 +110,8 @@ void nullptr_type()
 
 void pointer_conversions()
 {
+    std::cout << "C++ version: " << __cplusplus << '\n';
+
     char** p = 0;
 
     // error: level 2 more cv-qualified but level 1 is not const
@@ -118,15 +120,19 @@ void pointer_conversions()
     // OK: level 2 more cv-qualified and const added at level 1
     const char* const * p2 = p;
     
-    // OK: level 2 more cv-qual and const added at level 1
+    // OK: level 2 more cv-qualifiers and const added at level 1
     volatile char * const * p3 = p;
     
-    // OK: 2 more cv-qual and const was already at 1
+    // OK: 2 more cv-qualifiers and const was already at 1
     volatile const char* const* p4 = p2;
 
     double* a[2][3] = {};
     double const * const (*ap)[3] = a; // OK
+    // if C++20 or more
+
+#if __cplusplus >= 20
     double * const (*ap1)[] = a; // OK since C++20
+#endif
 }
 
 int main()

@@ -54,6 +54,9 @@ endif()
 
 add_subdirectory(utilities)
 add_subdirectory(cpp_sortout)
-add_subdirectory(00_cpp_types)
-add_subdirectory(01_integer_types)
-add_subdirectory(02_floating_point_types)
+add_subdirectory(01_c_subset)
+add_subdirectory(02_class_subset)
+add_subdirectory(03_template_subset)
+add_subdirectory(04_stl_subset)
+add_subdirectory(05_multithread_subset)
+
