@@ -71,6 +71,7 @@ def main():
         create_numeric_dirs(numeric_dirs)
     return 0
 
+
 ###########################################################################
 if __name__ == '__main__':
     sys.exit(main())

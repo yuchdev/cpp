@@ -6,8 +6,10 @@
 // OsX workaround
 #include <cfloat>
 #include <cstdint>
-
 #include <bitwise.h>
+
+// C++20 updates
+#include <format>
 
 // 1.Floating-point format
 // https://en.wikipedia.org/wiki/Floating-point_arithmetic
@@ -38,6 +40,10 @@ void floating_point_representation()
     // Significand precision: 24 bits (23 explicitly stored)
     float float_numbers[] = {1.0, 1.5, 0.75};
 
+    std::format("Sizeof float {}", sizeof(float));
+    std::format("Sizeof long {}", sizeof(long));
+    std::format("Sizeof long* {}", sizeof(long*));
+
     for (auto float_number : float_numbers) {
 
         long* float_hack = reinterpret_cast<long*>(&float_number);
@@ -56,8 +62,8 @@ void floating_point_representation()
         long long* double_hack = reinterpret_cast<long long*>(&double_number);
         static_assert(sizeof(double_number) == sizeof(*double_hack), "Double and long long should have equal size");
 
-        std::cout << "Binary representation of " << double_number << " =\n\t " << *double_hack
-            << " =\n\t " << bitwise(*double_hack) << '\n';
+        std::format("Binary representation of {} =\n\t {} =\n\t {}\n",
+                    double_number, *double_hack, bitwise(*double_hack));
     }
     // Unlike integers, distribution of floating-point numbers is not uniform
     // It is more dense for smaller and dense for larger numbers
@@ -76,6 +82,6 @@ void floating_point_representation()
 
 int main()
 {
-    // TODO: insert any function call
+    floating_point_representation();
     return 0;
 }

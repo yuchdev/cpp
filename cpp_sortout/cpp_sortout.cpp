@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdint>
 #include <elapsed.h>
+#include <map>
 
 // TODO: move to appropriate lesson
 void initialization_order()

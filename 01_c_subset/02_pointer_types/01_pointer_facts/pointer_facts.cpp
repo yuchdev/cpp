@@ -128,10 +128,12 @@ void pointer_conversions()
 
     double* a[2][3] = {};
     double const * const (*ap)[3] = a; // OK
-    // if C++20 or more
 
+    // TODO: error: level 2 more cv-qualifiers and const added at level 1
+#if 0
 #if __cplusplus >= 20
     double * const (*ap1)[] = a; // OK since C++20
+#endif
 #endif
 }
 

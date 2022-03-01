@@ -427,5 +427,6 @@ void fixed_size_types()
 int main()
 {
     // TODO: insert any function call
+    fixed_size_types();
     return 0;
 }

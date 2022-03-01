@@ -88,7 +88,7 @@ void void_type()
     // The reverse conversion requires static_cast
     int n = 0;
     int* p_int = &n;
-    void* p_void = p;
+    void* p_void = p_int;
     int* p_int2 = static_cast<int*>(p_void);
 }
 
