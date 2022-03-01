@@ -22,6 +22,7 @@ def create_cmake(target_dir):
         for subdir in subdirs:
             cmake_file.write(f"add_subdirectory({subdir})\n")
 
+
 def create_numeric_dirs(target_dir):
     """
     Create list of sorted subdirectories in target_dir
