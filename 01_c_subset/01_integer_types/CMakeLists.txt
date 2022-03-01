@@ -1,4 +1,4 @@
-add_subdirectory(00_integer_types)
+add_subdirectory(00_fundamental_types)
 add_subdirectory(02_compare_pointers)
 add_subdirectory(03_pointer_facts)
 add_subdirectory(04_array_facts)
