@@ -1,9 +1,4 @@
-add_subdirectory(00_fundamental_types)
-add_subdirectory(02_compare_pointers)
-add_subdirectory(03_pointer_facts)
-add_subdirectory(04_array_facts)
-add_subdirectory(05_reference_facts)
-add_subdirectory(06_enum_facts)
-add_subdirectory(07_unexpected_cast)
-add_subdirectory(08_bits_and_arithmetic)
-add_subdirectory(09_hamming_weight)
+cmake_minimum_required(VERSION 3.10)
+
+add_subdirectory(00_integer_types)
+add_subdirectory(01_unexpected_cast)

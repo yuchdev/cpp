@@ -14,6 +14,7 @@ def create_cmake(target_dir):
     add_subdirectory({subdirectory})
     """
     # Get list of subdirectories without files
+    os.chdir(target_dir)
     subdirs = sorted([x for x in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, x))])
     # Create CMakeLists.txt
     with open(os.path.join(target_dir, "CMakeLists.txt"), "w") as cmake_file:
@@ -29,6 +30,7 @@ def create_numeric_dirs(target_dir):
     Where NN is counter from 00 to 99
     """
     # Get list of subdirectories without files
+    os.chdir(target_dir)
     subdirs = sorted([x for x in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, x))])
     print(f"Old subdirectories: {subdirs}")
     # Create CMakeLists.txt
