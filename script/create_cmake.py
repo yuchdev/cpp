@@ -1,7 +1,6 @@
 import os
 import sys
 import argparse
-import subprocess
 
 
 __doc__ = """Create CMakeLists.txt based on directory content"""
@@ -44,6 +43,8 @@ def create_numeric_dirs(target_dir):
             os.system(f"git mv {subdir} {new_subdir}")
     new_subdirs = sorted([x for x in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, x))])
     print(f"New subdirectories: {new_subdirs}")
+    os.system(f"git commit --all -n -m 'Renamed subdirectories in {target_dir}'")
+    os.system(f"git push origin master")
 
 
 def main():
