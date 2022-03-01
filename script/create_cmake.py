@@ -21,6 +21,8 @@ def create_cmake(target_dir):
         cmake_file.write("\n")
         for subdir in subdirs:
             cmake_file.write(f"add_subdirectory({subdir})\n")
+    os.system(f"git commit --all -n -m 'Created CMakeLists.txt in {target_dir}'")
+    os.system(f"git push origin master")
 
 
 def create_numeric_dirs(target_dir):
