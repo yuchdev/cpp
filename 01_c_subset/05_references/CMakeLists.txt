@@ -1,4 +1,4 @@
-set(TARGET 06_reference_facts)
+set(TARGET 05_references)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 

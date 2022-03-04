@@ -1,4 +1,4 @@
-set(TARGET 02_compare_pointers)
+set(TARGET 00_compare_pointers)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 

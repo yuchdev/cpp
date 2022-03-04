@@ -1,4 +1,4 @@
-set(TARGET 07_enum_facts)
+set(TARGET 06_enums)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 

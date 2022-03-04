@@ -1,4 +1,4 @@
-set(TARGET 04_array_facts)
+set(TARGET 04_arrays)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 

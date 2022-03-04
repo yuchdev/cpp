@@ -1,4 +1,4 @@
-set(TARGET 03_pointer_facts)
+set(TARGET 01_pointer_facts)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 

@@ -1,4 +1,4 @@
-set(TARGET 08_unexpected_cast)
+set(TARGET 01_unexpected_cast)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 

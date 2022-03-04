@@ -1,5 +1,5 @@
-project(07_fast_reverse_sqrt CXX)
-set(TARGET 07_fast_reverse_sqrt)
+project(06_fast_reverse_sqrt CXX)
+set(TARGET 06_fast_reverse_sqrt)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 
