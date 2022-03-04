@@ -1,4 +1,4 @@
-set(TARGET 02_namespaces)
+set(TARGET 11_namespaces)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 

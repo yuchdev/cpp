@@ -1,4 +1,4 @@
-set(TARGET 00_functions)
+set(TARGET 09_functions)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 

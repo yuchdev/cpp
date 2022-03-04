@@ -18,6 +18,8 @@
 // Type void have use in template metaprogramming
 void boolean_type()
 {
+    // C++11: bool
+    // C99: _Bool
     // The value of sizeof(bool) is implementation defined and might differ from 1
     // Bitwise representation is implementation-defined
     // Naming of bool often express its boolean nature, starting from "is"
@@ -421,7 +423,8 @@ void fixed_size_types()
     // expands to an integer constant expression having the value specified by its argument 
     // and whose type is the promoted type of int_least16_t, int_least32_t etc
     // Example: expands to a literal of type uint_least64_t and value 0xdeadbeef
-    uint64_t myuint = UINT64_C(0xdeadbeef);
+    uint64_t my_uint = UINT64_C(0xdeadbeef);
+    std::format("my_uint = %d, sizeof(my_uint) = %d") % my_uint, sizeof(my_uint);
 }
 
 int main()

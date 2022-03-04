@@ -1,4 +1,4 @@
-set(TARGET 03_scopes)
+set(TARGET 12_scopes)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 

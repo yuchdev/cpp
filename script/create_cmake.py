@@ -22,7 +22,6 @@ def create_cmake(target_dir):
         for subdir in subdirs:
             cmake_file.write(f"add_subdirectory({subdir})\n")
     os.system(f"git commit --all -n -m 'Created CMakeLists.txt in {target_dir}'")
-    os.system(f"git push origin master")
 
 
 def create_numeric_dirs(target_dir):
@@ -47,7 +46,6 @@ def create_numeric_dirs(target_dir):
     new_subdirs = sorted([x for x in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, x))])
     print(f"New subdirectories: {new_subdirs}")
     os.system(f"git commit --all -n -m 'Renamed subdirectories in {target_dir}'")
-    os.system(f"git push origin master")
 
 
 def main():
@@ -61,14 +59,15 @@ def main():
                         default="",
                         required=False)
     args = parser.parse_args()
+    if len(args.numeric_dirs):
+        numeric_dirs = os.path.abspath(args.numeric_dirs)
+        print(f"Creating numeric subdirectories in {numeric_dirs}")
+        create_numeric_dirs(numeric_dirs)
     if len(args.destination_dir):
         destination_dir = os.path.abspath(args.destination_dir)
         print(f"Creating CMakeLists.txt in {destination_dir}")
         create_cmake(destination_dir)
-    elif len(args.numeric_dirs):
-        numeric_dirs = os.path.abspath(args.numeric_dirs)
-        print(f"Creating numeric subdirectories in {numeric_dirs}")
-        create_numeric_dirs(numeric_dirs)
+    os.system(f"git push origin master")
     return 0
 
 
