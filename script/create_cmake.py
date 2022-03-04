@@ -48,6 +48,35 @@ def create_numeric_dirs(target_dir):
     os.system(f"git commit --all -n -m 'Renamed subdirectories in {target_dir}'")
 
 
+def change_project_name(project_name):
+    """
+    Change project and target name in CMakeLists.txt
+    """
+    os.chdir(project_name)
+    with open("CMakeLists.txt", "r") as cmake_file:
+        cmake_lines = cmake_file.readlines()
+    with open("CMakeLists.txt", "w") as cmake_file:
+        for line in cmake_lines:
+            if "project(" in line:
+                cmake_file.write(f"project({project_name})\n")
+            elif "set(TARGET_NAME" in line:
+                cmake_file.write(f"set(TARGET_NAME {project_name})\n")
+            else:
+                cmake_file.write(line)
+    os.system(f"git commit --all -n -m 'Changed project name in {project_name}'")
+    os.chdir("..")
+
+
+def change_project_names(target_dir):
+    """
+    Call change_project_name for every subdirectory in target_dir
+    """
+    os.chdir(target_dir)
+    subdirs = sorted([x for x in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, x))])
+    for subdir in subdirs:
+        change_project_name(subdir)
+
+
 def main():
     parser = argparse.ArgumentParser(description='Command-line params')
     parser.add_argument('--destination-dir',
@@ -58,15 +87,34 @@ def main():
                         help='Create numeric subdirectories',
                         default="",
                         required=False)
+    parser.add_argument('--change-project-name',
+                        help='Change project names in target_dir',
+                        default="",
+                        required=False)
+    parser.add_argument('--all',
+                        help='Effect of all options',
+                        default="",
+                        required=False)
     args = parser.parse_args()
-    if len(args.numeric_dirs):
+    if len(args.all):
+        target_dir = os.path.abspath(args.all)
+        print(f"Creating numeric subdirectories, CMakeLists.txt and change project names in {target_dir}")
+        create_numeric_dirs(target_dir)
+        create_cmake(target_dir)
+        change_project_names(target_dir)
+        return 0
+    elif len(args.numeric_dirs):
         numeric_dirs = os.path.abspath(args.numeric_dirs)
         print(f"Creating numeric subdirectories in {numeric_dirs}")
         create_numeric_dirs(numeric_dirs)
-    if len(args.destination_dir):
+    elif len(args.destination_dir):
         destination_dir = os.path.abspath(args.destination_dir)
         print(f"Creating CMakeLists.txt in {destination_dir}")
         create_cmake(destination_dir)
+    elif len(args.change_project_name):
+        target_dir = os.path.abspath(args.change_project_name)
+        change_project_names(target_dir)
+        print(f"Changed project names in {target_dir}")
     os.system(f"git push origin master")
     return 0
 
