@@ -7,24 +7,30 @@
 // Fundamental C++ types
 // https://en.cppreference.com/w/cpp/language/types
 
+#pragma region 01.boolean_type
+
 void boolean_type()
 {
     // The value of sizeof(bool) is implementation defined and might differ from 1
     // Bitwise representation is implementation-defined
     // Naming of bool variables and function often express its boolean nature, starting from "is"
     bool is_root = true;
-    std::cout 
-        << "sizeof(bool) = " << sizeof(is_root)
-        << "; "
-        << "bitwise(bool) = " << bitwise(is_root) << '\n';
+    std::cout
+            << "sizeof(bool) = " << sizeof(is_root)
+            << "; "
+            << "bitwise(bool) = " << bitwise(is_root) << '\n';
 
     // Operator sizeof() yields size in bytes of the object representation of type or expression
     // sizeof() cannot be used with function types, incomplete types, or bit-field l-values
 }
 
+#pragma endregion
+
+#pragma region 02.nullptr_type
+
 // Prior to C++11 standard null pointer was served by C-macro NULL
 // C++11 standard null pointer is defined as nullptr
-// The problem with NULL is that when we pass integer 0, we can't say if its a pointer or integer
+// The problem with NULL is that when we pass integer 0, we can't say if it's a pointer or integer
 // It potentially could be a problem during function overloading over types void* and int,
 // and template metaprogramming
 void accept_null(int)
@@ -47,6 +53,7 @@ void accept_null(std::nullptr_t)
     std::cout << "accept_null(std::nullptr_t)\n";
 }
 
+// 2. nullptr_type
 void nullptr_type()
 {
     // Trying to call with NULL
@@ -71,9 +78,13 @@ void nullptr_type()
 
     // Since C++14, we have a template struct is_null_pointer()
     std::cout
-        << "std::is_null_pointer<int*>::value"
-        << std::is_null_pointer<int*>::value << '\n';
+            << "std::is_null_pointer<int*>::value"
+            << std::is_null_pointer<int*>::value << '\n';
 }
+
+#pragma endregion
+
+#pragma region 03.void_type
 
 // void - type with an empty set of values
 // It is an incomplete type that cannot be completed
@@ -92,18 +103,7 @@ void void_type()
     int* p_int2 = static_cast<int*>(p_void);
 }
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wuninitialized"
-// TODO: move to appropriate lesson
-void initialization_order()
-{
-    // example of UB due to bad initialization
-    int i = i * 0;
-
-    // no defined order of initialization within one expression
-}
-#pragma clang diagnostic pop
-
+#pragma endregion
 
 // 1.
 template<typename Key, typename Val>
@@ -441,8 +441,78 @@ void show_int_ub()
 // https://us-cert.cisa.gov/bsi/articles/knowledge/coding-practices/safe-integer-operations
 // http://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html
 
-int main()
+int main(int argc, char* argv[])
 {
-    boolean_type();
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <function>\n";
+        return 1;
+    }
+    std::string func = argv[1];
+
+    if (func == "boolean_type") {
+        show_boolean_type();
+    }
+    else if (func == "int_ub") {
+        show_int_ub();
+    }
+    else if (func == "type_aliases") {
+        show_type_aliases();
+    }
+    else if (func == "show_int_ub") {
+        show_int_ub();
+    }
+    else if (func == "show_type_aliases") {
+        show_type_aliases();
+    }
+    else {
+        std::cerr << "Unknown function: " << func << '\n';
+        return 1;
+    }
+
+    // 1.
+    show_int_ub();
+
+    // 2.
+    show_type_aliases();
+
+    // 3.
+    unique_dangling_ref();
+
+    // 4.
+    show_iterative();
+
+    // 5.
+    show_int_ub();
+
+    // 6.
+    show_iterative();
+
+    // 7.
+    show_int_ub();
+
+    // 8.
+    show_iterative();
+
+    // 9.
+    show_int_ub();
+
+    // 10.
+    show_iterative();
+
+    // 11.
+    show_int_ub();
+
+    // 12.
+    show_iterative();
+
+    // 13.
+    show_int_ub();
+
+    // 14.
+    show_iterative();
+
+    // 15.
+    show_int_ub();
+
     return 0;
 }
