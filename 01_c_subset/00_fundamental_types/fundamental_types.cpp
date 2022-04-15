@@ -3,6 +3,8 @@
 #include <type_traits>
 #include <bitwise.h>
 #include <map>
+#include <memory>
+#include <cassert>
 
 // Fundamental C++ types
 // https://en.cppreference.com/w/cpp/language/types
