@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.10)
-
 add_subdirectory(00_floating_point_representation)
 add_subdirectory(01_extract_fp_components)
 add_subdirectory(02_compare_fp)

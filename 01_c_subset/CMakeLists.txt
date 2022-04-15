@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.10)
-
 add_subdirectory(00_fundamental_types)
 add_subdirectory(01_integer_types)
 add_subdirectory(02_pointer_types)
