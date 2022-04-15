@@ -1,4 +1,4 @@
-set(TARGET fundamental_types)
+set(TARGET class_constness)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 

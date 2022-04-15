@@ -1,4 +1,4 @@
-set(TARGET fundamental_types)
+set(TARGET ref_count)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 

@@ -192,6 +192,77 @@ private:
 // operator new() и operator delete() перегружаются обычно для повышения эффективности
 // это особенно верно для приложений, размещающих много маленьких объектов
 
+void show_user_alloc(){
+
+    // different versions of new() and delete()
+
+    // simple new overload
+    {
+        cout << "Test simple new overload" << endl;
+        user_alloc* x = new user_alloc();
+        x->test();
+        delete x;
+    }
+
+    // new for array overload
+    {
+    cout << "Test array new overload" << endl;
+    user_alloc* x = new user_alloc[10];
+    x[1].test();
+    delete[] x;
+}
+
+    // placement new overload
+    {
+        cout << "Test placement new overload" << endl;
+        user_alloc* x = new user_alloc();
+        x->test();
+        x->~user_alloc();
+
+        user_alloc* y = new(x)user_alloc();
+        // could be directly called in functional form only!
+        // will be implicitly called in case of exception
+        user_alloc::operator delete(y, x);
+        delete x;
+    }
+
+    // new_handler replacement new overload
+    {
+        cout << "Test placement new overload" << endl;
+        user_alloc* x = new (test_placement_new_handler)user_alloc();
+        x->test();
+        delete x;
+    }
+}
+
+void show_new_handler(){
+
+    // Showcase of memory pool, mixture-class replacing new_handler
+    // Let's try a very large object
+    try{
+        LargeObject::set_new_handler(NewHandlerSupport<LargeObject>::no_more_memory);
+        LargeObject* x = new LargeObject();
+        delete x;
+    }
+    catch (const std::bad_alloc& e){
+        cerr << "Lack of memory: " << e.what() << '\n';
+    }
+
+    // Let's try regular object
+    try{
+        SmallObject::set_new_handler(NewHandlerSupport<SmallObject>::no_more_memory);
+        SmallObject* x = new SmallObject();
+        delete x;
+    }
+    catch (const std::bad_alloc& e){
+        cerr << "Lack of memory: " << e.what() << '\n';
+    }
+}
 
 
+int main(){
+
+    show_user_alloc();
+    return 0;
+}
 

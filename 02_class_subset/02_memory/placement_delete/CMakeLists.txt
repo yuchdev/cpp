@@ -1,4 +1,4 @@
-set(TARGET fundamental_types)
+set(TARGET placement_delete)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 

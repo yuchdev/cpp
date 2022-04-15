@@ -1,4 +1,4 @@
-set(TARGET fundamental_types)
+set(TARGET new_forms)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 
