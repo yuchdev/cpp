@@ -5,6 +5,24 @@ import argparse
 
 __doc__ = """Create CMakeLists.txt based on directory content"""
 
+CMAKE_CONTENT = """set(TARGET {project_name})
+
+file(GLOB SOURCES *.cpp *.h *.txt)
+
+include_directories(
+    ${CMAKE_SOURCE_DIR}/utilities
+)
+
+add_executable(${TARGET} ${SOURCES})
+set_property(TARGET ${TARGET} PROPERTY FOLDER "00_FundamentalTypes")
+
+target_link_libraries(${TARGET}    
+PRIVATE
+    utilities
+)
+
+"""
+
 
 def create_cmake(target_dir):
     """
@@ -17,7 +35,6 @@ def create_cmake(target_dir):
     subdirs = sorted([x for x in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, x))])
     # Create CMakeLists.txt
     with open(os.path.join(target_dir, "CMakeLists.txt"), "w") as cmake_file:
-        cmake_file.write("cmake_minimum_required(VERSION 3.10)\n")
         cmake_file.write("\n")
         for subdir in subdirs:
             cmake_file.write(f"add_subdirectory({subdir})\n")
