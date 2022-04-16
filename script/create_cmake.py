@@ -14,7 +14,7 @@ include_directories(
 )
 
 add_executable(${TARGET} ${SOURCES})
-set_property(TARGET ${TARGET} PROPERTY FOLDER "00_FundamentalTypes")
+set_property(TARGET ${TARGET} PROPERTY FOLDER "{vs_folder}")
 
 target_link_libraries(${TARGET}    
 PRIVATE
@@ -24,7 +24,28 @@ PRIVATE
 """
 
 
-def create_cmake(target_dir):
+def create_project_cmake(project_name, vs_folder):
+    """
+    Create CMakeLists.txt with the same name as the project directory
+    :param project_name: C++ project name same as the directory name
+    :param vs_folder: Visual Studio folder name for the solution organization
+    """
+    with open("CMakeLists.txt", "w") as cmake_file:
+        cmake_file.write(CMAKE_CONTENT.format(project_name=project_name, vs_folder=vs_folder))
+
+
+def create_cmake_files(target_dir):
+    """
+    Create CMakeLists.txt in every subdirectory of target_dir
+    :param target_dir: Directory with list of C++ projects
+    """
+    os.chdir(target_dir)
+    subdirs = sorted([x for x in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, x))])
+    for subdir in subdirs:
+        create_list_cmake(subdir)
+
+
+def create_list_cmake(target_dir):
     """
     Create list of sorted subdirectories in target_dir
     Iterate over list and write all subdirectories in CMakeLists.txt
@@ -117,7 +138,7 @@ def main():
         target_dir = os.path.abspath(args.all)
         print(f"Creating numeric subdirectories, CMakeLists.txt and change project names in {target_dir}")
         create_numeric_dirs(target_dir)
-        create_cmake(target_dir)
+        create_list_cmake(target_dir)
         change_project_names(target_dir)
         return 0
     elif len(args.numeric_dirs):
@@ -127,7 +148,7 @@ def main():
     elif len(args.destination_dir):
         destination_dir = os.path.abspath(args.destination_dir)
         print(f"Creating CMakeLists.txt in {destination_dir}")
-        create_cmake(destination_dir)
+        create_list_cmake(destination_dir)
     elif len(args.change_project_name):
         target_dir = os.path.abspath(args.change_project_name)
         change_project_names(target_dir)

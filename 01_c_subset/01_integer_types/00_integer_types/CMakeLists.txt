@@ -7,7 +7,7 @@ include_directories(
 )
 
 add_executable(${TARGET} ${SOURCES})
-set_property(TARGET ${TARGET} PROPERTY FOLDER "01_IntegerTypes")
+set_property(TARGET ${TARGET} PROPERTY FOLDER "00_FundamentalTypes\\01_IntegerTypes")
 
 target_link_libraries(${TARGET}    
 PRIVATE
