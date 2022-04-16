@@ -28,8 +28,6 @@ http://en.cppreference.com/w/cpp/language/delete
 http://en.cppreference.com/w/cpp/memory/new/operator_delete
 
 
-Советы
-
 * Do not add many c-tors to a class, just because you think they could be useful for someone
 * Method which does not change anything in class state muct be declared const
 * Start declaring class members from public, to make emphasis on interface
