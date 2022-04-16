@@ -24,6 +24,13 @@ PRIVATE
 """
 
 
+def underline_to_camel(string):
+    """
+    Convert underline-separated string to CamelCase
+    """
+    return "".join(x.capitalize() or " " for x in string.split("_"))
+
+
 def create_project_cmake(project_name, vs_folder):
     """
     Create CMakeLists.txt with the same name as the project directory
@@ -42,7 +49,8 @@ def create_cmake_files(target_dir):
     os.chdir(target_dir)
     subdirs = sorted([x for x in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, x))])
     for subdir in subdirs:
-        create_list_cmake(subdir)
+        vs_folder = underline_to_camel(subdir)
+        create_project_cmake(project_name=subdir, vs_folder=vs_folder)
 
 
 def create_list_cmake(target_dir):
@@ -129,30 +137,38 @@ def main():
                         help='Change project names in target_dir',
                         default="",
                         required=False)
+    parser.add_argument('--create-cmake-lists',
+                        help='Create CMakeLists.txt in target_dir',
+                        default="",
+                        required=False)
     parser.add_argument('--all',
                         help='Effect of all options',
                         default="",
                         required=False)
     args = parser.parse_args()
-    if len(args.all):
+    if len(args.destination_dir):
+        destination_dir = os.path.abspath(args.destination_dir)
+        print(f"Creating CMakeLists.txt in {destination_dir}")
+        create_list_cmake(destination_dir)
+    elif len(args.numeric_dirs):
+        numeric_dirs = os.path.abspath(args.numeric_dirs)
+        print(f"Creating numeric subdirectories in {numeric_dirs}")
+        create_numeric_dirs(numeric_dirs)
+    elif len(args.all):
         target_dir = os.path.abspath(args.all)
         print(f"Creating numeric subdirectories, CMakeLists.txt and change project names in {target_dir}")
         create_numeric_dirs(target_dir)
         create_list_cmake(target_dir)
         change_project_names(target_dir)
         return 0
-    elif len(args.numeric_dirs):
-        numeric_dirs = os.path.abspath(args.numeric_dirs)
-        print(f"Creating numeric subdirectories in {numeric_dirs}")
-        create_numeric_dirs(numeric_dirs)
-    elif len(args.destination_dir):
-        destination_dir = os.path.abspath(args.destination_dir)
-        print(f"Creating CMakeLists.txt in {destination_dir}")
-        create_list_cmake(destination_dir)
     elif len(args.change_project_name):
         target_dir = os.path.abspath(args.change_project_name)
         change_project_names(target_dir)
         print(f"Changed project names in {target_dir}")
+    elif len(args.create_cmake_lists):
+        target_dir = os.path.abspath(args.create_cmake_lists)
+        create_list_cmake(target_dir)
+        print(f"Created CMakeLists.txt in {target_dir}")
     os.system(f"git push origin master")
     return 0
 
