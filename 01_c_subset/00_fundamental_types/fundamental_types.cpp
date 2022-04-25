@@ -8,9 +8,6 @@
 
 #include <utilities/bitwise.h>
 
-#define IGNORE_UNUSED_WARNINGS_CLION
-#include <utilities/defines.h>
-
 // Fundamental C++ types
 // https://en.cppreference.com/w/cpp/language/types
 

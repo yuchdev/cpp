@@ -1,5 +1,8 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 #include <string>
 #include <iostream>
+#include <cstdarg>
 
 #if defined __GNUC__
 #define cdecl
@@ -149,13 +152,14 @@ int cdecl var_param_func(int a, ...) cdecl_gcc
 
 // Here we work with the stack directly, accessing it through pointer
 // while passing variadic number of params
-// The following function colculates average while passi
+// The following function calculates average of params passed, zero is a terminator
 double f_var(double n, ...)
 {
-    // Begginnig of params pack
+    // Beginning of params pack
     double *p = &n;
     double sum = 0, count = 0;
     // Iterate over stack while stack param is zero
+    // Clang-Tidy: Narrowing conversion from 'double' to 'bool'
     while (*p)
     {
         sum += (*p);            
@@ -275,3 +279,5 @@ int main()
 
     return 0;
 }
+
+#pragma clang diagnostic pop

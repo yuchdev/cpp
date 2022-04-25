@@ -1,18 +1,16 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
+#pragma ide diagnostic ignored "UnusedLocalVariable"
+#pragma ide diagnostic ignored "UnusedValue"
 #pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 #pragma ide diagnostic ignored "cert-str34-c"
-#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
-#pragma ide diagnostic ignored "UnusedValue"
-#pragma ide diagnostic ignored "UnusedLocalVariable"
-#pragma ide diagnostic ignored "modernize-use-auto"
-#pragma clang diagnostic push
 
 #include <iostream>
 #include <cstdint>
 
 #include <utilities/bitwise.h>
-
-#define MSVC_UNSIGNED_COUNTEREXAMPLE
 #include <utilities/defines.h>
+SUPPRESS_UNSIGNED_COUNTEREXAMPLE_WARNINGS()
 
 // Fundamental C++ types
 // https://en.cppreference.com/w/cpp/language/types
@@ -58,6 +56,7 @@ void boolean_type()
  * Motorola dsp56k char==24bit
  * The exact number being recorded in macro CHAR_BIT
  */
+#pragma clang diagnostic push
 
 void character_types()
 {
@@ -316,7 +315,7 @@ void numeric_promotions()
     int promote_to_int = sc;
     promote_to_int = ss;
 
-    // unsigned char or unsigned short can be converted to to unsigned int
+    // unsigned char or unsigned short can be converted to unsigned int
     unsigned char uc = 0xff;
     unsigned short us = 0xffff;
     unsigned int promote_to_uint = sc;
@@ -507,5 +506,7 @@ int main(int argc, char* argv[])
 
     return 0;
 }
+
+#pragma clang diagnostic pop
 
 #pragma clang diagnostic pop
