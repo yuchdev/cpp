@@ -200,10 +200,10 @@ struct TPTraits : TPTraitsBase<T>
 template <typename FP>
 typename TPTraits<FP>::ret_type fast_fpconvert(FP f)
 {
-    typename TPTraits<FP>::castable magic;
+    typename TPTraits<FP>::castable magic{};
     magic.i = TPTraits<FP>::mask;
 
-    volatile typename TPTraits<FP>::castable ret;
+    volatile typename TPTraits<FP>::castable ret{};
     ret.f = f + magic.f;
     return ret.i - magic.i;
 }
@@ -211,36 +211,36 @@ typename TPTraits<FP>::ret_type fast_fpconvert(FP f)
 void test_fast_ftoi()
 {
     float f = 1.0;
-    int i = fast_fpconvert(f);
-    std::cout << f << " -> " << i << '\n';
+    long i1 = fast_fpconvert(f);
+    std::cout << f << " -> " << i1 << '\n';
 
     f = 1.5;
-    i = fast_fpconvert(f);
-    std::cout << f << " -> " << i << '\n';
+    i1 = fast_fpconvert(f);
+    std::cout << f << " -> " << i1 << '\n';
 
     f = -1.5;
-    i = fast_fpconvert(f);
-    std::cout << f << " -> " << i << '\n';
+    i1 = fast_fpconvert(f);
+    std::cout << f << " -> " << i1 << '\n';
 
 
     double d = 1.0;
-    i = fast_fpconvert(d);
-    std::cout << d << " -> " << i << '\n';
+    long long i2 = fast_fpconvert(d);
+    std::cout << d << " -> " << i1 << '\n';
 
     d = 1.5;
-    i = fast_fpconvert(d);
-    std::cout << d << " -> " << i << '\n';
+    i2 = fast_fpconvert(d);
+    std::cout << d << " -> " << i1 << '\n';
 
     d = -1.5;
-    i = fast_fpconvert(d);
-    std::cout << d << " -> " << i << '\n';
+    i2 = fast_fpconvert(d);
+    std::cout << d << " -> " << i1 << '\n';
 }
 
 
 void benchmark()
 {
     RandomReal<double> rr;
-    std::vector<double> randoms = rr.gen(10000, 0.0, 10.0);
+    std::vector<double> randoms = rr.generate(0.0, 10.0, 1000000);
 }
 
 int main()

@@ -1,6 +1,7 @@
 #pragma once
 #include <new>
 #include <cstdio>
+#include <iostream>
 
 using std::new_handler;
 using std::bad_alloc;
@@ -198,7 +199,7 @@ void show_user_alloc(){
 
     // simple new overload
     {
-        cout << "Test simple new overload" << endl;
+        std::cout << "Test simple new overload" << '\n';
         user_alloc* x = new user_alloc();
         x->test();
         delete x;
@@ -206,7 +207,7 @@ void show_user_alloc(){
 
     // new for array overload
     {
-    cout << "Test array new overload" << endl;
+    std::cout << "Test array new overload" << '\n';
     user_alloc* x = new user_alloc[10];
     x[1].test();
     delete[] x;
@@ -214,7 +215,7 @@ void show_user_alloc(){
 
     // placement new overload
     {
-        cout << "Test placement new overload" << endl;
+        std::cout << "Test placement new overload" << '\n';
         user_alloc* x = new user_alloc();
         x->test();
         x->~user_alloc();
@@ -228,7 +229,7 @@ void show_user_alloc(){
 
     // new_handler replacement new overload
     {
-        cout << "Test placement new overload" << endl;
+        std::cout << "Test placement new overload" << '\n';
         user_alloc* x = new (test_placement_new_handler)user_alloc();
         x->test();
         delete x;
@@ -245,7 +246,7 @@ void show_new_handler(){
         delete x;
     }
     catch (const std::bad_alloc& e){
-        cerr << "Lack of memory: " << e.what() << '\n';
+        std::cerr << "Lack of memory: " << e.what() << '\n';
     }
 
     // Let's try regular object
@@ -255,13 +256,13 @@ void show_new_handler(){
         delete x;
     }
     catch (const std::bad_alloc& e){
-        cerr << "Lack of memory: " << e.what() << '\n';
+        std::cerr << "Lack of memory: " << e.what() << '\n';
     }
 }
 
 
-int main(){
-
+int main()
+{
     show_user_alloc();
     return 0;
 }

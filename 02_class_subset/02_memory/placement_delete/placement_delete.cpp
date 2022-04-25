@@ -1,4 +1,5 @@
 #include <iostream>
+#include <new>
 
 void show_placement_delete(){
 
@@ -25,20 +26,21 @@ void show_placement_delete(){
         X* p1 = new (true) X;
     }
     catch (const std::exception& e) {
-        cout << e.what();
+        std::cout << e.what();
     }
 }
 
-void test_placement_new_handler(){
-    printf("No more memory!\n");
-    throw bad_alloc();
+void test_placement_new_handler()
+{
+    std::cout << "No more memory!\n";
+    throw std::bad_alloc();
 }
 
 
 int main(){
 
     show_placement_delete();
-    show_memory_pool();
+    //show_memory_pool();
 
     return 0;
 }

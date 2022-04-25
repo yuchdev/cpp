@@ -1,7 +1,10 @@
-#include <string>
+#include <utilities/defines.h>
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 
 // Pro-argument for data accessors and mutators
-// * distinctire read-write access
+// * distinctive read-write access
 // * support of functional abstractness - class member could be replaced with calculation, or even mored outside the class
 // * value evaluation
 // * logging
@@ -20,22 +23,25 @@ void struct_one_name(){
     int A = 1;
 }
 
-void f1(A a){}
-void f2(A& a){}
-
 class A{
 public:
 
-// Static members COULD be changed in const members, as it does not change class state
-void set_static(int i) const{    
-    a_stat = i;
-}
+    A(char *const cp1) : cp1(cp1) {}
 
-// Static method coule be called with the class class instance and with the class name
-// construct::out_static_array() and c.construct::out_static_array();
+    // Static members COULD be changed in const members, as it does not change class state
+    void set_static(int i) const{
+        a_stat = i;
+    }
 
-// You can't set array size with the other class member, even with const static 
-// int arr1[sz];
+    // TODO: const and non-const methods with same name
+    // TODO: overload rules
+    // TODO: function signature
+
+    // Static method coule be called with the class instance and with the class name
+    // construct::out_static_array() and c.construct::out_static_array();
+
+    // You can't set array size with the other class member, even with const static
+    // int arr1[sz];
 
 private:
     // friend declarations of non-existent classes are ignored
@@ -55,12 +61,14 @@ private:
     mutable int a8;
     // Opposite situation is also possible
     // when class contains pointer, which is being changed inside the const method
-    // such method is const  farmally, but not concepttually
+    // such method is const formally, but not conceptually
 
     // constant pointer or pointer to constant?
     // to determine it quickly, you can use "read backward" trick
     char const* cp2; // pointer (*) to 'const' 'char'
     const char* cp3; // pointer (*) to 'char' 'const'
     char *const cp1; // 'const' pointer (*) to 'char'
+    static int a_stat;
 };
 
+#pragma clang diagnostic pop

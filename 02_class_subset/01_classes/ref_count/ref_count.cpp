@@ -1,5 +1,6 @@
 #pragma once
 #include <cstring>
+#include <algorithm>
 
 
 namespace meyers_refcount {
@@ -85,7 +86,8 @@ private:
 		_ref_count(1), 
 		_data( new char[strlen(init_val)+sizeof(char)] ),
 		_shareable(true){
-			strcpy(_data, init_val);
+			// strcpy(_data, init_val);
+            std::copy(init_val, init_val + strlen(init_val), _data);
 		}
 
 		~string_value(){ delete[] _data; }
@@ -268,14 +270,16 @@ private:
 		string_value(const char* init_val) :
 		_data(new char[strlen(init_val) + sizeof(char)]){
 
-			strcpy(_data, init_val);
+			// strcpy(_data, init_val);
+            std::copy(init_val, init_val + strlen(init_val) + 1, _data);
 		}
 
 		// copy value - only after modifying operations
 		string_value(const string_value& rhs) :
 			_data(new char[strlen(rhs._data) + sizeof(char)]){
 
-			strcpy(_data, rhs._data);
+			// strcpy(_data, rhs._data);
+            std::copy(rhs._data, rhs._data + strlen(rhs._data) + 1, _data);
 		}
 
 		~string_value(){ 

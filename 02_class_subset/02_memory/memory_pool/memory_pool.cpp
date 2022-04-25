@@ -81,12 +81,12 @@ private:
 memory_pool<memory_pool_item> memory_pool_item::pool;
 
 memory_pool_item::memory_pool_item() :i(){
-	cout << "memory_pool_item()" << endl;
+	std::cout << "memory_pool_item()" << '\n';
 }
 
 //virtual 
 memory_pool_item::~memory_pool_item(){
-	cout << "~memory_pool_item()" << endl;
+    std::cout << "~memory_pool_item()" << '\n';
 }
 
 //static 
@@ -101,7 +101,7 @@ void memory_pool_item::operator delete(void* p, size_t s){
 }
 
 void memory_pool_item::test(){
-	cout << i++ << endl;
+	std::cout << i++ << '\n';
 }
 
 

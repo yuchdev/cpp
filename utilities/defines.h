@@ -4,6 +4,9 @@
 #include <format>
 #endif
 
+// Disable unknown pragma warnings
+__pragma(warning(disable: 4068))
+
 // Suppress counter-examples
 // warning C4018: '<': signed/unsigned mismatch as a counter-example
 // warning C4244: 'initializing' : conversion from '__int64' to 'long', possible loss of data
