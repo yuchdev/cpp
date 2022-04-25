@@ -3,7 +3,7 @@ set(TARGET 13_c_cpp)
 file(GLOB SOURCES *.cpp *.h *.txt)
 
 include_directories(
-    ${CMAKE_SOURCE_DIR}/utilities
+    ${CMAKE_SOURCE_DIR}
 )
 
 add_executable(${TARGET} ${SOURCES})

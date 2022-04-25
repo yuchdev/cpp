@@ -3,7 +3,7 @@ set(TARGET cpp_sortout)
 file(GLOB SOURCES *.cpp *.h)
 
 include_directories(
-    ${CMAKE_SOURCE_DIR}/utilities
+    ${CMAKE_SOURCE_DIR}
 )
 
 add_executable(${TARGET} ${SOURCES})

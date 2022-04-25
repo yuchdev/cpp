@@ -1,8 +1,15 @@
+#pragma ide diagnostic ignored "UnusedValue"
+#pragma ide diagnostic ignored "UnusedLocalVariable"
+#pragma ide diagnostic ignored "modernize-use-auto"
+
 #include <iostream>
-#include <vector>
 #include <type_traits>
-#include <bitwise.h>
-#include <map>
+#include <cassert>
+
+#include <utilities/bitwise.h>
+
+#define IGNORE_UNUSED_WARNINGS_CLION
+#include <utilities/defines.h>
 
 // Fundamental C++ types
 // https://en.cppreference.com/w/cpp/language/types
@@ -101,6 +108,7 @@ void void_type()
     int* p_int = &n;
     void* p_void = p_int;
     int* p_int2 = static_cast<int*>(p_void);
+    assert(p_int == p_int2);
 }
 
 #pragma endregion
@@ -121,70 +129,21 @@ int main(int argc, char* argv[])
     }
     std::string func = argv[1];
 
+    std::cout << "Current C++ version: " << __cplusplus << '\n';
+
     if (func == "boolean_type") {
-        show_boolean_type();
+        boolean_type();
     }
-    else if (func == "int_ub") {
-        show_int_ub();
+    else if (func == "nullptr_type") {
+        nullptr_type();
     }
-    else if (func == "type_aliases") {
-        show_type_aliases();
-    }
-    else if (func == "show_int_ub") {
-        show_int_ub();
-    }
-    else if (func == "show_type_aliases") {
-        show_type_aliases();
+    else if (func == "void_type") {
+        void_type();
     }
     else {
         std::cerr << "Unknown function: " << func << '\n';
         return 1;
     }
-
-    // 1.
-    show_int_ub();
-
-    // 2.
-    show_type_aliases();
-
-    // 3.
-    unique_dangling_ref();
-
-    // 4.
-    show_iterative();
-
-    // 5.
-    show_int_ub();
-
-    // 6.
-    show_iterative();
-
-    // 7.
-    show_int_ub();
-
-    // 8.
-    show_iterative();
-
-    // 9.
-    show_int_ub();
-
-    // 10.
-    show_iterative();
-
-    // 11.
-    show_int_ub();
-
-    // 12.
-    show_iterative();
-
-    // 13.
-    show_int_ub();
-
-    // 14.
-    show_iterative();
-
-    // 15.
-    show_int_ub();
 
     return 0;
 }

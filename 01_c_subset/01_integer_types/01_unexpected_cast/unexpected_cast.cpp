@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include <bitwise.h>
+#include <utilities/bitwise.h>
 
 // warning C4018: '<': signed/unsigned mismatch as a counter-example
 #ifdef _MSC_VER

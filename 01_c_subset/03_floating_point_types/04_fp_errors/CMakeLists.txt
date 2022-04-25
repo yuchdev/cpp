@@ -4,7 +4,7 @@ set(TARGET 05_fp_errors)
 file(GLOB SOURCES *.cpp *.h *.txt)
 
 include_directories(
-    ${CMAKE_SOURCE_DIR}/utilities
+    ${CMAKE_SOURCE_DIR}
 )
 
 add_executable(${TARGET} ${SOURCES})

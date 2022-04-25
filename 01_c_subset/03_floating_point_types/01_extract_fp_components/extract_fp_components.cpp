@@ -7,7 +7,7 @@
 #include <cfloat>
 #include <cstdint>
 
-#include <bitwise.h>
+#include <utilities/bitwise.h>
 
 // 2."Extract" sign bit, significand and exponent
 // * Before significand we always assume 1.

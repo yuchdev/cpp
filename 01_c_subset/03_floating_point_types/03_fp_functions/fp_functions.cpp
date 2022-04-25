@@ -7,7 +7,7 @@
 #include <cfloat>
 #include <cstdint>
 
-#include <bitwise.h>
+#include <utilities/bitwise.h>
 
 
 // 4.Floating point functions and applications

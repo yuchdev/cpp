@@ -9,8 +9,8 @@
 #include <cfloat>
 #include <cstdint>
 
-#include <bitwise.h>
-#include <generate.h>
+#include <utilities/bitwise.h>
+#include <utilities/generate.h>
 
 /*
 *  Significand is stored without whole part, which is 1.0 anyway

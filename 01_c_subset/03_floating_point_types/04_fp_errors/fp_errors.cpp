@@ -9,7 +9,7 @@
 #include <cstdint>
 
 #include <fenv.h>
-#include <bitwise.h>
+#include <utilities/bitwise.h>
 
 // The floating-point environment maintains a series of status flags and specific control modes.
 // Specific about the contents of the floating-point environment depend on the implementation,

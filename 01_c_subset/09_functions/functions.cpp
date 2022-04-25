@@ -1,5 +1,3 @@
-#include <stdio.h>
-#include <stdarg.h>
 #include <string>
 #include <iostream>
 
@@ -271,7 +269,7 @@ int main()
     int sm = var_param_func(1, 2, 3, 4, -1);
 
     double da = 1.0, db = 2.0, dc = 3.0;
-    double avg = f_var_pointers(3, &da, &db, &dc);
+    double avg = f_var(3, &da, &db, &dc);
 
     show_macro();
 

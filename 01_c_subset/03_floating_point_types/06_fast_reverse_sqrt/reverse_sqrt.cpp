@@ -9,8 +9,8 @@
 #include <cfloat>
 #include <cstdint>
 
-#include <bitwise.h>
-#include <generate.h>
+#include <utilities/bitwise.h>
+#include <utilities/generate.h>
 
 
 // http://en.wikipedia.org/wiki/Fast_inverse_square_root

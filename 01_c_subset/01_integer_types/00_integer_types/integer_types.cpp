@@ -1,17 +1,23 @@
-#include <iostream>
-#include <iomanip>
-#include <cstdint>
-#include <bitwise.h>
+#pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
+#pragma ide diagnostic ignored "cert-str34-c"
+#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
+#pragma ide diagnostic ignored "UnusedValue"
+#pragma ide diagnostic ignored "UnusedLocalVariable"
+#pragma ide diagnostic ignored "modernize-use-auto"
+#pragma clang diagnostic push
 
-// Suppress counter-examples
-// warning C4018: '<': signed/unsigned mismatch as a counter-example
-// warning C4244: 'initializing' : conversion from '__int64' to 'long', possible loss of data
-#ifdef _MSC_VER
-#pragma warning( disable : 4018 4244)
-#endif
+#include <iostream>
+#include <cstdint>
+
+#include <utilities/bitwise.h>
+
+#define MSVC_UNSIGNED_COUNTEREXAMPLE
+#include <utilities/defines.h>
 
 // Fundamental C++ types
 // https://en.cppreference.com/w/cpp/language/types
+
+#pragma region 01.boolean_type
 
 // void - type with an empty set of values
 // There are no arrays of void, nor references to void. However, pointers to void and functions returning type void.
@@ -29,9 +35,13 @@ void boolean_type()
         << "; "
         << "bitwise(bool) = " << bitwise(is_root) << '\n';
 
-    // Operator sizeof() yelds size in bytes of the object representation of type or expression
+    // Operator sizeof() yields size in bytes of the object representation of type or expression
     // sizeof() cannot be used with function types, incomplete types, or bit-field glvalues
 }
+
+#pragma endregion
+
+#pragma region 02.character_type
 
 /** @brief char - type for character representation
  * It has the same representation and alignment as signed char or unsigned char
@@ -48,6 +58,7 @@ void boolean_type()
  * Motorola dsp56k char==24bit
  * The exact number being recorded in macro CHAR_BIT
  */
+
 void character_types()
 {
     // Pointer to unsigned char often used to represent raw memory, as a pointer to byte
@@ -57,52 +68,60 @@ void character_types()
 
     // Output of char types
     std::cout
-        << "char c1 = " << c1
-        << "signed char c2 = " << c2
-        << "unsigned char c3 = " << c3
-        << '\n';
+            << "char c1 = " << c1
+            << "signed char c2 = " << c2
+            << "unsigned char c3 = " << c3
+            << '\n';
 
     // The functional cast notation int{c} gives the integer value for a character c
     std::cout << c1 << " == " << int{c1} << '\n';
 
     // wchar_t - type for wide character representation
-    // Required to be large enough to represent any supported character code point 
+    // Required to be large enough to represent any supported character code point
     // (32 bits on systems that support Unicode)
     // A notable exception is Windows, where wchar_t is 16 bits and holds UTF-16 characters
     wchar_t w1 = L'A';
 
     // Output of wide char types requires special stream object
-    std::wcout 
-        << L"wchar_t w1 =" << w1 
-        << L"; "
-        << "sizeof(wchar_t) = " << sizeof(wchar_t)
-        << L'\n';
+    std::wcout
+            << L"wchar_t w1 =" << w1
+            << L"; "
+            << "sizeof(wchar_t) = " << sizeof(wchar_t)
+            << L'\n';
 
-    // Literals of fixed size are presented as sequences 
+    // Literals of fixed size are presented as sequences
     // of two, four or eight hexadecimal digits
     // Wide characters (16 and 32 bit) preceded by a u'' or U''
     // 16-bit Unicode symbols hold most of alphabetical and pseudographic symbols
     // 32-bit Unicode symbol may hold emoji and other extended symbols
     // See also https://en.wikipedia.org/wiki/UTF-32
-    
+
     // type for UTF - 8 character representation; Same size as unsigned char
-    char8_t c5 = 'c'; 
+    char8_t c5 = 'c';
     // type for UTF-16 character representation; Same size as std::uint_least16_t
     char16_t c6 = u'\u00df';
     // type for UTF-32 character representation; Same size as std::uint_least32_t
     char32_t c7 = U'\U0001f34c';
 
+    static_assert(sizeof(c5) == sizeof(char), "char8_t is not char");
+    static_assert(sizeof(c6) == sizeof(char) * 2, "char16_t has unexpected size");
+    static_assert(sizeof(c7) == sizeof(char) * 4, "char32_t has unexpected size");
+
     // There's no system-independent and consistent way to out all Unicode symbols in console
 }
+
+#pragma endregion
+
+#pragma region 03.integer_types
 
 void integer_types()
 {
     //nullptr is a special value of type nullptr_t
-    // It was ithoduces to avoid ambigious NULL (void* or int)
+    // It was introduces to avoid ambiguous NULL (void* or int)
 
     // int, short and pointer types are system dependent
     // On any system it's guaranteed to have a width of at least 16 bits
-    // On 32/64 bit systems it is almost exclusively guaranteed 
+    // On 32/64-bit systems it is almost exclusively guaranteed
     // to have width of at least 32 bits
     int a = 42;
     std::cout
@@ -126,9 +145,9 @@ void integer_types()
 
     // Let's use variable of type unsigned long long and pointer to unsigned char
     unsigned long long little_endian = 0x8899aabbccddeeff;
-    unsigned char* pbyte = reinterpret_cast<unsigned char*>(&little_endian);
-    for (size_t i = 0; i < sizeof(unsigned long long); ++i, ++pbyte) {
-        std::cout << "Byte " << i << " = " << std::hex << *pbyte << '\n';
+    unsigned char* p_byte = reinterpret_cast<unsigned char*>(&little_endian); // NOLINT(modernize-use-auto)
+    for (size_t i = 0; i < sizeof(unsigned long long); ++i, ++p_byte) {
+        std::cout << "Byte " << i << " = " << std::hex << *p_byte << '\n';
     }
 
     // Look once again on bitwise representation
@@ -199,6 +218,10 @@ void integer_types()
         << '\n';
 }
 
+#pragma endregion
+
+#pragma region 04.unsigned_types
+
 void unsigned_types()
 {
     // Signed is the default if 'unsigned' omitted
@@ -262,15 +285,20 @@ void unsigned_types()
     // Historically, unsigned is being used for size, offset, bitmask and other values of non-negative nature
     // Note: as with all type specifiers, any order is permitted: 
     // 'unsigned long long' int and 'long int unsigned long' name the same type
-    unsigned long long ull{};
-    long int unsigned long liul{};
+    unsigned long long unsigned_ll{};
+    long int unsigned long uint_ll{};
+    static_assert(sizeof(unsigned_ll) == sizeof(uint_ll), "unsigned_ll and uint_ll are not the same size");
 }
+
+#pragma endregion
+
+#pragma region 05.numeric_promotion
 
 namespace cpp {
 enum MyEnum : long long
 {
     First = 1,
-    Second = 2,
+    Second  = 2,
     Total = 3
 };
 } // namespace cpp
@@ -279,7 +307,7 @@ void numeric_promotions()
 {
     // https://en.cppreference.com/w/cpp/language/implicit_conversion
     // Numeric types could be implicitly converted to larger type.
-    // Such conversion called promotion
+    // Such conversion called promotion.
     // Promotion never changes the value of converted number
 
     // signed char or signed short can be converted to int;
@@ -300,6 +328,7 @@ void numeric_promotions()
     char32_t c32 = U'\U0001e36d';
     promote_to_int = c32;
     promote_to_uint = c32;
+    // clang-tidy Promoting from char32_t to long is implementation-defined
     long promote_to_long = c32;
     unsigned long promote_to_ulong = c32;
     long long promote_to_ll = c32;
@@ -316,6 +345,10 @@ void numeric_promotions()
     // for example, overload resolution chooses char -> int (promotion) over char -> short (conversion)
 }
 
+#pragma endregion
+
+#pragma region 06.numeric_conversions
+
 void numeric_conversions()
 {
     // Unlike the promotions, numeric conversions may change the values, with potential loss of precision
@@ -324,6 +357,8 @@ void numeric_conversions()
     
     // warning: conversion with possible loss of data, even 1 is perfectly fit
     long long wide_ll = 1;
+
+    // Clang-tidy: narrowing conversion from long long to int is implementation-defined
     long narrow_l = wide_ll;
 
     // When signed integer arithmetic operation overflows (the result does not fit), the behavior is undefined:
@@ -339,6 +374,10 @@ void numeric_conversions()
     // fp -> integer leads to truncation
     int narrow_i = narrow_f;
 }
+
+#pragma endregion
+
+#pragma region 07.fixed_size_types
 
 void fixed_size_types()
 {
@@ -424,12 +463,49 @@ void fixed_size_types()
     // and whose type is the promoted type of int_least16_t, int_least32_t etc
     // Example: expands to a literal of type uint_least64_t and value 0xdeadbeef
     uint64_t my_uint = UINT64_C(0xdeadbeef);
+#if __cplusplus >= 202002L
     std::format("my_uint = %d, sizeof(my_uint) = %d") % my_uint, sizeof(my_uint);
+#endif
 }
 
-int main()
+#pragma endregion
+
+
+int main(int argc, char* argv[])
 {
-    // TODO: insert any function call
-    fixed_size_types();
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <function>\n";
+        return 1;
+    }
+    std::string func = argv[1];
+
+    if (func == "boolean_type") {
+        boolean_type();
+    }
+    else if(func == "character_type") {
+        character_types();
+    }
+    else if(func == "integer_types") {
+        integer_types();
+    }
+    else if(func == "unsigned_types") {
+        unsigned_types();
+    }
+    else if (func == "numeric_promotions") {
+        numeric_promotions();
+    }
+    else if (func == "numeric_conversions") {
+        numeric_conversions();
+    }
+    else if (func == "fixed_size_types") {
+        fixed_size_types();
+    }
+    else {
+        std::cerr << "Unknown function: " << func << '\n';
+        return 1;
+    }
+
     return 0;
 }
+
+#pragma clang diagnostic pop

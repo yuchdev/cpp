@@ -7,7 +7,7 @@
 #include <cfloat>
 #include <cstdint>
 
-#include <bitwise.h>
+#include <utilities/bitwise.h>
 
 // Comparing two floating-point numbers one should remember, that calculation error for floating-point 
 // is proportional to its modulus, unlike fixed-point, where error is fixed as well.
