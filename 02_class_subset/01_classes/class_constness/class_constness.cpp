@@ -1,4 +1,5 @@
 #include <iostream>
+#include "construct.h"
 
 construct g_construct;
 

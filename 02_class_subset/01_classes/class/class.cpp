@@ -1,19 +1,18 @@
-#include <utilities/defines.h>
-
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 
 // Pro-argument for data accessors and mutators
 // * distinctive read-write access
-// * support of functional abstractness - class member could be replaced with calculation, or even mored outside the class
-// * value evaluation
+// * support of functional abstractness - class member could be replaced with calculation, or even moved outside the class
+// * value evaluation, checking the consistency
 // * logging
 // * if we see open class member in method, we expect it to be this class member
 
 
 // It is allowed to declare structure and non-structure with the same name
 // (same for class, enum, union)
-void struct_one_name(){
+void struct_one_name()
+{
     struct A{
         int a;
     };
@@ -23,7 +22,8 @@ void struct_one_name(){
     int A = 1;
 }
 
-class A{
+class A
+{
 public:
 
     A(char *const cp1) : cp1(cp1) {}
