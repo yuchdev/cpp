@@ -9,11 +9,11 @@ void show_const_pointers(){
     // Pointer to constant
     const int* pp1 = new const int(3);
 
-    // Obviously this is the error, constant is not initialized
-    // But the compiler does not consider this as an error
-    // However, Clang & GCC detect it as a warning
-
-#if defined(_WIN32) || defined(_WIN64)
+    // Update: almost recently uninitialized const free memory, both pointers and arrays
+    // Before we could create a useless const pointer to a const int or array of ints,
+    // and leave it uninitialized.
+    // TODO: try on different standards
+#if __cplusplus < 201703L
     const int* pp2 = new const int;
 
     // You can initialize it with any legal way
@@ -31,7 +31,7 @@ void show_const_pointers(){
     // unlike regular array
     //int p6[0];
 
-    // Windows-specific function _msize allows to deternime real size of dynamic array
+    // Windows-specific function _msize allows to determine real size of dynamic array
     // ()
 #if defined(_WIN32) || defined(_WIN64)
     size_t sz = _msize(pp4);
@@ -39,7 +39,7 @@ void show_const_pointers(){
 #endif
 
     delete pp1;
-#if defined(_WIN32) || defined(_WIN64)
+#if __cplusplus < 201703L
     delete pp2;
     delete[] pp3;
 #endif
