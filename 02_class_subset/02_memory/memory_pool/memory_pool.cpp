@@ -129,8 +129,6 @@ void show_memory_pool(){
 
 int main()
 {
-
     show_memory_pool();
-
     return 0;
 }

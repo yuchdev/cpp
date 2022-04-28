@@ -193,6 +193,12 @@ private:
 // operator new() и operator delete() перегружаются обычно для повышения эффективности
 // это особенно верно для приложений, размещающих много маленьких объектов
 
+void test_placement_new_handler()
+{
+    std::cout << "No more memory!\n";
+    throw bad_alloc();
+}
+
 void show_user_alloc(){
 
     // different versions of new() and delete()

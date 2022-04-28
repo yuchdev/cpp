@@ -1,0 +1,7 @@
+__cplusplus macro should expand to:
+
+        199711L (until C++11),
+        201103L (C++11),
+        201402L (C++14),
+        201703L (C++17)
+

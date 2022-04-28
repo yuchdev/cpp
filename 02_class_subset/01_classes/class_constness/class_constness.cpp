@@ -14,7 +14,7 @@ void show_const_pointers(){
     // Before we could create a useless const pointer to a const int or array of ints,
     // and leave it uninitialized.
     // TODO: try on different standards
-#if __cplusplus < 201703L
+#if 0
     const int* pp2 = new const int;
 
     // You can initialize it with any legal way
@@ -35,16 +35,15 @@ void show_const_pointers(){
     // Windows-specific function _msize allows to determine real size of dynamic array
     // ()
 #if defined(_WIN32) || defined(_WIN64)
-    size_t sz = _msize(pp4);
-    sz = _msize(pp5);
+    size_t sz = _msize(pp5);
 #endif
 
     delete pp1;
-#if __cplusplus < 201703L
+#if 0
     delete pp2;
     delete[] pp3;
 #endif
-    delete[] pp4;
+
     delete[] pp5;
 
     // carefully use typedef with arrays
