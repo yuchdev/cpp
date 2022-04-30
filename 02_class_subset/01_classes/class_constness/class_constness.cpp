@@ -3,6 +3,55 @@
 
 construct g_construct;
 
+// Good structure of a typical class
+class good_weekday_t{
+
+    // Better start with open interface
+public:
+
+    // start from enums if exist
+    enum Wday{ mon = 1, tus, wed, thr, frd, sat, sun };
+
+    // Then internal classes and exception classes
+    class bad_weekday_t{};
+
+    // constructors
+    good_weekday_t(int day = mon) : _wday(day){}
+    good_weekday_t(std::string& sday){/*здесь преобразование строки в день недели*/ }
+
+    // const methods-accessors
+    Wday get_weekday() const;
+    std::string get_weekday_str() const;
+
+    // operators if exist
+    bool operator==(const good_weekday_t& w);
+    bool operator!=(const good_weekday_t& w);
+
+    // Helper functions
+    bool is_weekend() const;
+    int diff(const good_weekday_t& w) const;
+
+    // non-const mutators
+    inline void set_weekday(int day);
+    // inline (just like register) is not a directive
+    // it is canceled by cycles, recursions
+    // of course, virtual cancel inline (it's in runtime)
+    // pointer to such function cancel inline (it should have address!)
+
+    // when using inline, compiled binary size
+    // could be smaller or bigger, it depends
+    // If the library or API includes inline function,
+    // it is being built-in into the executable
+
+    // constructors can't be inlined, as this object
+    // may be included into the class hierarchy
+    // TODO: find better explanations
+
+private:
+    int _wday;
+    std::string _string_day;
+};
+
 // 
 // Constant pointers and pointers to constant
 void show_const_pointers(){
@@ -71,6 +120,5 @@ void show_const_pointers(){
 int main()
 {
     show_const_pointers();
-
     return 0;
 }

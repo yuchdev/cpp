@@ -5,3 +5,6 @@ __cplusplus macro should expand to:
         201402L (C++14),
         201703L (C++17)
 
+The difference between #if and #ifdef directives is that #ifdef should be used to check whether given macro has been defined to allow a section of code to be compiled.
+
+On the other hand #if (#else, #elif) directives can be used to check whether specified condition is met (just like typical if-condition).

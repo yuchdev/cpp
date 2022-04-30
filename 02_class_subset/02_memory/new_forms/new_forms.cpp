@@ -105,3 +105,8 @@ void show_bad_alloc(){
 	set_new_handler(no_more_memory);
 	allocate_a_lot();
 }
+
+int main()
+{
+    return 0;
+}

@@ -5,7 +5,15 @@
 #endif
 
 // Disable unknown pragma warnings
-__pragma(warning(disable: 4068))
+
+#if defined(_MSC_VER)
+#define SUPPRESS_PRAGMA_WARNINGS() \
+    __pragma(warning(push)) \
+    __pragma(warning(disable: 4068))
+#else
+#define SUPPRESS_PRAGMA_WARNINGS()
+#endif
+
 
 // Suppress counter-examples
 // warning C4018: '<': signed/unsigned mismatch as a counter-example

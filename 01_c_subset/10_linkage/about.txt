@@ -59,4 +59,3 @@ It's an error to declare functions as having both C and C++ linkage.
 __cplusplus compiler option enables the __cplusplus preprocessor macro 
 to report an updated value for recent C++ language standards support
 If its' defined, we are in C++ code
-

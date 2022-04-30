@@ -1,3 +1,5 @@
+#include <utilities/defines.h>
+SUPPRESS_PRAGMA_WARNINGS()
 #pragma ide diagnostic ignored "UnusedValue"
 #pragma ide diagnostic ignored "UnusedLocalVariable"
 #pragma ide diagnostic ignored "modernize-use-auto"

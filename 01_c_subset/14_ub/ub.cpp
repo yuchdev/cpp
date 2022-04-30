@@ -1,13 +1,20 @@
+#include <utilities/defines.h>
+SUPPRESS_PRAGMA_WARNINGS()
 #include <iostream>
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wuninitialized"
+
+
 void initialization_order()
 {
     // example of UB due to bad initialization
     int i = i * 0;
 
     // no defined order of initialization within one expression
+
+    // Suppress optimization
+    std::cout << "Value of this variable is undefined: i = " << i << std::endl;
 }
 #pragma clang diagnostic pop
 

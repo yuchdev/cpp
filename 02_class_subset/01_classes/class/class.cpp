@@ -71,4 +71,9 @@ private:
     static int a_stat;
 };
 
+int main()
+{
+    return 0;
+}
+
 #pragma clang diagnostic pop

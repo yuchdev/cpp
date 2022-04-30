@@ -4,15 +4,24 @@
 #include <cstdlib>
 #include <iostream>
 
-// Initialization order of global variable is not defined between translation units
+// Global variables definition order is not defined
 int g = 0;
 int d = g*g;
 
-// Using of "Meyers' Singleton" instead of global
+// Use Singleton instead or static object returned 
+// by reference (Meyers Singleton, thread-safe)
 int& use_count()
 {
 	static int res = 0;
 	return res;
+}
+
+// User-defined function of global cleanup
+// Passed as a pointer to a function into atexit() function
+// It is possible to pass multiple, but limited number of functions
+void my_cleanup()
+{
+	std::cout << "cleanup handler" << std::endl;
 }
 
 // Static and extern examples:
@@ -38,9 +47,23 @@ namespace {
 
 int main()
 {
-	// Extern declarations from different translation units
-	// в разных единицах трансл€ции
+	// Here we use external definitions in different object files
 	use_extern();
 	show_extern();
 
+	// Different ways to interrupt the application execution
+	// exit(); //  calls global destructors
+	// abort(); // does not call global destructors
+
+	if ( atexit( &my_cleanup ) == 0 )
+	{
+		// my_cleanup will be called
+	}
+	else
+	{
+		// some problem of global cleanup
+		return 1;
+	}
+
+	return 0;
 }

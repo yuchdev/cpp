@@ -293,3 +293,8 @@ private:
 };
 
 } //namespace meyers_refcount
+
+int main()
+{
+    return 0;
+}
