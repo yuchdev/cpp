@@ -53,7 +53,7 @@ construct::~construct()
 void construct::out_static_array()
 {
     // Only static method may access static members
-    // You can call it for specific class enstance, or independingly, like:
+    // You can call it for specific class instance, or independently, like:
     // construct::out_static_array() and c.construct::out_static_array();
     std::cout << ch_array << std::endl;
 }
