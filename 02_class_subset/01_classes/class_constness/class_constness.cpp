@@ -1,8 +1,8 @@
 #include <iostream>
 #include "construct.h"
-#include "class.h"
 
 construct g_construct;
+
 
 // 
 // Constant pointers and pointers to constant
@@ -48,8 +48,8 @@ void show_const_pointers(){
     delete[] pp5;
 
     // carefully use typedef with arrays
-    typedef good_weekday_t week_array[7];
-    good_weekday_t* s = new week_array;
+    typedef construct week_array[7];
+    construct* s = new week_array;
 
     // You should use delete with this type (delete[] is correct), but from the name it's not that obvious
     delete[] s;

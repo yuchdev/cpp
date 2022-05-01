@@ -3,7 +3,7 @@
 
 // Class A defined in *.cpp, and forward-declared in header
 // However, we can use A in the header for passing and returning by value
-class A{}
+class A{};
 
 // intern
 intern::intern() : a()
@@ -61,8 +61,8 @@ void construct::out_static_array()
 // All passed-by-value objects declared through the forward declaration in the construct.h header
 A construct::get_a(A a)
 {
-    A a;
-    return a;
+    A a1(a);
+    return a1;
 }
 
 void create_static(int i)
