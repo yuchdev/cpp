@@ -10,8 +10,14 @@
 #define SUPPRESS_PRAGMA_WARNINGS() \
     __pragma(warning(push)) \
     __pragma(warning(disable: 4068))
-#else
+
+#define SUPPRESS_UNINITIALIZED_WARNINGS() \
+    __pragma(warning(push)) \
+    __pragma(warning(disable: 4700))
+#elif defined(__clang__)
 #define SUPPRESS_PRAGMA_WARNINGS()
+#define SUPPRESS_UNINITIALIZED_WARNINGS() \
+    __pragma("clang diagnostic ignored \"-Wuninitialized\"")
 #endif
 
 

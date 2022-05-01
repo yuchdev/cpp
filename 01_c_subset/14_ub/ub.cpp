@@ -1,8 +1,9 @@
 #include <utilities/defines.h>
 SUPPRESS_PRAGMA_WARNINGS()
+SUPPRESS_UNINITIALIZED_WARNINGS()
 #include <iostream>
 
-#pragma clang diagnostic push
+
 #pragma clang diagnostic ignored "-Wuninitialized"
 
 
@@ -16,7 +17,7 @@ void initialization_order()
     // Suppress optimization
     std::cout << "Value of this variable is undefined: i = " << i << std::endl;
 }
-#pragma clang diagnostic pop
+
 
 int main()
 {

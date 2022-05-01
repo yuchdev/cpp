@@ -1,11 +1,9 @@
-// Suppress pragmas
-#ifdef _MSC_VER
-#pragma warning( disable : C4068)
-#endif
+#include <utilities/defines.h>
+SUPPRESS_PRAGMA_WARNINGS()
 
 // ifdef clang
 #ifdef __clang__
-#pragma clang diagnostic push
+
 #endif
 
 #include <iostream>
@@ -107,4 +105,3 @@ int main()
     return 0;
 }
 
-#pragma clang diagnostic pop

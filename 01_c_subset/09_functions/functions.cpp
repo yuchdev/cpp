@@ -1,5 +1,7 @@
-#pragma clang diagnostic push
+#include <utilities/defines.h>
+SUPPRESS_PRAGMA_WARNINGS()
 #pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
+
 #include <string>
 #include <iostream>
 #include <cstdarg>
@@ -279,5 +281,3 @@ int main()
 
     return 0;
 }
-
-#pragma clang diagnostic pop

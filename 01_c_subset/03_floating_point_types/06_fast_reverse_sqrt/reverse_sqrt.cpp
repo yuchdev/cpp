@@ -24,7 +24,8 @@ float reverse_sqrt(float number)
 	union {
 		float f;
 		uint32_t i;
-	} conv  = { .f = number };
+	} conv{};
+    conv.f = number;
 	conv.i  = 0x5f3759df - ( conv.i >> 1 );
 	conv.f  *= three_halfs - (x2 * conv.f * conv.f );
 	return conv.f;

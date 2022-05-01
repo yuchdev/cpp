@@ -1,4 +1,5 @@
-#pragma clang diagnostic push
+#include <utilities/defines.h>
+SUPPRESS_PRAGMA_WARNINGS()
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 
 // Pro-argument for data accessors and mutators
@@ -75,5 +76,3 @@ int main()
 {
     return 0;
 }
-
-#pragma clang diagnostic pop

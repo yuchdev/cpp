@@ -127,7 +127,8 @@ void pointer_conversions()
     volatile const char* const* p4 = p2;
 
     double* a[2][3] = {};
-    double const * const (*ap)[3] = a; // OK
+    // error: level 2 more cv-qualifiers but level 1 is not const
+    // double const * const (*ap)[3] = a;
 
     // TODO: error: level 2 more cv-qualifiers and const added at level 1
 #if 0
