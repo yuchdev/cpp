@@ -44,7 +44,7 @@ construct::construct(const construct& c) : intrn(c.intrn.a), arr()
     std::cout << "construct copy constructor; object count = " << ++_counter << std::endl;
 }
 
-construct::~construct(void)
+construct::~construct()
 {
     std::cout << "construct destructor; object count = " << --_counter << std::endl;
 }

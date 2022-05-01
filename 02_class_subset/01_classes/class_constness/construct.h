@@ -44,7 +44,6 @@ public:
 
 	// Copy c-tor defines how object behave if returned by value
 	// Move c-tor defines, how object pass its state to another object
-
 	~construct();
 
 	// In order to access a static class member, you should define a static method
