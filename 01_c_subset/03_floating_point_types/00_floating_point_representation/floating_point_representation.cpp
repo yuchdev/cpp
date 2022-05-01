@@ -1,11 +1,6 @@
 #include <utilities/defines.h>
 SUPPRESS_PRAGMA_WARNINGS()
 
-// ifdef clang
-#ifdef __clang__
-
-#endif
-
 #include <iostream>
 
 // OsX workaround

@@ -1,8 +1,9 @@
-#include "construct.h"
-// Демонстрация примера из Саттера1 гл.4
-#include "class.h"
-
 #include <iostream>
+#include "construct.h"
+
+// Class A defined in *.cpp, and forward-declared in header
+// However, we can use A in the header for passing and returning by value
+class A{}
 
 // intern
 intern::intern() : a()
@@ -60,9 +61,8 @@ void construct::out_static_array()
 // All passed-by-value objects declared through the forward declaration in the construct.h header
 A construct::get_a(A a)
 {
-    A a1(a);
-    a1.set_a5(5);
-    return a1;
+    A a;
+    return a;
 }
 
 void create_static(int i)
