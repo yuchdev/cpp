@@ -15,6 +15,7 @@ void lvalue_reference()
     // * Reference effectively an alias
 
     // * Reference must be initialized
+    // TODO: can it be re-initialized?
     int val1 = 10;
     int val2 = 10;
     int& val_ref = val1;
