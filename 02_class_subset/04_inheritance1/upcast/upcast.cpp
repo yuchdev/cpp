@@ -9,6 +9,16 @@
 #include <algorithm>
 #include <functional>
 
+/*
+Up-casting is implicit in C++, and is used a lot when you deal with virtual dispatching. 
+In other words, you have a pointer to Base from which you can access the common interface of a whole hierarchy of classes, 
+and the selection can be done at runtime. This assumes that your interface functions are marked virtual
+
+Down-casting is less useful, and should be avoided whenever one can. 
+In general is a sign of bad design, as one rarely needs to convert a Base object to a derived one. 
+It can be done (and the result checked) via dynamic_cast
+*/
+
 void show_simple_inheritance(){
     Employee e1("Helmut Komatoza");
     Manager m1("German Skotobaza", 1, 2000);
