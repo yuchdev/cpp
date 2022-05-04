@@ -18,17 +18,18 @@
 // return 1/sqrt(number)
 float reverse_sqrt(float number)
 {
-	const float x2 = number * 0.5F;
-	const float three_halfs = 1.5F;
+    const float x2 = number * 0.5F;
+    const float three_halfs = 1.5F;
 
-	union {
-		float f;
-		uint32_t i;
-	} conv{};
+    union
+    {
+        float f;
+        uint32_t i;
+    } conv {};
     conv.f = number;
-	conv.i  = 0x5f3759df - ( conv.i >> 1 );
-	conv.f  *= three_halfs - (x2 * conv.f * conv.f );
-	return conv.f;
+    conv.i = 0x5f3759df - (conv.i >> 1);
+    conv.f *= three_halfs - (x2 * conv.f * conv.f);
+    return conv.f;
 }
 
 

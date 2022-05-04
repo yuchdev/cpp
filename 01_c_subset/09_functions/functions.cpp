@@ -100,7 +100,7 @@ int stdcall stdcall_func(int a, long* b) stdcall_gcc
     //	mov         eax,dword ptr [b]
     //	mov         ecx,dword ptr [a]
     //	mov         dword ptr [eax],ecx
-    *b = static_cast<long>(a);
+    * b = static_cast<long>(a);
 
     return 0;
     //  xor         eax,eax
@@ -127,7 +127,7 @@ int stdcall stdcall_func(int a, long* b) stdcall_gcc
 // the stack is cleaned up by the called function
 int fastcall fastcall_func(char a, short b) fastcall_gcc
 {
-    return a%b;
+    return a % b;
 }
 
 
@@ -142,8 +142,7 @@ int cdecl var_param_func(int a, ...) cdecl_gcc
     int i = a;
     int sum = 0;
 
-    while (i != 0)
-    {
+    while (i != 0) {
         sum += i;
         i = va_arg(argptr, int);
     }
@@ -158,13 +157,12 @@ int cdecl var_param_func(int a, ...) cdecl_gcc
 double f_var(double n, ...)
 {
     // Beginning of params pack
-    double *p = &n;
+    double* p = &n;
     double sum = 0, count = 0;
     // Iterate over stack while stack param is zero
     // Clang-Tidy: Narrowing conversion from 'double' to 'bool'
-    while (*p)
-    {
-        sum += (*p);            
+    while (*p) {
+        sum += (*p);
         p++;
         count++;
     }
@@ -193,7 +191,7 @@ void show_unconst_ref()
 
 
 // Function pointer
-void error_(const std::string& s){ std::cerr << s << std::endl; }
+void error_(const std::string& s) { std::cerr << s << std::endl; }
 
 void show_func_pointer()
 {

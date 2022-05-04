@@ -16,7 +16,8 @@ const uint64_t h01 = 0x0101010101010101; //the sum of 256 to the power of 0,1,2,
 //This is a naive implementation, shown for comparison,
 //and to help in understanding the better functions.
 //It uses 24 arithmetic operations (shift, add, and).
-uint64_t popcount_1(uint64_t x) {
+uint64_t popcount_1(uint64_t x)
+{
     x = (x & m1) + ((x >> 1) & m1); //put count of each  2 bits into those  2 bits 
     x = (x & m2) + ((x >> 2) & m2); //put count of each  4 bits into those  4 bits 
     x = (x & m4) + ((x >> 4) & m4); //put count of each  8 bits into those  8 bits 
@@ -29,7 +30,8 @@ uint64_t popcount_1(uint64_t x) {
 //This uses fewer arithmetic operations than any other known  
 //implementation on machines with slow multiplication.
 //It uses 17 arithmetic operations.
-uint64_t popcount_2(uint64_t x) {
+uint64_t popcount_2(uint64_t x)
+{
     x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
     x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
     x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
@@ -42,7 +44,8 @@ uint64_t popcount_2(uint64_t x) {
 //This uses fewer arithmetic operations than any other known  
 //implementation on machines with fast multiplication.
 //It uses 12 arithmetic operations, one of which is a multiply.
-uint64_t popcount_3(uint64_t x) {
+uint64_t popcount_3(uint64_t x)
+{
     x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
     x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
     x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
@@ -61,7 +64,8 @@ uint64_t popcount_3(uint64_t x) {
 
 //This is better when most bits in x are 0
 //It uses 3 arithmetic operations and one comparison/branch per "1" bit in x.
-uint64_t popcount_4(uint64_t x) {
+uint64_t popcount_4(uint64_t x)
+{
     int count;
     for (count = 0; x; count++)
         x &= x - 1;

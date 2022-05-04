@@ -25,17 +25,19 @@
 *  Now imagine, if we keep moving 3672 to the right, eventually 2 and then 7 would be truncated,
 *  and 36 is everything what left. But this is exactly the whole part of 36.72!
 *  For 32-bit floating point value you shoud move it to the size of exponent (TODO: check)
-* 
+*
 *  TODO:
 *  However, with negative numbers this trick won't work.
-*  In case of adding decimal numbers, we should 
+*  In case of adding decimal numbers, we should
 */
 
-namespace{
-union convertible {
-    float f;
-    int i;
-};
+namespace
+{
+    union convertible
+    {
+        float f;
+        int i;
+    };
 }
 
 void classic_ftol()
@@ -59,7 +61,7 @@ void classic_ftol()
 
     double fp_double = 9.99;
     i = static_cast<int>(fp_double);
-    
+
     // GCC 11
     //  movsd       xmm0, QWORD PTR fp_double[rip]
     // cvttsd2si    eax, xmm0
@@ -148,10 +150,11 @@ int flol_debug(float x)
 }
 
 
-long long fast_dtoll(double d) 
+long long fast_dtoll(double d)
 {
 
-    union castable {
+    union castable
+    {
         double d;
         long long l;
     };
@@ -200,10 +203,10 @@ struct TPTraits : TPTraitsBase<T>
 template <typename FP>
 typename TPTraits<FP>::ret_type fast_fpconvert(FP f)
 {
-    typename TPTraits<FP>::castable magic{};
+    typename TPTraits<FP>::castable magic {};
     magic.i = TPTraits<FP>::mask;
 
-    volatile typename TPTraits<FP>::castable ret{};
+    volatile typename TPTraits<FP>::castable ret {};
     ret.f = f + magic.f;
     return ret.i - magic.i;
 }

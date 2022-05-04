@@ -23,7 +23,8 @@ using std::bad_alloc;
 // или параметризовать класс им
 // Используем шаблоны и CRTP, чтобы получить гарантию, что каждый базовый класс уникален
 template <typename T>
-class NewHandlerSupport{
+class NewHandlerSupport
+{
 public:
     static new_handler set_new_handler(new_handler p);
     static void* operator new(size_t size);
@@ -50,7 +51,8 @@ new_handler NewHandlerSupport<T>::set_new_handler(new_handler p)
 
 
 template <typename T>
-void NewHandlerSupport<T>::no_more_memory(){
+void NewHandlerSupport<T>::no_more_memory()
+{
     // в нашем кастомном обработчике просто выведем сообщение
     // а дальше поступим как стандартный new_handler
     printf("No more memory!\n");
@@ -70,13 +72,13 @@ void* NewHandlerSupport<T>::operator new(size_t sz)
     new_handler global_handler = std::set_new_handler(_current_handler);
     void* mem = nullptr;
 
-    try{
+    try {
         // выделить память глобальным оператором
         mem = ::operator new(sz);
         // если выделить нельзя - вызовется _current_handler()
         // если он = 0, бросится bad_alloc
     }
-    catch (const std::bad_alloc&){
+    catch (const std::bad_alloc&) {
         // вернем на место старый глобальный new_handler
         std::set_new_handler(global_handler);
         throw;
@@ -87,26 +89,29 @@ void* NewHandlerSupport<T>::operator new(size_t sz)
 
 
 template <typename T>
-void NewHandlerSupport<T>::operator delete(void* p){
+void NewHandlerSupport<T>::operator delete(void* p)
+{
     ::operator delete(p);
 }
 
 
 // Наследуем mixture-class
-class LargeObject : public NewHandlerSupport<LargeObject> {
+class LargeObject : public NewHandlerSupport<LargeObject>
+{
 public:
-    LargeObject(){}
-    ~LargeObject(){}
+    LargeObject() {}
+    ~LargeObject() {}
 private:
     // very large array, will throw out of memory
     char large_array[2147483646];
 };
 
 // Еще раз наследуем mixture-class
-class SmallObject : public NewHandlerSupport<SmallObject> {
+class SmallObject : public NewHandlerSupport<SmallObject>
+{
 public:
-    SmallObject(){}
-    ~SmallObject(){}
+    SmallObject() {}
+    ~SmallObject() {}
 private:
     // everything ok should be here
     char large_array[42];
@@ -159,14 +164,14 @@ public:
     // 3. Placement new/delete overload
 
     static void* operator new(size_t s, void* place);
-    static void operator delete(void *p, void *place);
+    static void operator delete(void* p, void* place);
 
     // operator delete is unique in being a non-member or static member function that is dynamically dispatched
     // A type with a virtual destructor performs the call to its own delete from the most derived destructor
 
     // 4. New replacing new_handler
     static void* operator new(size_t s, new_handler p);
-    static void operator delete(void *p, new_handler h);
+    static void operator delete(void* p, new_handler h);
 
     void test();
 protected:

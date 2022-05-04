@@ -6,14 +6,14 @@
 
 // Global variables definition order is not defined
 int g = 0;
-int d = g*g;
+int d = g * g;
 
 // Use Singleton instead or static object returned 
 // by reference (Meyers Singleton, thread-safe)
 int& use_count()
 {
-	static int res = 0;
-	return res;
+    static int res = 0;
+    return res;
 }
 
 // User-defined function of global cleanup
@@ -21,7 +21,7 @@ int& use_count()
 // It is possible to pass multiple, but limited number of functions
 void my_cleanup()
 {
-	std::cout << "cleanup handler" << std::endl;
+    std::cout << "cleanup handler" << std::endl;
 }
 
 // Static and extern examples:
@@ -41,30 +41,29 @@ static int bar(); // explicitly static (intern)
 // The linkage for anonymous namespaces has changed between C++98 and C++11 
 // but the main thing is that they are unreachable from other translation units.
 
-namespace {
-	int i; // external linkage but unreachable from other translation units.
-	class invisible_to_others { }; // external linkage but unreachable 
+namespace
+{
+    int i; // external linkage but unreachable from other translation units.
+    class invisible_to_others {}; // external linkage but unreachable 
 }
 
 int main()
 {
-	// Here we use external definitions in different object files
-	use_extern();
-	show_extern();
+    // Here we use external definitions in different object files
+    use_extern();
+    show_extern();
 
-	// Different ways to interrupt the application execution
-	// exit(); //  calls global destructors
-	// abort(); // does not call global destructors
+    // Different ways to interrupt the application execution
+    // exit(); //  calls global destructors
+    // abort(); // does not call global destructors
 
-	if ( atexit( &my_cleanup ) == 0 )
-	{
-		// my_cleanup will be called
-	}
-	else
-	{
-		// some problem of global cleanup
-		return 1;
-	}
+    if (atexit(&my_cleanup) == 0) {
+        // my_cleanup will be called
+    }
+    else {
+        // some problem of global cleanup
+        return 1;
+    }
 
-	return 0;
+    return 0;
 }

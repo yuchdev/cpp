@@ -10,7 +10,7 @@ void use_extern();
 extern "C" void c_function1();
 
 // It's okay to merge extern "C" declarations like that
-extern "C"{
+extern "C" {
     void c_function2();
     void c_function3();
 
@@ -22,7 +22,7 @@ extern "C"{
 };
 
 // wrap the whole header
-extern "C"{
+extern "C" {
 #include "string.h"
 };
 

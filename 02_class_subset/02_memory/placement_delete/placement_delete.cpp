@@ -1,14 +1,18 @@
 #include <iostream>
 #include <new>
 
-void show_placement_delete(){
+void show_placement_delete()
+{
 
-    struct X {
-        X() {
+    struct X
+    {
+        X()
+        {
             throw std::runtime_error("X object never be created");
         }
         // custom placement new
-        static void* operator new(std::size_t sz, bool b){
+        static void* operator new(std::size_t sz, bool b)
+        {
             std::cout << "custom placement new called, b = " << b << '\n';
             return ::operator new(sz);
         }
@@ -37,7 +41,8 @@ void test_placement_new_handler()
 }
 
 
-int main(){
+int main()
+{
 
     show_placement_delete();
     //show_memory_pool();

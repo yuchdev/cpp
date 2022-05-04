@@ -12,11 +12,12 @@ typedef char T;
 // "i" has external linkage
 // Even though "i" is not visible outside the compilation unit, 
 // it still has external linkage (C++ Standard 7.3.1.1/1 - See footnote)
-namespace{
-	int i;
+namespace
+{
+    int i;
 }
 
 void show_extern()
 {
-	std::cout << x << std::endl;
+    std::cout << x << std::endl;
 }

@@ -48,17 +48,19 @@ void array_facts()
 
 // Let's use this static type
 template <typename T, std::size_t N>
-inline std::size_t arraysize(T(&arr)[N]) {
+inline std::size_t arraysize(T(&arr)[N])
+{
     return N;
 }
 
-void array_pointer_and_array(){
+void array_pointer_and_array()
+{
 
     // Step 1. Let's create array of integers and pointer to integer
     // Pointer let us assign the array address (or the first element's of array address)
     // without any problems
     int integer_array[42] = {};
-    for (int s = 0; s < 42; ++s){
+    for (int s = 0; s < 42; ++s) {
         integer_array[s] = s;
     }
 
@@ -67,7 +69,7 @@ void array_pointer_and_array(){
     // Step 2. Now, what if we try to get array's address? Isn't it pointer to integer t00?
     // int* ii31 = &array;
     // cannot convert from 'int (*)[42]' to 'int *'
-    
+
     // That's how looks pointer to array type
     int(*array_ptr)[42] = &integer_array;
 
@@ -79,7 +81,7 @@ void array_pointer_and_array(){
     int* int_array_plus = 1 + integer_array;
     int(*ii6)[42] = 1 + &integer_array;
 
-    ptrdiff_t diff2 = reinterpret_cast<int*>(ii6)-int_array_plus;
+    ptrdiff_t diff2 = reinterpret_cast<int*>(ii6) - int_array_plus;
     std::cout << std::hex << ii6 << '-' << int_array_plus << '=' << std::dec << diff2 << '\n';
     // diff2 == 41. It means (&array + 1) points to the LAST array item + offset 1
     // In other words, pointer to array points to the "whole array", 

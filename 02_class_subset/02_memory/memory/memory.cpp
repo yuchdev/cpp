@@ -76,7 +76,8 @@ void test_placement_new_handler()
     throw bad_alloc();
 }
 
-void show_user_alloc(){
+void show_user_alloc()
+{
 
     // different versions of new() and delete()
 
@@ -90,11 +91,11 @@ void show_user_alloc(){
 
     // new for array overload
     {
-    std::cout << "Test array new overload" << '\n';
-    user_alloc* x = new user_alloc[10];
-    x[1].test();
-    delete[] x;
-}
+        std::cout << "Test array new overload" << '\n';
+        user_alloc* x = new user_alloc[10];
+        x[1].test();
+        delete[] x;
+    }
 
     // placement new overload
     {
@@ -119,26 +120,27 @@ void show_user_alloc(){
     }
 }
 
-void show_new_handler(){
+void show_new_handler()
+{
 
     // Showcase of memory pool, mixture-class replacing new_handler
     // Let's try a very large object
-    try{
+    try {
         LargeObject::set_new_handler(NewHandlerSupport<LargeObject>::no_more_memory);
         LargeObject* x = new LargeObject();
         delete x;
     }
-    catch (const std::bad_alloc& e){
+    catch (const std::bad_alloc& e) {
         std::cerr << "Lack of memory: " << e.what() << '\n';
     }
 
     // Let's try regular object
-    try{
+    try {
         SmallObject::set_new_handler(NewHandlerSupport<SmallObject>::no_more_memory);
         SmallObject* x = new SmallObject();
         delete x;
     }
-    catch (const std::bad_alloc& e){
+    catch (const std::bad_alloc& e) {
         std::cerr << "Lack of memory: " << e.what() << '\n';
     }
 }

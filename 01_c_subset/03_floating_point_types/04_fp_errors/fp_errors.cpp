@@ -42,95 +42,92 @@ void fp_coltrol_noexcept()
     feclearexcept(FE_ALL_EXCEPT);
 
     // Create Inexact/Underflow error
-	double d1 = 1.0;
-	size_t steps{};
-	int res{};
-	do {
-		d1 /= 2.0;
+    double d1 = 1.0;
+    size_t steps {};
+    int res {};
+    do {
+        d1 /= 2.0;
         ++steps;
-	} 
-	while ((res = fetestexcept(FE_ALL_EXCEPT)) == 0);
-	std::cout << "Inexact/Underflow Exceptions in " << steps <<" steps: " << res << '\n';
-	std::cout << "2^-inf: " << d1 << '\n';
+    } while ((res = fetestexcept(FE_ALL_EXCEPT)) == 0);
+    std::cout << "Inexact/Underflow Exceptions in " << steps << " steps: " << res << '\n';
+    std::cout << "2^-inf: " << d1 << '\n';
 
-	feclearexcept(res);
+    feclearexcept(res);
 
-	// Create Inexact/Overflow error
-	double d2 = 1.0;
+    // Create Inexact/Overflow error
+    double d2 = 1.0;
     steps = 0;
-	do {
-		d2 *= 2.0;
+    do {
+        d2 *= 2.0;
         ++steps;
-	} 
-	while ((res = fetestexcept(FE_ALL_EXCEPT)) == 0);
-	std::cout << "Inexact/Overflow Exceptions in " << steps << " steps: " << res << '\n';
-	std::cout << "2^+inf: %g\n" << d2 << '\n';
+    } while ((res = fetestexcept(FE_ALL_EXCEPT)) == 0);
+    std::cout << "Inexact/Overflow Exceptions in " << steps << " steps: " << res << '\n';
+    std::cout << "2^+inf: %g\n" << d2 << '\n';
 
-	feclearexcept(res);
+    feclearexcept(res);
 
-	// Create zero division error
-	double d3 = 1.0 / d1;
-	res = fetestexcept(FE_ALL_EXCEPT);
-	std::cout << "Zero Div Exceptions:" << res << '\n';
-	std::cout << "1/0:" << d3 << '\n';
+    // Create zero division error
+    double d3 = 1.0 / d1;
+    res = fetestexcept(FE_ALL_EXCEPT);
+    std::cout << "Zero Div Exceptions:" << res << '\n';
+    std::cout << "1/0:" << d3 << '\n';
 
-	feclearexcept(res);
+    feclearexcept(res);
 
-	// Create Inexact error
-	double s = 1.0;
+    // Create Inexact error
+    double s = 1.0;
     steps = 0;
-	do {
-		s = (s + 2 / s) * 0.5;
+    do {
+        s = (s + 2 / s) * 0.5;
         ++steps;
-	} 
-	while ((s * s - 2) > 0);
-	std::cout << "Inexact Exceptions in " << steps << " steps\n";
-	std::cout << "sqrt (2): %g\n" << '\n';
+    } while ((s * s - 2) > 0);
+    std::cout << "Inexact Exceptions in " << steps << " steps\n";
+    std::cout << "sqrt (2): %g\n" << '\n';
 }
 
 void fp_coltrol()
 {
-	// Floating Point Environment is a system-wide variable
-	// which value is being set (and never clear!) on floating point exception/error situation, 
+    // Floating Point Environment is a system-wide variable
+    // which value is being set (and never clear!) on floating point exception/error situation, 
     // and keep additional information about the error
-	// FP is probably set by 'stmxcsr' assembly instruction in special SSE MXCSR register
+    // FP is probably set by 'stmxcsr' assembly instruction in special SSE MXCSR register
 
-	// default FP environment (system-dependent!)
-	fenv_t fenv = *FE_DFL_ENV;
+    // default FP environment (system-dependent!)
+    fenv_t fenv = *FE_DFL_ENV;
 
-	// get current FP environment
-	int ret = fegetenv(&fenv);
-	std::cout << "fegetenv() returned " << ret << '\n'; // 0 is no errors
+    // get current FP environment
+    int ret = fegetenv(&fenv);
+    std::cout << "fegetenv() returned " << ret << '\n'; // 0 is no errors
 
-	// pair function setting fenv_t
-	ret = fesetenv(&fenv);
-	std::cout << "fesetenv() returned " << ret << '\n'; // 0 is no errors
+    // pair function setting fenv_t
+    ret = fesetenv(&fenv);
+    std::cout << "fesetenv() returned " << ret << '\n'; // 0 is no errors
 
-	// Attempts to clear the floating-point exceptions specified
-	feclearexcept(FE_ALL_EXCEPT);
-	ret = fegetenv(&fenv);
+    // Attempts to clear the floating-point exceptions specified
+    feclearexcept(FE_ALL_EXCEPT);
+    ret = fegetenv(&fenv);
 
-	// feholdexcept() saves exception flags clears 
-	double x = sin(0.0); // = 0
-	fenv_t fe;
-	feholdexcept(&fe);
-	x = log(x); // should raise exception, but fenv is clear
+    // feholdexcept() saves exception flags clears 
+    double x = sin(0.0); // = 0
+    fenv_t fe;
+    feholdexcept(&fe);
+    x = log(x); // should raise exception, but fenv is clear
 
-	// feupdateenv() function is responsible quite complicated actions
-	// It saves in local memory information about exception,
-	// set the new environment by fenvp value and raise in that environment saved exception
-	feupdateenv(&fe);
-	std::cout << "log 0 = " << x << '\n';
+    // feupdateenv() function is responsible quite complicated actions
+    // It saves in local memory information about exception,
+    // set the new environment by fenvp value and raise in that environment saved exception
+    feupdateenv(&fe);
+    std::cout << "log 0 = " << x << '\n';
 
-	if (!fetestexcept(FE_ALL_EXCEPT)) {
-		std::cout << "no exceptions raised" << '\n';
-	}
+    if (!fetestexcept(FE_ALL_EXCEPT)) {
+        std::cout << "no exceptions raised" << '\n';
+    }
 }
 
 #ifdef _MSC_VER
 void fp_exceptions_ms()
 {
-	// MS-specific way to trap FP exceptions
+    // MS-specific way to trap FP exceptions
     //Set the x86 floating-point control word according to what
     //exceptions you want to trap
     _clearfp(); //Always call _clearfp before setting the control

@@ -60,17 +60,20 @@ int printf();
 
 // While namespace member is not being used, it can't cause name conflict
 // Example:
-namespace A{
+namespace A
+{
     int aaa;
 }
 
-namespace B{
+namespace B
+{
     int aaa;
 }
 
-namespace AB{
-using namespace A;
-using namespace B;
+namespace AB
+{
+    using namespace A;
+    using namespace B;
 }
 
 

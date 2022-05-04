@@ -6,7 +6,8 @@ construct g_construct;
 
 // 
 // Constant pointers and pointers to constant
-void show_const_pointers(){
+void show_const_pointers()
+{
 
     // Pointer to constant
     const int* pp1 = new const int(3);

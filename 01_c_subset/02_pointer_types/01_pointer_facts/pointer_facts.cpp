@@ -1,15 +1,16 @@
 #include <iostream>
 #include <cstdint>
 
-namespace cpp {
-
-class test_me
+namespace cpp
 {
-public:
-    void point_to_me() {}
-};
 
-void point_to_me_static() {}
+    class test_me
+    {
+    public:
+        void point_to_me() {}
+    };
+
+    void point_to_me_static() {}
 
 } // namespace cpp
 
@@ -36,7 +37,7 @@ void pointers_facts()
 
     // Every object has an address
     // Guaranteed that there are no objects with NULL address
-    int a{};
+    int a {};
     int* ptr_a = &a;
 
     // TODO fact: pointer sizes
@@ -59,14 +60,14 @@ void pointers_facts()
     const int* const ptr4 = &a;
 
     // Pointer arithmetic
-    int some_array[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+    int some_array[10] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
     int* ptr_to_first = some_array;
 
     // 1.pointer + integer: moves forward from the pointer
     int* fifth_element = ptr_to_first + 5;
 
     // 2.pointer - integer: moves backward from the pointer
-    int* second_element = ptr_to_first -3;
+    int* second_element = ptr_to_first - 3;
 
     // 3.pointer - pointer: is important and means distance between pointers
     // Pointer distance has a special type, defined in <cstddef> include file
@@ -75,7 +76,7 @@ void pointers_facts()
     // 4.++ or -- moves to the pointee size!
     ++ptr_to_first; // moves 4 bytes forward!
     ptrdiff_t other_distance = ptr_to_first - some_array;
-    
+
     // Exception from this rule is void*
     void* vp = reinterpret_cast<void*>(some_array);
     // ++vp; there's no increment/decrement for void*
@@ -88,8 +89,8 @@ void nullptr_type()
     // nullptr_t
     // std::nullptr_t is the type of the null pointer literal, nullptr
     // It is a distinct type that is not itself a pointer type or a pointer to member type
-    int* inull{ nullptr };
-    void* vnull{ nullptr };
+    int* inull { nullptr };
+    void* vnull { nullptr };
 
     // pointer to function
     void(*static_func_ptr)() = &cpp::point_to_me_static;
@@ -116,13 +117,13 @@ void pointer_conversions()
 
     // error: level 2 more cv-qualified but level 1 is not const
     // const char** p1 = p; 
-    
+
     // OK: level 2 more cv-qualified and const added at level 1
-    const char* const * p2 = p;
-    
+    const char* const* p2 = p;
+
     // OK: level 2 more cv-qualifiers and const added at level 1
-    volatile char * const * p3 = p;
-    
+    volatile char* const* p3 = p;
+
     // OK: 2 more cv-qualifiers and const was already at 1
     volatile const char* const* p4 = p2;
 
@@ -133,7 +134,7 @@ void pointer_conversions()
     // TODO: error: level 2 more cv-qualifiers and const added at level 1
 #if 0
 #if __cplusplus >= 20
-    double * const (*ap1)[] = a; // OK since C++20
+    double* const (*ap1)[] = a; // OK since C++20
 #endif
 #endif
 }

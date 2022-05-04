@@ -22,9 +22,9 @@ void boolean_type()
     // Naming of bool variables and function often express its boolean nature, starting from "is"
     bool is_root = true;
     std::cout
-            << "sizeof(bool) = " << sizeof(is_root)
-            << "; "
-            << "bitwise(bool) = " << bitwise(is_root) << '\n';
+        << "sizeof(bool) = " << sizeof(is_root)
+        << "; "
+        << "bitwise(bool) = " << bitwise(is_root) << '\n';
 
     // Operator sizeof() yields size in bytes of the object representation of type or expression
     // sizeof() cannot be used with function types, incomplete types, or bit-field l-values
@@ -80,12 +80,12 @@ void nullptr_type()
     accept_null(ptr2);
 
     // nullptr is a constant expression, equal to size of void*
-    assert(sizeof(std::nullptr_t) == sizeof(void *));
+    assert(sizeof(std::nullptr_t) == sizeof(void*));
 
     // Since C++14, we have a template struct is_null_pointer()
     std::cout
-            << "std::is_null_pointer<int*>::value"
-            << std::is_null_pointer<int*>::value << '\n';
+        << "std::is_null_pointer<int*>::value"
+        << std::is_null_pointer<int*>::value << '\n';
 }
 
 #pragma endregion

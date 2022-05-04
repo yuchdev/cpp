@@ -45,7 +45,7 @@ void floating_point_representation()
     // Sign bit: 1 bit
     // Exponent width: 8 bits
     // Significand precision: 24 bits (23 explicitly stored)
-    float float_numbers[] = {1.0, 1.5, 0.75};
+    float float_numbers[] = { 1.0, 1.5, 0.75 };
 
 #if __cplusplus >= 202002L
 
@@ -75,14 +75,14 @@ void floating_point_representation()
 
 #if __cplusplus >= 202002L
         std::format("Binary representation of {} =\n\t {} =\n\t {}\n",
-                    double_number, *double_hack, bitwise(*double_hack));
+            double_number, *double_hack, bitwise(*double_hack));
 #endif
 
     }
     // Unlike integers, distribution of floating-point numbers is not uniform
     // It is denser for smaller and dense for larger numbers
     // Using floating-point numbers is a constant trade-off between range and precision
-    
+
     // Epsilon is a floating-point positive number, as such (1 +/- Epsilon) != 1
     // DBL_EPSILON C++ Standard library == 10 ^ -16
 

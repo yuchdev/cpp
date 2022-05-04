@@ -7,7 +7,7 @@ void compare_pointers_1()
     // * equality operators, which is != and ==
     // * more-less operators, < <= > >=
 
-    int a{ 10 }, b{ 20 };
+    int a { 10 }, b { 20 };
     int* pa = &a;
     int* pb = &b;
     if (a < b) {
@@ -35,7 +35,7 @@ bool less_ptr(T* a, T* b)
 
 void compare_pointers_2()
 {
-    int a{ 10 }, b{ 20 };
+    int a { 10 }, b { 20 };
     int* pa = &a;
     int* pb = &b;
     if (less_ptr(pa, pb)) {

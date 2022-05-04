@@ -16,8 +16,7 @@ public:
         std::vector<T> result;
         result.reserve(size);
         std::uniform_real_distribution<T> dist(from, to);
-        for (size_t i = 0; i < size; ++i)
-        {
+        for (size_t i = 0; i < size; ++i) {
             result.push_back(dist(gen));
         }
         return result;

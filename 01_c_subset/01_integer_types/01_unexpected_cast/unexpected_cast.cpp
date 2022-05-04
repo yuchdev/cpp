@@ -14,7 +14,7 @@ void comparing_unsigned()
 {
     unsigned int i1 = 1;
     int j1 = -1;
-    
+
     // i1 == 1, j1 == -1, arithmetically it's bigger, right?
     // In Soviet C++ unsigned type cast you!
     if (j1 < i1) {
@@ -27,8 +27,9 @@ void comparing_unsigned()
 
 // This cast was really unexpected
 // TODO: some explanation
-void show_shift(){
-    
+void show_shift()
+{
+
     // Let's have, for example, b10(1075) == b2(10000110011)
     // And move it right as many times how many bits in the integer type
 
@@ -41,7 +42,7 @@ void show_shift(){
     // Let's see how it works...
 
     std::cout << "Wanna see some type magic?\n";
-    for (size_t i = 0; i < sizeof(long long)* 8; ++i){
+    for (size_t i = 0; i < sizeof(long long) * 8; ++i) {
         l = 1075 << i;
         std::cout << "Step " << i << " magic =  " << bitwise(l) << '\n';
     }

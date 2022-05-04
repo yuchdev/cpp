@@ -10,7 +10,7 @@ void lvalue_reference()
     // i.e. that are modifiable. As an example:
 
     int anint = 0;
-    int *intptr=&anint;
+    int* intptr = &anint;
 
     // * Reference effectively an alias
 

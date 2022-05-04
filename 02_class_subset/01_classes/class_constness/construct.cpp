@@ -3,7 +3,7 @@
 
 // Class A defined in *.cpp, and forward-declared in header
 // However, we can use A in the header for passing and returning by value
-class A{};
+class A {};
 
 // intern
 intern::intern() : a()

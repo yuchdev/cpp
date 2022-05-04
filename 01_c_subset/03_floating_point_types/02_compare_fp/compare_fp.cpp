@@ -87,7 +87,7 @@ void show_close_enough()
         std::cout << "Bitwise d == " << bitwise(d) << '\n';
         std::cout << "Bitwise e == " << bitwise(e) << '\n';
     }
-        
+
     d = 0.00000000000000000001;
     e = nextafter(d, 1.0);
     if (close_enough(d, e)) {

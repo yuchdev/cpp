@@ -18,13 +18,14 @@ typedef int T;
 // It defines a global constant variable that can be referenced from other modules.
 extern const int x1 = 10;
 
-void use_extern(){
-	show_extern();
-	x = 10;
+void use_extern()
+{
+    show_extern();
+    x = 10;
 }
 
-void c_function1(){}
+void c_function1() {}
 
-void c_function2(){}
+void c_function2() {}
 
-void c_function3(){}
+void c_function3() {}

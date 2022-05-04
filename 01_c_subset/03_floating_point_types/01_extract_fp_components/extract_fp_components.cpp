@@ -64,7 +64,8 @@ template <typename FloatingPoint, typename Bitwise>
 struct floating_point_traits {};
 
 template <>
-struct floating_point_traits<float, long> {
+struct floating_point_traits<float, long>
+{
     static constexpr size_t significand = 23;
     static constexpr size_t exponent = 31;
     static constexpr long minus_one = 0x7FFFFF;
@@ -72,7 +73,8 @@ struct floating_point_traits<float, long> {
 };
 
 template <>
-struct floating_point_traits<double, long long> {
+struct floating_point_traits<double, long long>
+{
     static constexpr size_t significand = 52;
     static constexpr size_t exponent = 63;
     static constexpr long long minus_one = 0x7FFFFFFFFFFF;

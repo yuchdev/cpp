@@ -14,7 +14,8 @@ SUPPRESS_PRAGMA_WARNINGS()
 // (same for class, enum, union)
 void struct_one_name()
 {
-    struct A{
+    struct A
+    {
         int a;
     };
 
@@ -27,10 +28,11 @@ class A
 {
 public:
 
-    A(char *const cp1) : cp1(cp1) {}
+    A(char* const cp1) : cp1(cp1) {}
 
     // Static members COULD be changed in const members, as it does not change class state
-    void set_static(int i) const{
+    void set_static(int i) const
+    {
         a_stat = i;
     }
 
@@ -55,12 +57,12 @@ public:
 private:
     // friend declarations of non-existent classes are ignored
     friend class do_not_exists;
-    
+
     static int a6;
 
     // unnamed enum could be considered const class member
     // could be seen in pre-C++11 code, before in-place initialization was introduced
-    enum{ c1 = 5, c2 = 7, c3 = 12 };
+    enum { c1 = 5, c2 = 7, c3 = 12 };
 
     // mutable class member could always be changed 
     // even being part of const or static object 
@@ -76,7 +78,7 @@ private:
     // to determine it quickly, you can use "read backward" trick
     char const* cp2; // pointer (*) to 'const' 'char'
     const char* cp3; // pointer (*) to 'char' 'const'
-    char *const cp1; // 'const' pointer (*) to 'char'
+    char* const cp1; // 'const' pointer (*) to 'char'
     static int a_stat;
 };
 

@@ -34,7 +34,7 @@ void boolean_type()
     // Bitwise representation is implementation-defined
     // Naming of bool often express its boolean nature, starting from "is"
     bool is_root = true;
-    std::cout 
+    std::cout
         << "sizeof(bool) = " << sizeof(is_root)
         << "; "
         << "bitwise(bool) = " << bitwise(is_root) << '\n';
@@ -72,13 +72,13 @@ void character_types()
 
     // Output of char types
     std::cout
-            << "char c1 = " << c1
-            << "signed char c2 = " << c2
-            << "unsigned char c3 = " << c3
-            << '\n';
+        << "char c1 = " << c1
+        << "signed char c2 = " << c2
+        << "unsigned char c3 = " << c3
+        << '\n';
 
     // The functional cast notation int{c} gives the integer value for a character c
-    std::cout << c1 << " == " << int{c1} << '\n';
+    std::cout << c1 << " == " << int { c1 } << '\n';
 
     // wchar_t - type for wide character representation
     // Required to be large enough to represent any supported character code point
@@ -88,10 +88,10 @@ void character_types()
 
     // Output of wide char types requires special stream object
     std::wcout
-            << L"wchar_t w1 =" << w1
-            << L"; "
-            << "sizeof(wchar_t) = " << sizeof(wchar_t)
-            << L'\n';
+        << L"wchar_t w1 =" << w1
+        << L"; "
+        << "sizeof(wchar_t) = " << sizeof(wchar_t)
+        << L'\n';
 
     // Literals of fixed size are presented as sequences
     // of two, four or eight hexadecimal digits
@@ -162,13 +162,14 @@ void integer_types()
     // at different lengths without using different addresses
     // For example, a 64-bit memory location with content [4A 00 00 00 00 00 00 00] 
     // can be read at the same address as either 8-bit (value = 4A), 16-bit (004A), or 32-bit (0000004A)
-    union {
-        uint8_t u8; 
-        uint16_t u16; 
-        uint32_t u32; 
+    union
+    {
+        uint8_t u8;
+        uint16_t u16;
+        uint32_t u32;
         uint64_t u64;
     } u = { .u64 = 0x4A };
-    
+
     std::cout
         << "8-bit value = " << u.u8
         << "16-bit value = " << u.u16
@@ -191,7 +192,7 @@ void integer_types()
 
     1.  LP32 or 2/4/4 (int is 16-bit, long and pointer are 32-bit)
         16 bit systems, Win16 API
-    2.  ILP32 or 4/4/4 (int, long, and pointer are 32-bit): 
+    2.  ILP32 or 4/4/4 (int, long, and pointer are 32-bit):
         32 bit systems
         Win32 API
         Unix and Unix-like systems (32-bit Linux, macOS)
@@ -255,7 +256,7 @@ void unsigned_types()
     // Even though 'unsigned' allows to use new range of numbers within the same type, 
     // using unsigned during actual mathematical computations can introduce programming errors 
     // that are really hard to spot, and it's usually better to use signed int just to avoid them
-    
+
     // 1.
     for (unsigned i = 5; i >= 0; i--) {
         std::cout << i << '\n';
@@ -291,8 +292,8 @@ void unsigned_types()
     // Historically, unsigned is being used for size, offset, bitmask and other values of non-negative nature
     // Note: as with all type specifiers, any order is permitted: 
     // 'unsigned long long' int and 'long int unsigned long' name the same type
-    unsigned long long unsigned_ll{};
-    long int unsigned long uint_ll{};
+    unsigned long long unsigned_ll {};
+    long int unsigned long uint_ll {};
     static_assert(sizeof(unsigned_ll) == sizeof(uint_ll), "unsigned_ll and uint_ll are not the same size");
 }
 
@@ -300,13 +301,14 @@ void unsigned_types()
 
 #pragma region 05.numeric_promotion
 
-namespace cpp {
-enum MyEnum : long long
+namespace cpp
 {
-    First = 1,
-    Second  = 2,
-    Total = 3
-};
+    enum MyEnum : long long
+    {
+        First = 1,
+        Second = 2,
+        Total = 3
+    };
 } // namespace cpp
 
 void numeric_promotions()
@@ -358,9 +360,9 @@ void numeric_promotions()
 void numeric_conversions()
 {
     // Unlike the promotions, numeric conversions may change the values, with potential loss of precision
-    
+
     // Narrowing conversion - from larger to smaller
-    
+
     // warning: conversion with possible loss of data, even 1 is perfectly fit
     long long wide_ll = 1;
 
@@ -393,10 +395,10 @@ void fixed_size_types()
 
     // signed integer type with width of exactly 8, 16, 32 and 64 bits respectively
     // with no padding bits and using 2's complement for negative values
-    int8_t i8{};
-    int16_t i16{};
-    int32_t i32{};
-    int64_t i64{};
+    int8_t i8 {};
+    int16_t i16 {};
+    int32_t i32 {};
+    int64_t i64 {};
     // same for uint8_t, uint16_t, uint32_t, uint64_t
     // {} is the default initialization for basic types
 
@@ -415,10 +417,10 @@ void fixed_size_types()
     // Example: in a 64-bit machine, where one would expect to have int as 64-bit, 
     // a compiler may use a mode with 32-bit int compilation for compatibility.
     // In this mode, int_fast16_t could be 64-bit
-    int_fast8_t if8{};
-    int_fast16_t if16{};
-    int_fast32_t if32{};
-    int_fast64_t if64{};
+    int_fast8_t if8 {};
+    int_fast16_t if16 {};
+    int_fast32_t if32 {};
+    int_fast64_t if64 {};
 
     std::cout
         << "sizeof(int_fast8_t) = " << sizeof(int_fast8_t)
@@ -436,10 +438,10 @@ void fixed_size_types()
     // and don't have dedicated stack pointer
     // https://en.wikipedia.org/wiki/OS_2200
     // https://www.unisys.com/offerings/high-end-servers/clearpath-systems/clearpath-dorado-systems
-    int_least8_t li8{};
-    int_least16_t li16{};
-    int_least32_t li32{};
-    int_least64_t li64{};
+    int_least8_t li8 {};
+    int_least16_t li16 {};
+    int_least32_t li32 {};
+    int_least64_t li64 {};
 
     std::cout
         << "sizeof(int_least8_t) = " << sizeof(int_least8_t)
@@ -453,7 +455,7 @@ void fixed_size_types()
     intptr_t iptr = 0;
 
     // maximum-width (un)signed integer type
-    intmax_t imax{};
+    intmax_t imax {};
 
     std::cout
         << "sizeof(intptr_t) = " << sizeof(intptr_t)
@@ -488,13 +490,13 @@ int main(int argc, char* argv[])
     if (func == "boolean_type") {
         boolean_type();
     }
-    else if(func == "character_type") {
+    else if (func == "character_type") {
         character_types();
     }
-    else if(func == "integer_types") {
+    else if (func == "integer_types") {
         integer_types();
     }
-    else if(func == "unsigned_types") {
+    else if (func == "unsigned_types") {
         unsigned_types();
     }
     else if (func == "numeric_promotions") {
