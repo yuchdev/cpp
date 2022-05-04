@@ -34,8 +34,16 @@ public:
         a_stat = i;
     }
 
-    // TODO: const and non-const methods with same name
+    // const and non-const methods with same name
+    // When both versions are available, the logic is pretty straightforward: 
+    // const version is called for const objects
+    // non-const version is called for non-const objects
+
     // TODO: overload rules
+    // https://www.learncpp.com/cpp-tutorial/introduction-to-function-overloading/
+    // https://en.cppreference.com/w/cpp/language/overload_resolution
+    // https://accu.org/journals/overload/13/66/kilpelainen_268/
+    // 
     // TODO: function signature
 
     // Static method coule be called with the class instance and with the class name
