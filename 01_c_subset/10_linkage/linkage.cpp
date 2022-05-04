@@ -8,6 +8,8 @@
 int g = 0;
 int d = g*g;
 
+// TODO: global vs static global
+
 // Use Singleton instead or static object returned 
 // by reference (Meyers Singleton, thread-safe)
 int& use_count()
