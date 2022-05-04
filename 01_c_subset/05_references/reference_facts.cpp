@@ -14,10 +14,11 @@ void lvalue_reference()
 
     // * Reference effectively an alias
 
-    // * Reference must be initialized, and could not be re-initialized
-    // It always refers to one object (being an alias of that object)
-    int val = 10;
-    int& val_ref = val;
+    // * Reference must be initialized
+    int val1 = 10;
+    int val2 = 10;
+    int& val_ref = val1;
+    val_ref = val2;
 
 
     // * Underneath, reference is a const pointer which can't be nullptr, 
