@@ -9,6 +9,13 @@
 #include <algorithm>
 #include <functional>
 
+// TODO: virtual specifier
+// https://en.cppreference.com/w/cpp/language/virtual
+
+// Dynamic&Static Binding
+// https://tekslate.com/static-dynamic-binding-virtual-function-c-language
+
+
 void show_simple_inheritance(){
     Employee e1("Helmut Komatoza");
     Manager m1("German Skotobaza", 1, 2000);
