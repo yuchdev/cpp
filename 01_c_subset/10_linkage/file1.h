@@ -5,29 +5,28 @@
 
 void use_extern();
 
-// Соглашение по вызову extern "C" применяется для межязыкового взаимодействия
-// между C++ и С/FORTRAN/Assembler etc.
+// Call agreement extern "C" is being used for cross-language communication
+// between C++ and C/FORTRAN/Assembler etc.
 extern "C" void c_function1();
 
-// Можно оъединять объявления так
+// It's okay to merge extern "C" declarations like that
 extern "C"{
     void c_function2();
     void c_function3();
 
-    // при передаче указателя на функцию программе на C
-    // также следует указывать соглашение о компоновке
+    // passing the pointer between languages, pass explicitly the linking convention
     typedef void(qsort_t)(void*, size_t, size_t);
-    // Тогда при передаче этого указателя сооствтствующая ф-ция
-    // будет скомпонована так же
-    // void i_sort(qsort_t sort_function); - будет скомпонована в "C"
+    // then after passing such pointer, caller function receive the same linking convention
+    // assume we have caller function
+    // void i_sort(qsort_t sort_function); // it will have extern "C" linking convention
 };
 
-// Можно обернуть целый файл
+// wrap the whole header
 extern "C"{
 #include "string.h"
 };
 
-// Но лучше так
+// Use __cplusplus macro for declaring extern "C"
 #ifdef __cplusplus
 #define EXTERNC  extern "C"
 #else

@@ -8,8 +8,6 @@
 int g = 0;
 int d = g*g;
 
-// TODO: global vs static global
-
 // Use Singleton instead or static object returned 
 // by reference (Meyers Singleton, thread-safe)
 int& use_count()
@@ -28,6 +26,7 @@ void my_cleanup()
 
 // Static and extern examples:
 // in namespace or global scope
+// global vs static global variables
 int i = 0; // extern by default
 const int ci = 0; // static (intern) by default
 extern const int eci; // explicitly extern
