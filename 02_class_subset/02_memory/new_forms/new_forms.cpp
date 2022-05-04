@@ -5,10 +5,9 @@
 using namespace std;
 
 /** @brief
-3 forms of operator new()
-1 - regular(show_new1)
-2 - placement(show_new2)
-3 - nothrow
+TODO: Undate with C++20
+Forms of operator new()
+https://en.cppreference.com/w/cpp/memory/new/operator_new
 */
 
 void show_new1() {
