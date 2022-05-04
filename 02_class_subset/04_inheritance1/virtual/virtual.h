@@ -182,6 +182,7 @@ public:
 
 struct Derived1 : Base1
 {
+    // TODO: repeat for static and dynamic binding
     //int f(int) {
     //	std::cout << "int Derived1::f()" << std::endl;
     //	return 1;
