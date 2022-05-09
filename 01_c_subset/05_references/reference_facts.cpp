@@ -1,6 +1,9 @@
 #include <iostream>
 
 // Facts about references
+// TODO:
+// * Const ref makes rvalue object live the same time as ref
+// * Non-const pointer is assigned to const (not otherwise!)
 
 void lvalue_reference()
 {
