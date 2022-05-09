@@ -1,7 +1,8 @@
 #pragma once
 
 // 2. Standard output examples
-namespace cpp4 {
+namespace cpp4
+{
 
 void simple_ostream();
 

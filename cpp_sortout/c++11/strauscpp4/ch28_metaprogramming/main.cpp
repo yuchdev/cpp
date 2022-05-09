@@ -25,7 +25,8 @@ Examples:
 
 //1. Predicates(is_polymorphic, underlying).Type aliases, constexpr func wrapper(28.2)
 //2. Select(28.2)
-namespace cpp4 {
+namespace cpp4
+{
 
 
 // select types from list by index
@@ -33,10 +34,11 @@ template <size_t N, typename... Cases>
 struct select_n;
 
 template <size_t N, typename T, typename... Cases>
-struct select_n<N, T, Cases...> : select_n<N-1, Cases...> {};
+struct select_n<N, T, Cases...> : select_n<N - 1, Cases...> {};
 
 template <typename T, typename... Cases>
-struct select_n<0, T, Cases...>{
+struct select_n<0, T, Cases...>
+{
     using type = T;
 };
 
@@ -45,14 +47,16 @@ using select = typename select_n<N, Cases...>::type;
 
 // get integer of desired size
 template <size_t N>
-struct sized_integer {
+struct sized_integer
+{
     using error_t = void;
     using type = cpp4::select<N, error_t, signed char, error_t, error_t, long, error_t, error_t, long long>;
 };
 
 } // namespace cpp4 
 
-void show_predicates(){
+void show_predicates()
+{
 
     // some enums
     enum class Axis : char { x, y, z };
@@ -63,7 +67,7 @@ void show_predicates(){
     std::cout << typeid(typename std::underlying_type<flags>::type).name() << std::endl;
 
     // check polymorphic
-    if (is_polymorphic<int>::value) 
+    if (is_polymorphic<int>::value)
         cout << "Big surprise!";
 
     // show select and desired integer type
@@ -76,25 +80,28 @@ void show_predicates(){
 
 
 //3. conditional and holder(28.2)
-namespace cpp4 {
+namespace cpp4
+{
 
 // let this object placed on the heap
 template <typename T>
-class heap_placement{};
+class heap_placement {};
 
 // let this object placed on the stack
 template <typename T>
-class stack_placement{};
+class stack_placement {};
 
 // Is the object big?
 template <typename T>
-constexpr bool is_big_object() {
+constexpr bool is_big_object()
+{
     return (sizeof(T) > 1024);
 }
 
 // We decide where to place obj
 template <typename T>
-struct conditional_placement{
+struct conditional_placement
+{
     using type = std::conditional< is_big_object<T>(), heap_placement<T>, stack_placement<T> >;
     type t;
 };
@@ -124,16 +131,18 @@ struct conditional_placement{
 void show_traits() {}
 
 //5. enable_if declaration(28.4)
-namespace cpp4 {
+namespace cpp4
+{
 
 template <typename T>
-class simple_ptr {
+class simple_ptr
+{
 public:
-    simple_ptr() :_ptr{}{}
+    simple_ptr() :_ptr {} {}
 
-    explicit simple_ptr(T* mem) :_ptr{ mem } {}
+    explicit simple_ptr(T* mem) :_ptr { mem } {}
 
-    ~simple_ptr() 
+    ~simple_ptr()
     {
         delete _ptr;
     }
@@ -142,20 +151,23 @@ public:
     // You may consider this exotic, but providing (defining) operations conditionally is very common
     // The standard library provides many examples of conditional definition, such as Alloc::size_type 
     // and pair being movable if both of their elements are
-    std::enable_if_t<std::is_class<T>::value, T*> operator->() const 
+    std::enable_if_t<std::is_class<T>::value, T*> operator->() const
     {
         return _ptr;
     };
 
-    T& operator*() const {
+    T& operator*() const
+    {
         return *_ptr;
     };
 
-    T* get() const {
+    T* get() const
+    {
         return _ptr;
     };
 
-    T* release() {
+    T* release()
+    {
         T* ptr = _ptr;
         _ptr = 0;
         return ptr;
@@ -174,7 +186,7 @@ struct example_class
 
 void show_enable_if()
 {
-    cpp4::simple_ptr<cpp4::example_class> p1{ new cpp4::example_class };
+    cpp4::simple_ptr<cpp4::example_class> p1 { new cpp4::example_class };
     std::cout << p1->i << std::endl;
 
     // does not instantiated (?)
@@ -183,13 +195,14 @@ void show_enable_if()
 }
 #if 0
 //6. SFINAE and enable_if(28.4.4)
-namespace cpp4 {
+namespace cpp4
+{
 
 // question 'Can we call f(x) if x is of type X?' 
 // Defining has_f to answer that question gives an opportunity to demonstrate some of the techniques used
 
 // represent a failure to declare something
-struct substitution_failure { }; 
+struct substitution_failure {};
 
 template<typename T>
 struct substitution_succeeded : std::true_type {};
@@ -200,7 +213,8 @@ struct substitution_succeeded<substitution_failure> : std::false_type {};
 
 // Answer the question
 template<typename T>
-struct get_f_result {
+struct get_f_result
+{
 public:
 
     // 'std::declval' converts any type T to a reference type, 
@@ -216,14 +230,16 @@ private:
     static substitution_failure check(...);
 };
 
-template<typename T> 
+template<typename T>
 struct has_f : substitution_succeeded<typename get_f_result<T>::type> {};
 
 // X<T> has a member use_f() if and only if f(t) can be called for a T value t
-template<typename T> 
-class X {
+template<typename T>
+class X
+{
     // ...
-    std::enable_if_t<has_f<T>()> use_f(const T&) {
+    std::enable_if_t<has_f<T>()> use_f(const T&)
+    {
         // ... f(t); // ...
     }
     // ... 
@@ -233,12 +249,14 @@ class X {
 #endif
 
 //7. type - safe print(28.6.1)
-namespace cpp4 {
+namespace cpp4
+{
 } // namespace cpp4 
 
 
 
-int main() {
+int main()
+{
     show_predicates();
     //show_traits();
     show_enable_if();

@@ -9,39 +9,46 @@ const char* formatted_date::months[] = { "JAN", "FEB", "MAR", "APR", "MAY", "JUN
 
 // Manipulators definition
 // ostream friend manipulators
-ostream& cpp4::point(ostream& os) {
+ostream& cpp4::point(ostream& os)
+{
     formatted_date::point();
     return os;
 }
 
-ostream& cpp4::intgr(ostream& os) {
+ostream& cpp4::intgr(ostream& os)
+{
     formatted_date::intgr();
     return os;
 }
 
-ostream& cpp4::stringed(ostream& os) {
+ostream& cpp4::stringed(ostream& os)
+{
     formatted_date::stringed();
     return os;
 }
 
 // istream friend manipulators
-istream& cpp4::point(istream& os) {
+istream& cpp4::point(istream& os)
+{
     formatted_date::point();
     return os;
 }
 
-istream& cpp4::intgr(istream& os) {
+istream& cpp4::intgr(istream& os)
+{
     formatted_date::intgr();
     return os;
 }
 
-istream& cpp4::stringed(istream& os) {
+istream& cpp4::stringed(istream& os)
+{
     formatted_date::stringed();
     return os;
 }
 
 
-void cpp4::show_formatted_overloads() {
+void cpp4::show_formatted_overloads()
+{
 
     formatted_date d1;
     formatted_date d2(19820521);

@@ -21,27 +21,28 @@ Examples:
 6. vector implementation
 */
 
-namespace cpp4 {
+namespace cpp4
+{
 
 // 1. Finally
 // The 'finally action' is provided as an argument to the constructor
-template<typename F> 
-struct final_action 
+template<typename F>
+struct final_action
 {
-    final_action(F f): clean{f} 
+    final_action(F f) : clean { f }
     {
     }
 
-    ~final_action() 
-    { 
-        clean(); 
+    ~final_action()
+    {
+        clean();
     }
 
     F clean;
 };
 
 // we define a function that conveniently deduces the type of an action
-template<class F> 
+template<class F>
 final_action<F> finally(F f)
 {
     return final_action<F>(f);
@@ -54,10 +55,10 @@ void show_finally()
     // allocate some raw data
     int* i = new int[100];
 
-    auto finally1 = cpp4::finally([&]() {
+    auto finally1 = cpp4::finally([&] () {
         delete[] i;
         std::cout << "Finally cation" << std::endl;
-    });
+        });
 }
 
 
@@ -66,7 +67,8 @@ void show_finally()
 
 // 3. Conditional noexcept, noexcept operator
 // 4. noexcept check
-namespace cpp4 {
+namespace cpp4
+{
 
 // However, noexcept is not completely checked by the compiler and linker
 void check_noexcept1() noexcept
@@ -109,7 +111,7 @@ void call_func(std::vector<T>& v) noexcept(noexcept(func(v[0])))
 }
 
 /*
-Conditional noexcept specifications and the noexcept() operator 
+Conditional noexcept specifications and the noexcept() operator
 are common and important in standard-library operations that apply to containers
 
 template<class T, size_t N>
@@ -120,22 +122,22 @@ void swap(T (&a)[N], T (&b)[N]) noexcept(noexcept(swap(*a, *b)));
 
 void show_noexcept()
 {
-    try{
+    try {
         cpp4::check_noexcept1();
-        
+
         // terminate() is called if noexcept throws
         // see our own terminate handler below
         cpp4::check_noexcept2();
     }
-    catch (const std::exception& e){
+    catch (const std::exception& e) {
         std::cerr << e.what() << '\n';
     }
-    
-    struct S { int i{}; };
+
+    struct S { int i {}; };
     S s;
     cpp4::copy_function(s); // s is POD, should be noexcept
 
-    std::vector<int> v{ 1,2,3 };
+    std::vector<int> v { 1,2,3 };
     cpp4::call_func(v); // POD = zero all values
 }
 
@@ -145,7 +147,7 @@ void show_noexcept()
 using terminate_handler = void(*)();
 
 [[noreturn]]
-void my_handler() 
+void my_handler()
 {
     // handle termination my way
     // exit calls destructors

@@ -28,13 +28,14 @@ Examples:
 
 // 1. Suffix return
 
-namespace cpp4 {
+namespace cpp4
+{
 
 // The essential use for a suffix return type comes in function template declarations
 // in which the return type depends on the arguments
 // Important note: decltype has new behavior in C++14
 template<typename X, typename Y>
-auto product(X x, Y y) -> decltype(x * y)
+auto product(X x, Y y) -> decltype(x* y)
 {
     return x * y;
 }
@@ -48,10 +49,11 @@ void show_suffix()
 }
 
 // 2. noreturn
-namespace cpp4{
+namespace cpp4
+{
 
 // noreturn function does not have normal return (throw, exit)
-[[noreturn]] 
+[[noreturn]]
 void exit(int)
 {
     std::exit(0);
@@ -62,7 +64,8 @@ void exit(int)
 
 // 3. Local static is undefined
 
-namespace cpp4 {
+namespace cpp4
+{
 
 //  The effect of initializing a local static recursively is undefined
 int recursive_static(int i)
@@ -94,15 +97,16 @@ void odd(int buf[1020])
 // [2] A type that can be initialized with the values provided in the list
 // [3] A reference to an array of T, where the values of the list can be implicitly converted to T
 
-namespace cpp4 {
+namespace cpp4
+{
 
 template<class T>
 void f1(std::initializer_list<T>) {}
 
-struct S 
+struct S
 {
     int a;
-    std::string s; 
+    std::string s;
 };
 
 void f2(S) {}
@@ -117,10 +121,10 @@ void f4(int) {}
 void show_list_args()
 {
     // T is int and the initializer_list has size() 4 
-    cpp4::f1({ 1,2,3,4 }); 
+    cpp4::f1({ 1,2,3,4 });
 
     // f2(S{1,"MKS"})
-    cpp4::f2({1,"MKS"}); 
+    cpp4::f2({ 1,"MKS" });
 
     // T is int and N is 4
     //cpp4::f3({ 1,2,3,4 }); 
@@ -146,44 +150,45 @@ Derived* to Base* (20.2), T* to void* (7.2.1), int to unsigned int (10.5))
 5. Match using the ellipsis ... in a function declaration (12.2.4)
 
 */
-namespace cpp4{
+namespace cpp4
+{
 
 void print(int)
 {
     std::cout << "void print(int)" << std::endl;
 }
 
-void print(const char*) 
+void print(const char*)
 {
     std::cout << "void print(const char*)" << std::endl;
 }
 
-void print(double) 
+void print(double)
 {
     std::cout << "void print(double)" << std::endl;
 }
 
-void print(long) 
+void print(long)
 {
     std::cout << "void print(long)" << std::endl;
 }
 
-void print(char) 
+void print(char)
 {
     std::cout << "void print(char)" << std::endl;
 }
 
 } // namespace cpp4
 
-void show_overload_resolution() 
+void show_overload_resolution()
 {
-    char c{};
-    int i{};
-    short s{};
-    float f{};
-    
+    char c {};
+    int i {};
+    short s {};
+    float f {};
+
     // exact match: invoke print(char)
-    cpp4::print(c); 
+    cpp4::print(c);
 
     // exact match: invoke print(int)
     cpp4::print(i);
@@ -216,10 +221,11 @@ void show_overload_resolution()
 // A pointer to function must reflect the linkage of a function(15.2.6)
 // Neither linkage specification nor noexcept may appear in type aliases
 
-namespace cpp4 {
+namespace cpp4
+{
 
 // exception-noexcept
-void nexcept_f(int) noexcept{}
+void nexcept_f(int) noexcept {}
 void plain_f(int) {}
 
 // calling convention specifiers
@@ -230,7 +236,7 @@ void __cdecl cdecl_call_func(int) {}
 // Linking convention - the same
 }
 
-void show_function_ptrs_specifiers() 
+void show_function_ptrs_specifiers()
 {
     // OK: but we throw away useful information 
     void(*p1)(int) = cpp4::nexcept_f;
@@ -243,9 +249,9 @@ void show_function_ptrs_specifiers()
     //void(*p3)(int) noexcept = cpp4::plain_f;
 
     // A pointer to function must reflect the linkage of a function(15.2.6)
-    void(__cdecl* p3)(int) = &cpp4::cdecl_call_func;
-    void(__stdcall* p4)(int) = &cpp4::std_call_func;
-    void(__fastcall* p5)(int) = &cpp4::fast_call_func;
+    void(__cdecl * p3)(int) = &cpp4::cdecl_call_func;
+    void(__stdcall * p4)(int) = &cpp4::std_call_func;
+    void(__fastcall * p5)(int) = &cpp4::fast_call_func;
 
     // aliases
     //  error C2143: syntax error
@@ -255,7 +261,7 @@ void show_function_ptrs_specifiers()
     //using ptr_noexcept = void(int) noexcept;
 
     // OK
-    using ptr_stdcall =  void __stdcall (int);
+    using ptr_stdcall = void __stdcall (int);
 }
 
 // 7. Useful macros

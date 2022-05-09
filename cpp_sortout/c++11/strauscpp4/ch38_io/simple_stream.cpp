@@ -7,7 +7,8 @@
 using namespace std;
 using namespace cpp4;
 
-void cpp4::simple_ostream() {
+void cpp4::simple_ostream()
+{
 
     // Standard streams
 
@@ -94,7 +95,8 @@ void cpp4::simple_ostream() {
     // (cout <<	d)=(f << '\n');
 }
 
-void cpp4::simple_istream() {
+void cpp4::simple_istream()
+{
 
     // input interrupts by pressing Enter
     // or any unacceptable symbol (. in integer)
@@ -117,7 +119,8 @@ void cpp4::simple_istream() {
 }
 
 
-void cpp4::istream_end_input() {
+void cpp4::istream_end_input()
+{
     // enter, spaces, tabs are "end of input" by default
     // enter '1 2 3'
     int a, b, c;
@@ -131,7 +134,8 @@ void cpp4::istream_end_input() {
     cin.ignore();
 }
 
-void cpp4::istream_noskipws() {
+void cpp4::istream_noskipws()
+{
     // this mode could be switched off using manipulator noskipws
     char a, b, c;
     // enter '1 2'
@@ -145,7 +149,8 @@ void cpp4::istream_noskipws() {
     cin.ignore();
 }
 
-void cpp4::istream_get_read() {
+void cpp4::istream_get_read()
+{
     // opposite methods to put/write are get/read;
     char c1, c2;
     cin.get(c1);
@@ -162,7 +167,8 @@ void cpp4::istream_get_read() {
 
 
 
-void cpp4::istream_strings_get() {
+void cpp4::istream_strings_get()
+{
 
     // It is possible to enter a string with spaces using get() method
 
@@ -197,7 +203,8 @@ void cpp4::istream_strings_get() {
 }
 
 
-void cpp4::istream_strings_ignore() {
+void cpp4::istream_strings_ignore()
+{
 
     // ignore() is able to remove any number of symbols
     // standard pattern is remove everything from end-of-input 
@@ -216,7 +223,8 @@ void cpp4::istream_strings_ignore() {
 }
 
 
-void cpp4::istream_strings_getline() {
+void cpp4::istream_strings_getline()
+{
 
     // for entering the whole string getline() function is useful
     // it perform ignore() also
@@ -250,7 +258,8 @@ void cpp4::istream_strings_getline() {
 }
 
 
-void cpp4::stream_bad_state() {
+void cpp4::stream_bad_state()
+{
     // Every stream can have one of 4 states
     // good - everything ok
     // fail - small error, recover is possible
@@ -299,7 +308,8 @@ void cpp4::stream_bad_state() {
 }
 
 
-void cpp4::stream_place_back() {
+void cpp4::stream_place_back()
+{
 
     // read symbols could be placed pack to the stream
     char s[50];
@@ -334,7 +344,8 @@ void cpp4::stream_place_back() {
 }
 
 
-void cpp4::stream_redirect_buffers() {
+void cpp4::stream_redirect_buffers()
+{
 
     // bu default all streams are buffered
     // every stream has associated object called streambuf
@@ -373,12 +384,13 @@ void cpp4::stream_redirect_buffers() {
     // and user-defined buffers
 }
 
-void cpp4::stream_tie() {
+void cpp4::stream_tie()
+{
 
     // By default, the standard narrow streams cin and cerr are tied to cout, and their
     // wide character counterparts(wcin and wcerr) to wcout.Library implementations 
     // may also tie clog and wclog
-    std::ostream *prevstr;
+    std::ostream* prevstr;
     std::ofstream ofs;
     ofs.open("test.txt");
 
@@ -394,7 +406,8 @@ void cpp4::stream_tie() {
 }
 
 
-void cpp4::output_string_streams() {
+void cpp4::output_string_streams()
+{
 
     char c = 'a';
     long l = 10l;
@@ -410,7 +423,8 @@ void cpp4::output_string_streams() {
     cout << "Total symbols: " << os.str().length() << endl;
 }
 
-void cpp4::bidirect_string_streams() {
+void cpp4::bidirect_string_streams()
+{
 
     // istringstream receives data from some type from string
     // and often useless itself

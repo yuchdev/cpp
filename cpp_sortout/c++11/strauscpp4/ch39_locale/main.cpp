@@ -73,7 +73,8 @@ Examples:
 
 //1. Current locale
 //2. New locale with customized facets(39.2.1.1)
-void show_locale_naming() {
+void show_locale_naming()
+{
     // It is generally a good idea to avoid embedding locale name strings in the program text
     // to use named locales on a given system, a programmer must refer to system documentation and experiment
 
@@ -88,30 +89,30 @@ void show_locale_naming() {
     // copy of the current global locale
     locale loc1;
     cout << "loc1 name: " << loc1.name() << '\n';
-    
+
     // copy of the user's preferred locale
-    locale loc2{ "" };
+    locale loc2 { "" };
     cout << "loc2{ "" } name: " << loc2.name() << '\n';
 
     // copy of the 'C' locale
-    locale loc3{ "C" };
+    locale loc3 { "C" };
     cout << "loc3{ C } name: " << loc3.name() << '\n';
 
     // copy of the 'C' locale
-    locale loc4{ locale::classic() };
+    locale loc4 { locale::classic() };
     cout << "loc4{ locale::classic() } name: " << loc4.name() << '\n';
 
     // these locales may not exist:
-    try{
-        locale loc5{ "POSIX" };
+    try {
+        locale loc5 { "POSIX" };
         cout << "loc5{ POSIX } name: " << loc5.name() << '\n';
     }
-    catch (const std::runtime_error& e){
+    catch (const std::runtime_error& e) {
         cout << e.what() << '\n';
     }
 
     try {
-        locale loc6{ "Russian_Russia.1252" };
+        locale loc6 { "Russian_Russia.1252" };
         cout << "loc6{ Russian_Russia.1252 } name: " << loc6.name() << '\n';
     }
     catch (const std::runtime_error& e) {
@@ -119,7 +120,7 @@ void show_locale_naming() {
     }
 
     try {
-        locale loc7{ "ru_RU.UTF-8" };
+        locale loc7 { "ru_RU.UTF-8" };
         cout << "locale loc7{ ru_RU.UTF-8 } name: " << loc7.name() << '\n';
     }
     catch (const std::runtime_error& e) {
@@ -127,7 +128,7 @@ void show_locale_naming() {
     }
 
     try {
-        locale loc8{ "en_US.UTF-8" };
+        locale loc8 { "en_US.UTF-8" };
         cout << "locale loc8{ en_US.UTF-8 } name: " << loc8.name() << '\n';
     }
     catch (const std::runtime_error& e) {
@@ -135,7 +136,7 @@ void show_locale_naming() {
     }
 
     try {
-        locale loc9{ "Russian_Russia.UTF-8" };
+        locale loc9 { "Russian_Russia.UTF-8" };
         cout << "loc9{ Russian_Russia.UTF-8 } name: " << loc9.name() << '\n';
     }
     catch (const std::runtime_error& e) {
@@ -143,7 +144,7 @@ void show_locale_naming() {
     }
 
     try {
-        locale loc10{ "rus_rus.866" };
+        locale loc10 { "rus_rus.866" };
         cout << "loc10{ rus_rus.866 } name: " << loc10.name() << '\n';
     }
     catch (const std::runtime_error& e) {
@@ -155,29 +156,31 @@ void show_locale_naming() {
     // The locale constructed in this manner has a name if and only if other has a name
 
     // loc11 is "C" (loc3) except for ctype, which is User-preferred locale
-    std::locale loc11(loc3, loc2, std::locale::ctype); 
+    std::locale loc11(loc3, loc2, std::locale::ctype);
     cout << "loc11 name: " << loc11.name() << '\n';
 
     // loc12 is "C" except for codecvt
-    std::locale loc12(loc3, new std::codecvt_utf8<wchar_t>); 
+    std::locale loc12(loc3, new std::codecvt_utf8<wchar_t>);
     cout << "loc12 name: " << loc12.name() << '\n';
 }
 
 // 3. Locale and wide stream examples
-void show_wchar_streams(){
+void show_wchar_streams()
+{
     cpp4::wide_symbols();
     cpp4::wide_locales();
     cpp4::wide_strings();
 }
 
 //4. Locale - sensitive compare strings(39.2.2)
-void show_compare_strings() {
+void show_compare_strings()
+{
 
     // This string comparison function is defined as locale’s operator()()
-    std::locale loc{ "C" };
-    string s1{ "atatat1" };
-    string s2{ "atatat2" };
-    
+    std::locale loc { "C" };
+    string s1 { "atatat1" };
+    string s2 { "atatat2" };
+
     loc(s1, s2); // compare
 
     // locale could be passed to other comparable, like std::sort
@@ -185,42 +188,45 @@ void show_compare_strings() {
 }
 
 //5. collate facet(39.4.1)
-void show_collate() {
+void show_collate()
+{
     // Class std::collate encapsulates locale-specific collation (comparison) and hashing of strings
     // This facet is used by std::basic_regex and can be applied, by means of std::locale::operator(), 
     // directly to all standard algorithms that expect a string comparison predicate
 
     std::wcout.imbue(std::locale(""));
 
-    std::vector<std::wstring> v = { 
-        L"ar", 
-        L"zebra", 
-        L"\u00f6grupp", 
-        L"Zebra", 
+    std::vector<std::wstring> v = {
+        L"ar",
+        L"zebra",
+        L"\u00f6grupp",
+        L"Zebra",
         L"\u00e4ngel",
-        L"\u00e5r", 
+        L"\u00e5r",
         L"f\u00f6rnamn" };
 
     std::wcout << "Default locale collation order: ";
     std::sort(v.begin(), v.end());
-    for (auto s : v) 
+    for (auto s : v)
         std::wcout << s << ' '; std::wcout << '\n';
 
     std::wcout << "English (AU) locale collation order: ";
     std::sort(v.begin(), v.end(), std::locale(US_AU_locale));
-    for (auto s : v) 
+    for (auto s : v)
         std::wcout << s << ' '; std::wcout << '\n';
 
     std::wcout << "Swedish (SW) locale collation order: ";
     std::sort(v.begin(), v.end(), std::locale(SW_SW_locale));
-    for (auto s : v) 
+    for (auto s : v)
         std::wcout << s << ' '; std::wcout << '\n';
 }
 
-namespace cpp4 {
+namespace cpp4
+{
 
 // format and convert double in particular locale
-double apply_locale_to_double(const std::string& formatted_double, std::locale& loc){
+double apply_locale_to_double(const std::string& formatted_double, std::locale& loc)
+{
     std::istringstream my_stream(formatted_double);
     my_stream.imbue(loc);
     double f1;
@@ -228,7 +234,8 @@ double apply_locale_to_double(const std::string& formatted_double, std::locale& 
     return f1;
 }
 
-std::string apply_locale_to_double(double formatted_double, std::locale& loc) {
+std::string apply_locale_to_double(double formatted_double, std::locale& loc)
+{
     std::stringstream my_stream;
     my_stream.imbue(loc);
     my_stream << formatted_double;
@@ -236,7 +243,8 @@ std::string apply_locale_to_double(double formatted_double, std::locale& loc) {
 }
 
 // facet with French true/false names
-struct french_bool : std::numpunct<char> {
+struct french_bool : std::numpunct<char>
+{
     string_type do_truename() const { return "oui"; }
     string_type do_falsename() const { return "non"; }
 };
@@ -244,7 +252,8 @@ struct french_bool : std::numpunct<char> {
 } // namespace cpp4
 
 //6. num_put, num_get, numpunct facets(39.4.2)
-void show_numbers() {
+void show_numbers()
+{
 
 
     // Class std::num_get encapsulates the rules for parsing string representations of numeric values
@@ -267,7 +276,7 @@ void show_numbers() {
 
     // get the formatting facet from the locale
     auto& get_f = std::use_facet<std::num_get<char>>(us_au_stream.getloc());
-    
+
     std::istreambuf_iterator<char> beg(us_au_stream), end;
     double f3 = 0.;
     std::ios::iostate err;
@@ -293,24 +302,27 @@ void show_numbers() {
     std::locale french_bool_numpunct(std::cout.getloc(), new cpp4::french_bool);
     std::locale prev = cout.imbue(french_bool_numpunct);
     std::cout << "Custom locale: " << std::boolalpha << true << ", " << false << '\n';
-    
+
     // take back normal locale
     cout.imbue(prev);
 }
 
 
 //7. money_put, money_get, moneypunct facets(39.4.3)
-namespace cpp4{
+namespace cpp4
+{
 
-long double money_to_double(const std::string& money_str, std::locale& loc){
+long double money_to_double(const std::string& money_str, std::locale& loc)
+{
     std::istringstream s(money_str);
     s.imbue(loc);
-    long double val{};
+    long double val {};
     s >> std::get_money(val);
     return val;
 }
 
-std::string double_to_money(long double money_val, std::locale& loc) {
+std::string double_to_money(long double money_val, std::locale& loc)
+{
     std::stringstream s;
     s.imbue(loc);
     // 2nd param is currency code (does not work Win?)
@@ -320,32 +332,34 @@ std::string double_to_money(long double money_val, std::locale& loc) {
 
 
 // Here is a simple format defined as a facet
-class my_money_io : public moneypunct<char, true> {
+class my_money_io : public moneypunct<char, true>
+{
 public:
 
-    explicit my_money_io(size_t r = 0) : moneypunct<char, true>(r) { }
+    explicit my_money_io(size_t r = 0) : moneypunct<char, true>(r) {}
 
-    char_type do_decimal_point() const { return '.'; } 
-    char_type do_thousands_sep() const { return ','; } 
+    char_type do_decimal_point() const { return '.'; }
+    char_type do_thousands_sep() const { return ','; }
     string do_grouping() const { return "\003\003\003"; }
 
-    string_type do_curr_symbol() const { return "USD "; } 
-    string_type do_positive_sign() const { return ""; } 
+    string_type do_curr_symbol() const { return "USD "; }
+    string_type do_positive_sign() const { return ""; }
     string_type do_negative_sign() const { return "()"; }
 
     // two digits after decimal point
-    int do_frac_digits() const { return 2; } 
+    int do_frac_digits() const { return 2; }
     pattern do_pos_format() const { return pat; }
-    pattern do_neg_format() const { return pat; } 
+    pattern do_neg_format() const { return pat; }
 private:
-        static const pattern pat;
+    static const pattern pat;
 };
 
-const my_money_io::pattern my_money_io::pat{ sign, symbol, value, none };
+const my_money_io::pattern my_money_io::pat { sign, symbol, value, none };
 } // namespace cpp4
 
 
-void show_money() {
+void show_money()
+{
 
     locale us_loc(US_AU_locale);
     locale de_loc(GER_DE_locale);
@@ -371,7 +385,7 @@ void show_money() {
     std::cout << "Money string " << eur3 << " converted to double " << cpp4::money_to_double(eur3, de_loc) << '\n';
 
     // use money_get facet directly
-    long double val{};
+    long double val {};
     std::istringstream us_au_stream(usd1);
     us_au_stream.imbue(std::locale(us_loc));
     auto& f = std::use_facet<std::money_get<char>>(us_au_stream.getloc());
@@ -386,7 +400,7 @@ void show_money() {
     std::cout << "Double value " << money_value << " converted to money using US locale " << cpp4::double_to_money(money_value, us_loc) << '\n';
     std::cout << "Double value " << money_value << " converted to money using DE locale " << cpp4::double_to_money(money_value, de_loc) << '\n';
     std::cout << "Double value " << money_value << " converted to money using SW locale " << cpp4::double_to_money(money_value, sw_loc) << '\n';
-    
+
     // using the facet directly
     locale prev = std::cout.imbue(de_loc);
     std::cout << "German locale: ";
@@ -406,8 +420,9 @@ void show_money() {
 }
 
 //8. Date and time facets(39.4.4)
-void show_time() {
-    
+void show_time()
+{
+
     locale us_loc(US_AU_locale);
     locale de_loc(GER_DE_locale);
     locale jp_loc(JA_JP_locale);
@@ -421,7 +436,7 @@ void show_time() {
     ss.imbue(std::locale(de_loc));
 
     // uses std::time_get<wchar_t>
-    ss >> std::get_time(&t, L"%Y-%b-%d %H:%M:%S"); 
+    ss >> std::get_time(&t, L"%Y-%b-%d %H:%M:%S");
 
     // Converts given calendar time std::tm to a textual representation
     std::cout << std::asctime(&t);
@@ -429,11 +444,11 @@ void show_time() {
     // Class template std::time_put encapsulates date and time formatting rules
     // The I/O manipulator std::put_time uses the std::time_put facet of the I/O stream's locale 
     // to generate text representation of an std::tm object
-    
+
     std::time_t t1 = std::time(NULL);
     std::wbuffer_convert<std::codecvt_utf8<wchar_t>> conv(std::cout.rdbuf());
     std::wostream out(&conv);
-    
+
     // use Japanese locale to output time
     out.imbue(std::locale(jp_loc));
     // this I/O manipulator std::put_time uses std::time_put<wchar_t>
@@ -441,36 +456,38 @@ void show_time() {
 }
 
 //9. ctype facet(39.4.5)
-namespace cpp4 {
+namespace cpp4
+{
 
 // The following example demonstrates modification of a ctype other than ctype<char> to tokenize a CSV file
 struct csv_whitespace : std::ctype<wchar_t>
 {
     bool do_is(mask m, char_type c) const
-    {   
+    {
         // space will NOT be classified as whitespace
         if ((m & space) && c == L' ') {
-            return false; 
+            return false;
         }
-        
+
         // comma will be classified as whitespace
         if ((m & space) && c == L',') {
-            return true; 
+            return true;
         }
         return ctype::do_is(m, c); // leave the rest to the parent class
-    } 
+    }
 };
 
 } // namespace cpp4 
 
-void show_ctype() {
+void show_ctype()
+{
 
     // Class ctype encapsulates character classification features
     // All stream input operations performed through std::basic_istream<charT> use the std::ctype<charT> 
     // of the locale imbued in the stream to identify whitespace characters for input tokenization
     // Stream output operations apply std::ctype<charT>::widen() to narrow-character arguments prior to output
 
-    std::locale loc(std::locale{""}, new cpp4::csv_whitespace());
+    std::locale loc(std::locale { "" }, new cpp4::csv_whitespace());
 
     std::wstring in = L"Column 1,Column 2,Column 3\n123,456,789";
     std::wstring token;
@@ -491,15 +508,17 @@ void show_ctype() {
 
 
 //10. codecvt facet(39.4.6)
-void show_code_convert() {
+void show_code_convert()
+{
     // Class std::codecvt encapsulates conversion of character strings, including wide and multibyte, 
     // from one encoding to another
     // TODO: 
 }
 
 //11. Messages base(39.4.7)
-void show_messages() {
-    
+void show_messages()
+{
+
     // Class template std::messages is a standard locale facet that encapsulates retrieval of strings 
     // from message catalogs, such as the ones provided by GNU gettext or by POSIX catgets
 
@@ -522,11 +541,12 @@ void show_messages() {
     std::cout.imbue(prev);
 }
 //12. Convenience Interfaces(39.5)
-void show_convenience_interface() {
+void show_convenience_interface()
+{
 
     std::locale loc("");
     // Characters classification and conversion wrappers
-    
+
     // same as use_facet<ctype<C>>(loc).isspace(c)
     std::cout << std::isspace(' ', loc) << '\n';
     std::cout << std::isspace(' ') << '\n'; // same, declared <cctype>
@@ -537,32 +557,34 @@ void show_convenience_interface() {
 
     // Character code conversions can be locale sensitive
     // Class template wstring_convert performs conversions between a wide string and a byte string
-    wstring_convert<codecvt_utf8<wchar_t>> myconv; 
+    wstring_convert<codecvt_utf8<wchar_t>> myconv;
     string s = myconv.to_bytes(L"Hello\n");
     cout << s;
 
     wstring_convert<codecvt_utf8_utf16<wchar_t>> converter;
-    string s8 = u8"This is a UTF-8 string"; 
-    wstring s16 = converter.from_bytes(s8); 
+    string s8 = u8"This is a UTF-8 string";
+    wstring s16 = converter.from_bytes(s8);
     string s88 = converter.to_bytes(s16);
     if (s8 != s88) {
         cerr << "Insane!\n";
     }
-        
+
     // We also can use a code conversion facet wbuffer_convert
     // to write directly into or to read directly from a stream buffer
 }
 
 //13. User-defined facet (39.3.2)
-namespace cpp4 {
+namespace cpp4
+{
 
 // very simple user-defined type
-enum season { spring, summer, fall, winter }; 
+enum season { spring, summer, fall, winter };
 
 // define facet for seasons (at first interface class only)
-class season_io : public locale::facet {
+class season_io : public locale::facet
+{
 public:
-    
+
     // lifetime managed by locale
     season_io(size_t lifetime = 0) : locale::facet(lifetime) {}
 
@@ -570,10 +592,10 @@ public:
     ~season_io() {}
 
     // string representation of x 
-    virtual const string& to_str(season x) const = 0; 
-    
+    virtual const string& to_str(season x) const = 0;
+
     // place season for s in x
-    virtual bool from_str(const string& s, season& x) const = 0; 
+    virtual bool from_str(const string& s, season& x) const = 0;
 
     static locale::id id; // facet identifier object 
 };
@@ -581,33 +603,37 @@ public:
 locale::id season_io::id; // define the identifier object
 
 // define output for our class using facet
-std::ostream& operator<<(std::ostream& os, season s) {
+std::ostream& operator<<(std::ostream& os, season s)
+{
     locale loc(os.getloc());
 
     if (std::has_facet<cpp4::season_io>(loc)) {
         return os << std::use_facet<cpp4::season_io>(loc).to_str(s);
     }
-    
+
     // we don't use such a facet, just cast to int
     return os << static_cast<int>(s);
 }
 // also operator << must be implemented
 
 // implement now seasons representation in English
-class us_seasons_io : public cpp4::season_io {
+class us_seasons_io : public cpp4::season_io
+{
 public:
 
     // string representation of x 
-    virtual const string& to_str(season x) const override {
+    virtual const string& to_str(season x) const override
+    {
         if (x < spring || winter < x) {
-            static const string ss = "no-such-season"; 
+            static const string ss = "no-such-season";
             return ss;
         }
         return us_seasons[x];
     }
 
     // place season for s in x
-    virtual bool from_str(const string& s, season& x) const override {
+    virtual bool from_str(const string& s, season& x) const override
+    {
         auto it = std::find(std::begin(us_seasons), std::end(us_seasons), s);
         if (it != us_seasons.end()) {
             x = season(it - us_seasons.begin());
@@ -622,21 +648,23 @@ private:
 
 vector<string> us_seasons_io::us_seasons = {
     "spring",
-    "summer", 
-    "fall", 
+    "summer",
+    "fall",
     "winter"
 };
 } // namespace cpp4
 
-void show_user_defined_facet() {
-    locale loc(locale{}, new cpp4::us_seasons_io);
+void show_user_defined_facet()
+{
+    locale loc(locale {}, new cpp4::us_seasons_io);
     locale prev = cout.imbue(loc);
 
     cout << cpp4::summer << std::endl;
     cout.imbue(prev);
 }
 
-int main() {
+int main()
+{
 
     // TODO: rus_rus.65001 on Windows does not exists
     //show_wchar_streams();

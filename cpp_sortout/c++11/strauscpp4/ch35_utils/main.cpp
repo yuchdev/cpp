@@ -23,7 +23,8 @@ Examples:
 
 //1. Duration(35.2.1), time_point(35.2.2)
 //2. Clocks(35.2.3), Time Traits(35.2.4)
-void show_time() {
+void show_time()
+{
 
     // Duration consists of a count of ticks of type Rep and a tick period, where the tick period 
     // is a compile-time rational constant representing the number of seconds from one tick to the next
@@ -37,7 +38,7 @@ void show_time() {
     std::cout << "1 second is:\n";
     std::cout << std::chrono::duration_cast<shakes>(sec).count() << " shakes\n";
     std::cout << std::chrono::duration_cast<jiffies>(sec).count() << " jiffies\n";
-    
+
     // A duration's period holds the number of clock ticks of the period
     std::cout << microfortnights(sec).count() << " microfortnights\n";
     std::cout << nanocenturies(sec).count() << " nanocenturies\n";
@@ -54,13 +55,14 @@ void show_time() {
     auto d1 = std::chrono::time_point_cast<std::chrono::hours>(tp).time_since_epoch().count() / 24;
 
     //a day's duration
-    using days = std::chrono::duration<long, ratio<24*60*60, 1>>;
+    using days = std::chrono::duration<long, ratio<24 * 60 * 60, 1>>;
     auto d2 = std::chrono::time_point_cast<days>(tp).time_since_epoch().count(); // days since start of epoch
 }
 
 
 //3. Rational(35.3)
-void show_ratio() {
+void show_ratio()
+{
     std::ratio<1, 1000000> r1;
     // no any useful members
     //std::cout << r1 << std::endl;
@@ -68,9 +70,11 @@ void show_ratio() {
 }
 
 //4. Type functions(35.4)
-namespace cpp4 {
+namespace cpp4
+{
 
-class A {
+class A
+{
 public:
     int i = 0;
 };
@@ -82,8 +86,9 @@ struct decay_equiv :
 
 } // namespace cpp4 
 
-void show_types() {
-    
+void show_types()
+{
+
     // Primary Type Predicates
     // is_void<X> is_integral<X> is_floating_point<X> is_array<X> is_pointer<X>
     // is_lvalue_reference<X> is_rvalue_reference<X> is_member_object_pointer<X> is_member_function_pointer<X> is_enum<X>
@@ -141,19 +146,20 @@ void show_types() {
 
 
 // 5. string to numeric value conversions (36.3.5)
-void show_string_conv() {
+void show_string_conv()
+{
     // In <string>, the standard library provides a set of functions for extracting numeric values 
     // from their character representation in a string or wstring
-    string s{ "123.456" };
+    string s { "123.456" };
 
     int i = std::stoi(s);
     double d = std::stod(s);
 
     // The second argument of a stoxxx() function is a pointer used to indicate how far 
     // into the string the search for a numeric value progressed. For example:
-    string ss = "123.4567801234"; 
+    string ss = "123.4567801234";
     size_t dist = 0;
-    auto x = stoi(ss, &dist); 
+    auto x = stoi(ss, &dist);
     ++dist;
     auto y = stoll(&ss[dist]);
 
@@ -167,7 +173,8 @@ void show_string_conv() {
     // in addition, the conversions to floating-point types set errno to ERANGE
 }
 
-int main() {
+int main()
+{
     show_time();
     show_ratio();
     show_types();

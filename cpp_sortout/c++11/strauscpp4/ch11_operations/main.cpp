@@ -23,25 +23,25 @@ Examples:
 */
 
 
-void show_bitwise() 
+void show_bitwise()
 {
     int* p = nullptr;
     while (p && !(*p)) ++p;
     // Here, p is not dereferenced if it is the nullptr
 
     // For example, one could extract the middle 16 bits of a 32 - bit int like this
-    static_assert(sizeof(int) == 4, "unexpected int size"); 
+    static_assert(sizeof(int) == 4, "unexpected int size");
     static_assert(sizeof(short) == 2, "unexpected short size");
 }
 
 int show_initializer_list()
 {
     // The basic idea of initializer lists as expressions is that if you can initialize a variable x using the notation
-    int x{ 1 };
+    int x { 1 };
 
     // Qualified by a type, T{...}, meaning 'create an object of type T initialized by T{...}'
-    int i1{ 42 };
-    int* i2 = new int{ 42 };
+    int i1 { 42 };
+    int* i2 = new int { 42 };
     delete i2;
 
     // Unqualified {...}, for which the the type must be determined from the context of use
@@ -57,13 +57,13 @@ int show_initializer_list()
     // In all other cases, it performs copy initialization(16.2.6)
 
     // initializer (direct initialization)
-    int v{ 7 };
-    
+    int v { 7 };
+
     // initializer (copy initialization)
     int v2 = { 7 };
-    
+
     // assume m takes value pairs
-    std::pair<int, int> m = {2, 3};
+    std::pair<int, int> m = { 2, 3 };
 
     // overloaded (!) array subscript
     std::map<int, int> arr;
@@ -93,22 +93,22 @@ Unfortunately, we do not deduce the type of an unqualified list for a plain temp
 template<typename T> void f(T);
 
 f({}); // error: type of initializer is unknown
-f({ 1 }); // error: an unqualified list does not match 'plain T' 
+f({ 1 }); // error: an unqualified list does not match 'plain T'
 f({1,2}); // error: an unqualified list does not match 'plain T'
 
 this is a language restriction, rather than a fundamental rule
 */
 
 void show_initializer_auto()
-{    
+{
     // The type of a{}-list can be deduced(only) if all elements are of the same type
     // and at least one element present
-    
+
     //auto x0 = {};
-    
+
     // initializer_list<int>:
-    auto x1 = { 1 }; 
-    auto x2 = { 1,2 }; 
+    auto x1 = { 1 };
+    auto x2 = { 1,2 };
     auto x3 = { 1,2,3 };
 
     //auto x4 = { 1,2.0 };
@@ -116,7 +116,8 @@ void show_initializer_auto()
 
 
 // Pass variadic template params to lambda
-namespace cpp4 {
+namespace cpp4
+{
 
 template<typename T, typename... Tail>
 void recursive_variadic_call(T s, Tail... v)
@@ -147,53 +148,53 @@ void show_lambda()
     int val1 = 42;
     int val2 = 666;
     std::vector<int> v = { 1,2,3,4,5,6 };
-    
+
     // capture lists:
 
     // no capture
-    std::for_each(v.begin(), v.end(), [](int i) {
+    std::for_each(v.begin(), v.end(), [] (int i) {
         std::cout << i << std::endl;
-    });
+        });
 
     // capture all by ref
-    std::for_each(v.begin(), v.end(), [&](int i) {
+    std::for_each(v.begin(), v.end(), [&] (int i) {
         std::cout << i + val1 << std::endl;
-    });
+        });
 
     // capture all by val
-    std::for_each(v.begin(), v.end(), [=](int i) {
+    std::for_each(v.begin(), v.end(), [=] (int i) {
         std::cout << i + val2 << std::endl;
-    });
+        });
 
     // capture one by ref
-    std::for_each(v.begin(), v.end(), [&val1](int i) {
+    std::for_each(v.begin(), v.end(), [&val1] (int i) {
         std::cout << i + val1 << std::endl;
-    });
+        });
 
     // capture one by val
-    std::for_each(v.begin(), v.end(), [val2](int i) {
+    std::for_each(v.begin(), v.end(), [val2] (int i) {
         std::cout << i + val2 << std::endl;
-    });
+        });
 
     // capture list by ref
-    std::for_each(v.begin(), v.end(), [&, val1, val2](int i) {
+    std::for_each(v.begin(), v.end(), [&, val1, val2] (int i) {
         std::cout << i + val1 + val2 << std::endl;
-    });
+        });
 
     // capture list by val
-    std::for_each(v.begin(), v.end(), [val1, val2](int i) {
+    std::for_each(v.begin(), v.end(), [val1, val2] (int i) {
         std::cout << i + val1 + val2 << std::endl;
-    });
+        });
 
     // this is captured only by value, members - by ref
 
     // C++14 has generic lambda (see example below) and support expressions in capture list
     // It may be just value, function or other lambda
     std::unique_ptr<int> ptr(new int(10));
-    auto lambda = [value = std::move(ptr)]{ return *value; };
+    auto lambda = [value = std::move(ptr)] { return *value; };
 
     // Naming the lambda is often a good idea
-    auto l = [val1, val2](int i) {
+    auto l = [val1, val2] (int i) {
         std::cout << i + val1 + val2 << std::endl;
     };
     std::for_each(v.begin(), v.end(), l);
@@ -203,14 +204,14 @@ void show_lambda()
 
     // In the unlikely event that we want to modify the state, we can declare the lambda mutable
     size_t count = v.size();
-    std::generate(v.begin(), v.end(), [count]() mutable {return --count; });
+    std::generate(v.begin(), v.end(), [count] () mutable {return --count; });
     // this is only for 'outer' state modification
 
     // we can use it to initialize a variable declared auto or std::function<R(AL)>
     // where R is the lambda's return type and AL is its argument list:
     // recursive-lambda string reverse
-    std::function<void(char* b, char* e)> rev = [&](char* b, char* e) { 
-        if (1 < e-b) { swap(*b, *--e); rev(++b, e); } 
+    std::function<void(char* b, char* e)> rev = [&] (char* b, char* e) {
+        if (1 < e - b) { swap(*b, *--e); rev(++b, e); }
     };
 
     // A lambda might outlive its caller
@@ -219,32 +220,33 @@ void show_lambda()
     // Think of the capture list as the initializer list for the closure object and [=] and [&]
 
     // A lambda that captures nothing can be assigned to a pointer to function of an appropriate type. For example
-    double (*p1)(double) = [](double a) { return sqrt(a); };
+    double (*p1)(double) = [] (double a) { return sqrt(a); };
 }
 
-namespace cpp4 {
+namespace cpp4
+{
 
 // C++14 has generic lambda
 // Container element may be int or casted to int, or anything behaves like int
 template <typename T>
 size_t count_more_than(const T& container, typename T::value_type val)
 {
-    size_t count = std::count(v.begin(), v.end(), [val](auto v) {
+    size_t count = std::count(v.begin(), v.end(), [val] (auto v) {
         return v > val;
-    });
+        });
 }
 
 
 class test_emplace_copy
 {
 public:
-    
-    test_emplace_copy(int i) : i_{ i }
+
+    test_emplace_copy(int i) : i_ { i }
     {
         std::cout << "int i" << std::endl;
     }
 
-    test_emplace_copy(const test_emplace_copy& cp) :i_{ cp.i_ }
+    test_emplace_copy(const test_emplace_copy& cp) :i_ { cp.i_ }
     {
         std::cout << "const test_emplace_copy& cp" << std::endl;
     }
@@ -262,7 +264,7 @@ void show_emplace_copy()
     // In all other cases, it performs copy initialization (16.2.6)
     // In particular, the otherwise redundant = in an initializer restricts the set 
     // of initializations that can be performed with a given {}-list
-    cpp4::test_emplace_copy a1{ 1 };
+    cpp4::test_emplace_copy a1 { 1 };
     cpp4::test_emplace_copy a2 = { 2 };
 
     // me: it anyway calls direct initialization

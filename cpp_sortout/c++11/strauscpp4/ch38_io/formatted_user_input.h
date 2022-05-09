@@ -7,10 +7,12 @@
 
 using namespace std;
 
-namespace cpp4 {
+namespace cpp4
+{
 
 // demo of user-defined input and output
-class formatted_date{
+class formatted_date
+{
 public:
 
     // flag constants
@@ -22,27 +24,32 @@ public:
     // flag methods
     static format_flags get_flags() { return format; }
 
-    static void point(){ format = _point; }
-    static void intgr(){ format = _intgr; }
-    static void stringed(){ format = _stringed; }
+    static void point() { format = _point; }
+    static void intgr() { format = _intgr; }
+    static void stringed() { format = _stringed; }
 
     // construction
-    formatted_date() :_date(){}
+    formatted_date() :_date() {}
 
-    formatted_date(unsigned long date) :_date(date){}
+    formatted_date(unsigned long date) :_date(date) {}
 
     formatted_date(unsigned long year, unsigned long month, unsigned long day) :
-        _date(10000 * year + 100 * month + day){}
+        _date(10000 * year + 100 * month + day)
+    {
+    }
 
     formatted_date(unsigned long year, const char* month, unsigned long day) :
-        _date(10000 * year + 100 * get_month(month) + day){}
+        _date(10000 * year + 100 * get_month(month) + day)
+    {
+    }
 
-    formatted_date(const formatted_date& date) :_date(date._date){}
+    formatted_date(const formatted_date& date) :_date(date._date) {}
 
     // month string to unsigned
-    static unsigned long get_month(const char* m){
-        for (size_t i = 0; i < 12; ++i){
-            if (0 == strcmp(m, months[i])){
+    static unsigned long get_month(const char* m)
+    {
+        for (size_t i = 0; i < 12; ++i) {
+            if (0 == strcmp(m, months[i])) {
                 return i + 1;
             }
         }
@@ -51,26 +58,24 @@ public:
     }
 
     // input-output friend functions
-    friend ostream& operator<<(ostream& os, const formatted_date& date){
+    friend ostream& operator<<(ostream& os, const formatted_date& date)
+    {
         ostringstream s;
         int y = date._date / 10000;
         int m = (date._date / 100) % 100;
         int d = date._date % 100;
         int month_str = (m == 0) ? m : m - 1;
 
-        if (formatted_date::get_flags() == _point)
-        {
+        if (formatted_date::get_flags() == _point) {
             s << setfill('0') <<
                 setw(2) << d << '.'
                 << setw(2) << m << '.'
                 << setw(4) << y;
         }
-        else if (formatted_date::get_flags() == _intgr)
-        {
+        else if (formatted_date::get_flags() == _intgr) {
             s << date._date;
         }
-        else if (formatted_date::get_flags() == _stringed)
-        {
+        else if (formatted_date::get_flags() == _stringed) {
             s << setfill('0') <<
                 setw(2) << d << '-'
                 << setw(2) << months[month_str] << '-'
@@ -83,7 +88,8 @@ public:
 #define CHECK_BADBIT(expr) if(expr) in.setstate(ios::badbit)
 
 
-    friend istream& operator>>(istream& in, formatted_date& date){
+    friend istream& operator>>(istream& in, formatted_date& date)
+    {
         string field;
         istringstream s;
         int d = 0, m = 0, y = 0;
@@ -142,7 +148,7 @@ public:
             // wrong day of month
             CHECK_BADBIT(d > days[m - 1]);
         }
-        else if (formatted_date::get_flags() == _stringed){
+        else if (formatted_date::get_flags() == _stringed) {
 
             // DAY
             in.width(2);

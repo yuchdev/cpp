@@ -1,7 +1,8 @@
 #pragma once
 #include <iosfwd>
 
-namespace cpp4 {
+namespace cpp4
+{
 
 void file_stream_write();
 
@@ -19,24 +20,28 @@ void show_fstream_serialize();
 
 // Self-generated random array with serialization methods
 // They are usually inherited from some interface
-struct RandomArray {
+struct RandomArray
+{
 
     size_t sz;
     int* arr;
 
-    RandomArray(size_t s) :sz(s), arr(new int[sz]) {
+    RandomArray(size_t s) :sz(s), arr(new int[sz])
+    {
         for (int i = 0; i < 10; i++) {
             arr[i] = 0;
         }
     }
 
-    void generate() {
+    void generate()
+    {
         for (int i = 0; i < 10; i++) {
             arr[i] = rand();
         }
     }
 
-    ~RandomArray() {
+    ~RandomArray()
+    {
         delete[] arr;
     }
 

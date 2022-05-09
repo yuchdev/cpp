@@ -16,7 +16,8 @@ using namespace cpp4;
 // binary does not
 
 
-void cpp4::file_stream_write() {
+void cpp4::file_stream_write()
+{
     srand(static_cast<unsigned>(time(0)));
 
     // write 10 random numbers to file
@@ -27,7 +28,8 @@ void cpp4::file_stream_write() {
 }
 
 
-void cpp4::file_stream_read() {
+void cpp4::file_stream_read()
+{
 
     // file stream could be connected-disconnected to any file any number of times
 
@@ -40,7 +42,8 @@ void cpp4::file_stream_read() {
     }
 }
 
-void cpp4::file_stream_copy() {
+void cpp4::file_stream_copy()
+{
 
     const std::string& from("random.txt");
     const std::string& to("random2.txt");
@@ -52,7 +55,8 @@ void cpp4::file_stream_copy() {
     while (inf.get(c)) outf.put(c);
 }
 
-void cpp4::file_stream_binary_write() {
+void cpp4::file_stream_binary_write()
+{
     srand(static_cast<unsigned>(time(0)));
 
     // generate 10 random numbers
@@ -74,7 +78,8 @@ void cpp4::file_stream_binary_write() {
 }
 
 
-void cpp4::file_stream_binary_read() {
+void cpp4::file_stream_binary_read()
+{
     int a[10] = {};
 
     // read all array at once
@@ -95,7 +100,7 @@ void cpp4::RandomArray::load(std::ifstream& f)
         f.read(reinterpret_cast<char*>(&sz), sizeof(size_t));
 
         // read array itself
-        f.read(reinterpret_cast<char*>(arr), sz*sizeof(int));
+        f.read(reinterpret_cast<char*>(arr), sz * sizeof(int));
     }
 }
 
@@ -106,11 +111,12 @@ void cpp4::RandomArray::save(std::ofstream& f)
         f.write(reinterpret_cast<char*>(&sz), sizeof(size_t));
 
         // write array itself
-        f.write(reinterpret_cast<char*>(arr), sz*sizeof(int));
+        f.write(reinterpret_cast<char*>(arr), sz * sizeof(int));
     }
 }
 
-void cpp4::show_rnd_access() {
+void cpp4::show_rnd_access()
+{
 
     // functions family tell/seek allow to set a position 
     // for reading-writins in a filestream
@@ -167,7 +173,8 @@ void cpp4::show_rnd_access() {
 }
 
 
-void cpp4::show_fstream_serialize() {
+void cpp4::show_fstream_serialize()
+{
 
     {
         cpp4::RandomArray ra(10);

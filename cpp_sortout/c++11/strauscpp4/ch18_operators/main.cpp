@@ -23,13 +23,14 @@ Examples:
 //1. Delete standard operators(18.2.2)
 // The operators = (assignment), &(address - of), and, (sequencing) have predefined meanings
 // when applied to class objects. These predefined meanings can be eliminated(deleted)
-namespace cpp4 {
+namespace cpp4
+{
 
 class some
 {
 public:
     // delete some standard operations
-    void operator=(const some&) = delete; 
+    void operator=(const some&) = delete;
     void operator&() = delete;
     void operator,(const some&) = delete;
 };
@@ -50,12 +51,13 @@ void show_deleted_operations()
 
 //2. Complex & literals(18.3.4)
 // It is possible to go further and introduce a user-defined literal in support of our type
-namespace cpp4 {
+namespace cpp4
+{
 
 class complex
 {
 public:
-    constexpr complex(long double re, long double im) :re_{re}, im_{im} {}
+    constexpr complex(long double re, long double im) :re_ { re }, im_ { im } {}
 private:
     long double re_, im_;
 };
@@ -89,21 +91,22 @@ const char32_t*, std::size_t
 void show_operator_suffix()
 {
     using namespace cpp4;
-    complex c1{ 1.0, 2.0 };
+    complex c1 { 1.0, 2.0 };
     complex c2 = 1.0_i;
 }
 
 //3. Explicit conversion type(18.4.2)
 // It is possible to declare a conversion operator explicit and have it apply only for direct initialization
-namespace cpp4 {
+namespace cpp4
+{
 
 template <typename T>
 class smart_ptr
 {
 public:
-    smart_ptr(T* p) :p_{ p } {}
+    smart_ptr(T* p) :p_ { p } {}
 
-    ~smart_ptr() 
+    ~smart_ptr()
     {
         delete p_;
     }
@@ -130,8 +133,8 @@ private:
 
 void show_explicit_convert_operator()
 {
-    cpp4::smart_ptr<int> p1(new int{ 1 });
-    
+    cpp4::smart_ptr<int> p1(new int { 1 });
+
     // // OK: we want this use
     if (p1) {
         std::cout << "explicit operator bool()\n";
@@ -153,29 +156,30 @@ void show_explicit_convert_operator()
 // The variadic template techniques can be disconcerting, but it is the only way 
 // of assigning nonstandard meanings to digits at compile time
 // Ex: ternary digits
-namespace cpp4 {
+namespace cpp4
+{
 
 // x to the nth power for n>=0 
 constexpr int ipow(int x, int n)
 {
-    return (n > 0) ? x*ipow(x, n-1) : 1;
+    return (n > 0) ? x * ipow(x, n - 1) : 1;
 }
 
 // handle the single ternary digit case  
-template<char c> 
+template<char c>
 constexpr int b3_helper()
 {
     static_assert(c < '3', "not a ternary digit");
-    return c; 
+    return c;
 }
 
 // peel off one ternary digit 
 
-template<char c, char... tail> 
+template<char c, char... tail>
 constexpr int b3_helper()
 {
     static_assert(c < '3', "not a ternary digit");
-    return ipow(3, sizeof...(tail))*(c-'0') + b3_helper(tail...); 
+    return ipow(3, sizeof...(tail)) * (c - '0') + b3_helper(tail...);
 }
 
 // base 3, i.e., ternary
@@ -198,9 +202,10 @@ void show_ternary_digits()
 #endif
 
 //6. Template friend (19.4)
-namespace cpp4 {
+namespace cpp4
+{
 
-template<typename T> 
+template<typename T>
 class X
 {
     friend T;
@@ -211,7 +216,8 @@ class X
 class your_fiend
 {
 public:
-    your_fiend(X<your_fiend>& x1) {
+    your_fiend(X<your_fiend>& x1)
+    {
         // access to private
         std::cout << x1.x << std::endl;
     }
@@ -243,10 +249,11 @@ void f1()
     //f.x = 1;
 }
 
-namespace cpp4 {
+namespace cpp4
+{
 
 class c2 {};
-void f2() 
+void f2()
 {
     // we are friend but the class defined below
     // error C2039: 'find_friends': is not a member of 'cpp4'
@@ -255,7 +262,7 @@ void f2()
     //f.x = 1;
 }
 
-class find_friends 
+class find_friends
 {
 public:
 
@@ -282,7 +289,7 @@ private:
 // also could be found if a class a param of a friend function
 
 class c3 {};
-void f3() 
+void f3()
 {
     // ok
     cpp4::find_friends f;
@@ -309,7 +316,7 @@ void show_find_friends()
 }
 
 
-int main() 
+int main()
 {
     show_deleted_operations();
     show_operator_suffix();

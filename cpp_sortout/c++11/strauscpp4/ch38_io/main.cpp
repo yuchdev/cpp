@@ -31,13 +31,15 @@ Examples:
 */
 
 // 1. Standard input examples
-void show_standard_streams_out() {
+void show_standard_streams_out()
+{
     cpp4::simple_ostream();
 }
 
 
 // 2. Standard output examples
-void show_standard_streams_input() {
+void show_standard_streams_input()
+{
     cpp4::simple_istream();
     cpp4::istream_end_input();
     cpp4::istream_noskipws();
@@ -45,14 +47,16 @@ void show_standard_streams_input() {
 }
 
 // 3. String output examples
-void show_string_input() {
+void show_string_input()
+{
     cpp4::istream_strings_get();
     cpp4::istream_strings_ignore();
     cpp4::istream_strings_getline();
 }
 
 // 4. String streams
-void show_string_streams() {
+void show_string_streams()
+{
     cpp4::output_string_streams();
     cpp4::bidirect_string_streams();
 }
@@ -60,7 +64,8 @@ void show_string_streams() {
 
 
 // 5. Other istream examples
-void show_istream_other() {
+void show_istream_other()
+{
     cpp4::stream_bad_state();
     cpp4::stream_place_back();
     cpp4::stream_redirect_buffers();
@@ -70,7 +75,8 @@ void show_istream_other() {
 // 6. Standard file stream examples
 // 6. Serialize fstream examples
 // 8. Random file access
-void show_simple_fstream() {
+void show_simple_fstream()
+{
 
     // C++ app deal not with a file, but with an abstract stream
     // real files can be connect-disconnect to the stream
@@ -96,7 +102,8 @@ void show_simple_fstream() {
 
 // 9. Formatting streams: flags, methods and manipulators
 // 10. User-defined formatting
-void show_formatted_streams() {
+void show_formatted_streams()
+{
     cpp4::show_formattings_flags();
     cpp4::show_formattings_methods();
     cpp4::show_formattings_manipulators();
@@ -105,16 +112,19 @@ void show_formatted_streams() {
 }
 
 // 11. User - defined input
-void show_user_defined_input(){
+void show_user_defined_input()
+{
     cpp4::show_formatted_overloads();
 }
 
 
 // 13. Iterators
-namespace cpp4{
+namespace cpp4
+{
 
 // Show output iterator
-void show_out_iter() {
+void show_out_iter()
+{
     // Stream as a container example
     // Assigning iterator == out to the console
     // 2nd optional param is a terminator for out every value
@@ -126,7 +136,8 @@ void show_out_iter() {
 
 // Show iterator that refers to the input stream
 // String that assigns passed from the keyboard
-void show_istr_iter() {
+void show_istr_iter()
+{
 
     // request for the first string
     std::istream_iterator<std::string> iinput_iter(cin);
@@ -197,13 +208,15 @@ int show_iterators()
 
 } // namespace cpp4
 
-void show_stream_iterators(){
+void show_stream_iterators()
+{
     cpp4::show_out_iter();
     cpp4::show_istr_iter();
     cpp4::show_iterators();
 }
 
-int main() {
+int main()
+{
 
     show_standard_streams_out();
     show_standard_streams_input();

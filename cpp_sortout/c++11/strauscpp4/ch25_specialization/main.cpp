@@ -19,7 +19,8 @@ Examples:
 
 // 1. Local classes as template arguments
 // 2. Default template arguments for function templates
-namespace cpp4 {
+namespace cpp4
+{
 
 template <typename T>
 struct S
@@ -31,7 +32,7 @@ struct S
 template <typename T = int, typename Cont = std::vector<T>>
 void container()
 {
-    Cont v{ 1,2,3,4,5 };
+    Cont v { 1,2,3,4,5 };
     std::cout << *v.begin() << std::endl;
 }
 

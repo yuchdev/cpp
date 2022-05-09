@@ -17,7 +17,8 @@ Examples:
 */
 
 // 2. Unable to open private data using:: (check members and methods)
-namespace cpp4 {
+namespace cpp4
+{
 
 class base
 {
@@ -31,16 +32,16 @@ private:
     void priv_method() {}
 };
 
-class derived: base
+class derived : base
 {
 public:
-    
+
     // ok: bring public method to interface
     using base::pub_method;
 
     // ok, but bad: public morozoff anti-pattern
     using base::prot_method1;
-    
+
     // unaccessible: 'cpp4::base': not all overloads are accessible
     // using base::priv_method;
 protected:

@@ -17,13 +17,13 @@ void my_cleanup()
 
 // The quick_exit() function is like exit() except that it does not invoke any destructors
 // You register functions to be invoked by quick_exit() using at_quick_exit()
-[[noreturn]] 
-void my_return() 
+[[noreturn]]
+void my_return()
 {
     quick_exit(0);
 }
 
-int main() 
+int main()
 {
     if (0 == std::at_quick_exit(&my_cleanup)) {
         // ok

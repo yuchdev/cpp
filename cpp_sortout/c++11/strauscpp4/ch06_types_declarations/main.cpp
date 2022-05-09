@@ -15,7 +15,7 @@ New features:
 * long long integer type (6.2.4)
 * Alignment controls: alignas and alignof(6.2.9)
 * The ability to use the type of an expression as a type in a declaration: decltype
-  Important note: decltype has new behavior in C++14 
+  Important note: decltype has new behavior in C++14
 * C99 features (long long)
 * Integer type names, such as int16_t, uint32_t, and int_fast64_t (6.2.8)
 
@@ -35,18 +35,18 @@ Examples:
 void show_bool()
 {
     bool b1 = true;
-    bool b2{ false };
-    
+    bool b2 { false };
+
     // narrowing
     int i1 = b1;
-    int i2{ b1 };
+    int i2 { b1 };
 
     // narrowing in expression (cast to 1)
     int i3 = 5 + b1;
 
     // narrowing pointers
     int* pint = nullptr;
-    if (pint) {/*never be there*/}
+    if (pint) {/*never be there*/ }
 }
 
 void show_chars()
@@ -63,21 +63,21 @@ void show_chars()
     wchar_t w1 = L'A';
 
     // The notation int{c} gives the integer value for a character c
-    int i1{ c1 };
+    int i1 { c1 };
     cout << i1 << endl;
 
     // When embedding a numeric constant in a string using the octal notation, 
     // it is wise always to use three digits for the number
-    
+
     // 6 chars: 'a' '\xa' 'h' '\12' '9' '\0' 
-    char v1[] = "a\xah\129"; 
-    
+    char v1[] = "a\xah\129";
+
     // 5 chars: 'a' '\xa' 'h' '\127' '\0' 
-    char v2[] = "a\xah\127"; 
-    
+    char v2[] = "a\xah\127";
+
     // 4 chars: 'a' '\xad' '\127' '\0'
     char v3[] = "a\xad\127";
-    
+
     // 5 chars: 'a' '\xad' '\012' '7' '\0'
     char v4[] = "a\xad\0127";
 
@@ -105,24 +105,24 @@ void show_chars()
 void show_int()
 {
     // If you need more detailed control over integer sizes, you can use aliases from <cstdint>
-    
+
     // type "exactly"
-    int8_t i8{};
-    int16_t i16{};
-    int32_t i32{};
-    int64_t i64{};
+    int8_t i8 {};
+    int16_t i16 {};
+    int32_t i32 {};
+    int64_t i64 {};
 
     // type "at least"
-    int_least8_t il8{};
-    int_least16_t il16{};
-    int_least32_t il32{};
-    int_least64_t il64{};
+    int_least8_t il8 {};
+    int_least16_t il16 {};
+    int_least32_t il32 {};
+    int_least64_t il64 {};
 
     // type "fast"
-    uint_fast8_t fi8{};
-    uint_fast16_t fi16{};
-    uint_fast32_t fi32{};
-    uint_fast64_t fi64{};
+    uint_fast8_t fi8 {};
+    uint_fast16_t fi16 {};
+    uint_fast32_t fi32 {};
+    uint_fast64_t fi64 {};
 }
 
 void show_int_float()
@@ -166,7 +166,7 @@ void show_align()
     // Sometimes, we have to use alignment in a declaration, where an expression, 
     // such as alignof(x + y) is not allowed.
     // Instead, we can use the type specifier alignas: alignas(T)means 'align just like a T'
-    
+
     //TODO: alignas
 }
 
@@ -187,7 +187,7 @@ void show_init()
     // https://google.github.io/styleguide/cppguide.html#auto
 
     // An initializer can use one of four syntactic styles:
-    int a1{ 1 }; 
+    int a1 { 1 };
     int a2 = { 1 };
     int a3 = 1;
     int a4(1);
@@ -197,15 +197,15 @@ void show_init()
     // list initialization, does not allow narrowing
 
     // The trap is that if the initializer is a{}-list, we may not want its type deduced
-    
+
     // Important note: z1 is an initializer_list<int> in C++11 and int in C++14 and further
-    auto z1{ 99 };
-    
+    auto z1 { 99 };
+
     // z2 is an int
-    auto z2 = 99; 
+    auto z2 = 99;
 
     // The classical example is a vector of integers :
-    vector<int> v1{ 99 }; // v1 is a vector of 1 element with the value 99
+    vector<int> v1 { 99 }; // v1 is a vector of 1 element with the value 99
     vector<int> v2(99); // v2 is a vector of 99 elements each with the default value 0
 
     // We can decorate a deduced type with specifiers and modifiers, such as const and &

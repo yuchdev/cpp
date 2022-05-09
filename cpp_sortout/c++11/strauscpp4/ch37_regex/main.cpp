@@ -19,7 +19,8 @@ Examples:
 
 // 1. regex_match
 // 2. regex_search
-void show_regex_match() {
+void show_regex_match()
+{
 
     // To look for a pattern matching a whole sequence with a known length, 
     // such as a line of text, use regex_match():
@@ -28,7 +29,7 @@ void show_regex_match() {
     std::string fnames[] = { "foo.txt", "bar.txt", "baz.dat", "zoidberg" };
     std::regex txt_regex("[a-z]+\\.txt");
 
-    for (const auto &fname : fnames) {
+    for (const auto& fname : fnames) {
         std::cout << fname << ": " << std::regex_match(fname, txt_regex) << '\n';
     }
 
@@ -37,7 +38,7 @@ void show_regex_match() {
     std::regex base_regex("([a-z]+)\\.txt");
     std::smatch base_match;
 
-    for (const auto &fname : fnames) {
+    for (const auto& fname : fnames) {
         if (std::regex_match(fname, base_match, base_regex)) {
             // The first sub_match is the whole string; the next
             // sub_match is the first parenthesized expression.
@@ -54,7 +55,7 @@ void show_regex_match() {
     std::regex pieces_regex("([a-z]+)\\.([a-z]+)");
     std::smatch pieces_match;
 
-    for (const auto &fname : fnames) {
+    for (const auto& fname : fnames) {
         if (std::regex_match(fname, pieces_match, pieces_regex)) {
             std::cout << fname << '\n';
             for (size_t i = 0; i < pieces_match.size(); ++i) {
@@ -68,10 +69,11 @@ void show_regex_match() {
 }
 
 // 3. regex_replace
-void show_regex_replace() {
+void show_regex_replace()
+{
 
     std::string text = "Quick brown fox";
-    
+
     // alternatives
     std::regex vowel_re("a|e|i|o|u");
 
@@ -84,15 +86,16 @@ void show_regex_replace() {
 }
 
 // 4. Iterators
-void show_regex_iterators() {
-    std::string s{ "aa aas awwa ss" };
-    
+void show_regex_iterators()
+{
+    std::string s { "aa aas awwa ss" };
+
     // string to the whitespace
-    std::string expr{R"(\s+(\w+))"};
+    std::string expr { R"(\s+(\w+))" };
     std::regex r(expr);
 
     // iterate over match
-    for (std::sregex_iterator it = { s.begin(), s.end(), r }; it != std::sregex_iterator{}; ++it) {
+    for (std::sregex_iterator it = { s.begin(), s.end(), r }; it != std::sregex_iterator {}; ++it) {
 
         for (size_t i = 0; i < (*it).size(); ++i) {
             std::ssub_match sub_match = (*it)[i];
@@ -108,9 +111,9 @@ void show_regex_iterators() {
     // tokenization (non-matched fragments)
     // Note that regex is matched only two times: when the third value is obtained
     // the iterator is a suffix iterator.
-    
+
     // whitespace, one or more
-    std::regex ws_re("\\s+"); 
+    std::regex ws_re("\\s+");
 
     // -1 inverts submatch
 
@@ -125,7 +128,8 @@ void show_regex_iterators() {
         std::ostream_iterator<std::string>(std::cout, "\n"));
 }
 
-int main() {
+int main()
+{
     show_regex_match();
     show_regex_replace();
     show_regex_iterators();

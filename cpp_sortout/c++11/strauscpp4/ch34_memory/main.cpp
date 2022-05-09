@@ -28,22 +28,25 @@ Examples:
 */
 
 // 1. tuple example (34.2.4)
-namespace cpp4 {
-std::tuple<char, int, double>  create_tuple(){
+namespace cpp4
+{
+std::tuple<char, int, double>  create_tuple()
+{
     // return { 'a', 1, 1.0 }; error until C++17
     return std::make_tuple('a', 1, 1.0);
 }
 
 } // namespace cpp4 
 
-void show_tuple() {
+void show_tuple()
+{
 
     // create tuple
     std::tuple<char, int, double> t = cpp4::create_tuple();
 
-    char c{};
-    int i{};
-    double d{};
+    char c {};
+    int i {};
+    double d {};
 
     // unpack from tuple
     std::tie(c, i, d) = t;
@@ -53,13 +56,14 @@ void show_tuple() {
 
 
 // 2. weak_ptr example (34.3.3)
-void show_weak_ptr() {
-    
+void show_weak_ptr()
+{
+
     // std::weak_ptr is a very good way to solve the dangling pointer problem. By just using raw pointers 
     // it is impossible to know if the referenced data has been deallocated or not. 
     // Instead, by letting a shared_ptr manage the data, and supplying weak_ptr to users of the data, 
     // the users can check validity of the data by calling expired() or lock()
-    
+
     // OLD, problem with dangling pointer
     // PROBLEM: ref will point to undefined data!
     int* ptr = new int(10);
@@ -85,10 +89,10 @@ void show_weak_ptr() {
         weak1 = sptr;
 
         // lock, counter == 3
-        if (auto tmp = weak1.lock()){
+        if (auto tmp = weak1.lock()) {
             std::cout << *tmp << '\n';
         }
-        else{
+        else {
             std::cout << "weak1 is expired\n";
         }
     }
@@ -104,7 +108,7 @@ void show_weak_ptr() {
     // Then you have a dependency cycle.If you use shared_ptr, objects will no longer be automatically 
     // freed when you abandon reference on them, because they reference each other in a cyclic way.
     // This is a memory leak
-    
+
     // You break this by using weak_ptr.The "owner" typically use shared_ptr and the "owned" use a weak_ptr to its parent,
     // and convert it temporarily to shared_ptr when it needs access to its parent
 
@@ -120,121 +124,137 @@ void show_weak_ptr() {
 }
 
 // 3. Scoped allocator examples (34.4.4)
-namespace std {
+namespace std
+{
 
-    // Like an iterator allocator is a pure abstraction
-    // Minimal interface that supports STL interface
-    template <typename T>
-    class custom_allocator {
-    public:
-        // value-types
-        typedef size_t size_type;
-        typedef ptrdiff_t difference_type;
-        typedef T value_type;
-        typedef T* pointer;
-        typedef const T* const_pointer;
-        typedef T& reference;
-        typedef const T& const_reference;
+// Like an iterator allocator is a pure abstraction
+// Minimal interface that supports STL interface
+template <typename T>
+class custom_allocator
+{
+public:
+    // value-types
+    typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
+    typedef T value_type;
+    typedef T* pointer;
+    typedef const T* const_pointer;
+    typedef T& reference;
+    typedef const T& const_reference;
 
-        // Support of any other allocator
-        // it could be useful if a data structure holds some 'service' data
-        // (deque, unordered containers) and they need their own allocator
-        template <typename U>
-        struct rebind {
-            typedef custom_allocator<U> other;
-        };
-
-        // allocator doesn't hold any state so ctor/~ are trivial
-        custom_allocator() noexcept {
-            cout << "Type: " << typeid(T).name() << endl;
-            cout << "Ref: " << typeid(reference).name() << endl;
-            cout << "Ptr: " << typeid(pointer).name() << endl;
-        }
-        custom_allocator(const custom_allocator&) noexcept {}
-        ~custom_allocator() noexcept {}
-
-        // ctor for service data
-        // deque, unordered
-        template <typename U>
-        custom_allocator(const custom_allocator<U>&) throw() {}
-
-        // dereference
-        pointer address(reference val) {
-            return &val;
-        }
-
-        const_pointer address(const_reference val) {
-            return &val;
-        }
-
-        // max number of elements
-        size_type max_size() const throw() {
-            return numeric_limits<size_t>::max() / sizeof(T);
-        }
-
-        // the pool for n elements without calling ctor
-        // hint meaning is implementation-dependent
-        // it could be used for example with overloaded new, a pointer to a prev free memory slot
-        pointer allocate(size_type num, typename custom_allocator<T>::const_pointer hint = nullptr) {
-            return reinterpret_cast<pointer>(::operator new(num * sizeof(T)));
-        }
-
-        // release the memory block
-        // all destructors are called that moment
-        void deallocate(pointer p, size_type) {
-            // deallocate does not provide any guarantee passing nullptr
-            ::operator delete(reinterpret_cast<void*>(p));
-        }
-
-        // construct one element
-        void construct(pointer p, const T& val) {
-            new (reinterpret_cast<void*>(p)) T(val);
-        }
-
-        // destroy one element
-        void destroy(pointer p) {
-            // case of explicit destr call
-            p->~T();
-        }
-
-    private:
-        // in private section could be any cache or service data
+    // Support of any other allocator
+    // it could be useful if a data structure holds some 'service' data
+    // (deque, unordered containers) and they need their own allocator
+    template <typename U>
+    struct rebind
+    {
+        typedef custom_allocator<U> other;
     };
 
-    // obligatory specialization for void!
-    template <>
-    class custom_allocator<void> {
-    public:
-        // value types
-        typedef size_t size_type;
-        typedef ptrdiff_t difference_type;
-        typedef void value_type;
-        typedef void* pointer;
-        typedef const void* const_pointer;
+    // allocator doesn't hold any state so ctor/~ are trivial
+    custom_allocator() noexcept
+    {
+        cout << "Type: " << typeid(T).name() << endl;
+        cout << "Ref: " << typeid(reference).name() << endl;
+        cout << "Ptr: " << typeid(pointer).name() << endl;
+    }
+    custom_allocator(const custom_allocator&) noexcept {}
+    ~custom_allocator() noexcept {}
 
-        template <typename U>
-        struct rebind {
-            typedef custom_allocator<U> other;
-        };
+    // ctor for service data
+    // deque, unordered
+    template <typename U>
+    custom_allocator(const custom_allocator<U>&) throw() {}
+
+    // dereference
+    pointer address(reference val)
+    {
+        return &val;
+    }
+
+    const_pointer address(const_reference val)
+    {
+        return &val;
+    }
+
+    // max number of elements
+    size_type max_size() const throw()
+    {
+        return numeric_limits<size_t>::max() / sizeof(T);
+    }
+
+    // the pool for n elements without calling ctor
+    // hint meaning is implementation-dependent
+    // it could be used for example with overloaded new, a pointer to a prev free memory slot
+    pointer allocate(size_type num, typename custom_allocator<T>::const_pointer hint = nullptr)
+    {
+        return reinterpret_cast<pointer>(::operator new(num * sizeof(T)));
+    }
+
+    // release the memory block
+    // all destructors are called that moment
+    void deallocate(pointer p, size_type)
+    {
+        // deallocate does not provide any guarantee passing nullptr
+        ::operator delete(reinterpret_cast<void*>(p));
+    }
+
+    // construct one element
+    void construct(pointer p, const T& val)
+    {
+        new (reinterpret_cast<void*>(p)) T(val);
+    }
+
+    // destroy one element
+    void destroy(pointer p)
+    {
+        // case of explicit destr call
+        p->~T();
+    }
+
+private:
+    // in private section could be any cache or service data
+};
+
+// obligatory specialization for void!
+template <>
+class custom_allocator<void>
+{
+public:
+    // value types
+    typedef size_t size_type;
+    typedef ptrdiff_t difference_type;
+    typedef void value_type;
+    typedef void* pointer;
+    typedef const void* const_pointer;
+
+    template <typename U>
+    struct rebind
+    {
+        typedef custom_allocator<U> other;
     };
+};
 
-    // template operator == says that allocators are compatible
-    // i.e. create one, destroy other 
-    template <typename T1, typename T2>
-    bool operator==(const custom_allocator<T1>&, const custom_allocator<T2>&) throw() {
-        return true;
-    }
+// template operator == says that allocators are compatible
+// i.e. create one, destroy other 
+template <typename T1, typename T2>
+bool operator==(const custom_allocator<T1>&, const custom_allocator<T2>&) throw()
+{
+    return true;
+}
 
-    template <typename T1, typename T2>
-    bool operator!=(const custom_allocator<T1>&, const custom_allocator<T2>&) throw() {
-        return false;
-    }
+template <typename T1, typename T2>
+bool operator!=(const custom_allocator<T1>&, const custom_allocator<T2>&) throw()
+{
+    return false;
+}
 
 
 } //namespace std
 
-void show_custom_allocator() {
-    
+void show_custom_allocator()
+{
+
     // objects with different allocators do not mixed
     // i.e. list list::splice with different allocators would work,
     // not actual splice, but per-element insertions
@@ -267,7 +287,7 @@ void show_custom_allocator() {
     // The purpose of std::scoped_allocator_adaptor is to automatically propagate an allocator to the objects 
     // it constructs if they support construction with an allocator. So the code above would become:
     std::vector<custom_string, std::scoped_allocator_adaptor<std::custom_allocator<custom_string>>> v3;
-    
+
     // no allocator argument needed!
     v3.push_back(custom_string("A"));
     v3.push_back(custom_string("B"));
@@ -284,7 +304,8 @@ void show_custom_allocator() {
 // Only interface is provided
 
 // 5. Low-level memory algorithms
-void show_low_level_func() {
+void show_low_level_func()
+{
     // STL has functions for working with uninitialized memory
     // they all have strong exception guarantee
 
@@ -308,7 +329,8 @@ void show_low_level_func() {
         return_temporary_buffer(p.first);
 }
 
-int main() {
+int main()
+{
     show_tuple();
     show_weak_ptr();
     show_custom_allocator();

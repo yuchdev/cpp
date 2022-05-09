@@ -23,15 +23,15 @@ Examples:
 
 //1. Native handles(tread, mutex etc)
 //2. Thread ID
-void show_threads() 
+void show_threads()
 {
-    std::thread t([]() { return 42; });
-    
+    std::thread t([] () { return 42; });
+
     // could be mixed with POSIX/WinAPI
     std::thread::native_handle_type handle = t.native_handle();
 
     // ID
-    if (t.get_id() == std::thread::id{}) {
+    if (t.get_id() == std::thread::id {}) {
         std::cout << "t not joinable\n";
     }
     else {
@@ -43,7 +43,7 @@ void show_threads()
 //3. Mutes std::system_error(42.3.1.2)
 void show_mutex_error()
 {
-    std::mutex mtx; 
+    std::mutex mtx;
     try {
         mtx.lock();
         mtx.lock(); // try to lock a second time 
@@ -58,8 +58,9 @@ void show_mutex_error()
 //4. Future wait for all / for any
 // I can easily implement a version of wait_for_all()
 template<typename T>
-vector<T> wait_for_all(vector<future<T>>& vf) {
-    vector<T> res; 
+vector<T> wait_for_all(vector<future<T>>& vf)
+{
+    vector<T> res;
     for (auto& fu : vf) {
         res.push_back(fu.get());
     }
@@ -73,11 +74,11 @@ int wait_for_any(vector<future<T>>& vf, std::chrono::steady_clock::duration d)
 {
     while (true) {
         for (int i = 0; i != vf.size(); ++i) {
-            
-            if (!vf[i].valid()) 
+
+            if (!vf[i].valid())
                 continue;
 
-            switch (vf[i].wait_for(seconds{ 0 })) {
+            switch (vf[i].wait_for(seconds { 0 })) {
             case future_status::ready:
                 return i;
             case future_status::timeout:
@@ -92,7 +93,8 @@ int wait_for_any(vector<future<T>>& vf, std::chrono::steady_clock::duration d)
     }
 }
 
-int main() {
+int main()
+{
     show_threads();
     show_mutex_error();
     return 0;

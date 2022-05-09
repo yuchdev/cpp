@@ -37,16 +37,17 @@ New features:
 
 */
 
-namespace cpp4 {
+namespace cpp4
+{
 
 // 1. Class complex
 // Concrete class that behaves like a built-in type
-class complex 
+class complex
 {
 public:
 
     // constructor uses {} notation
-    complex(double re = 0., double im = 0.) : re_{re}, im_{im}{}
+    complex(double re = 0., double im = 0.) : re_ { re }, im_ { im }{}
 
     double real() const { return re_; }
     double imag() const { return im_; }
@@ -61,7 +62,7 @@ private:
 
 // 2. Class vector
 template <typename T>
-class vector 
+class vector
 {
 public:
 
@@ -71,14 +72,14 @@ public:
 
     // The std::initializer_list used to define the initializer-list constructor 
     // Passed by value
-    vector(std::initializer_list<T> l) : data_{new T[l.size()]} 
+    vector(std::initializer_list<T> l) : data_ { new T[l.size()] }
     {
         // so that keep exception-safety
         std::copy(l.begin(), l.end(), data_);
         sz_ = l.size();
     }
 
-    ~vector() 
+    ~vector()
     {
         delete[] data_;
     }
@@ -86,7 +87,7 @@ public:
     // copy semantic
     // should be suppressed by = delete notation
     // it can be used to suppress any operation
-    vector(const vector& rhs) : data_{new T[rhs.size()]} 
+    vector(const vector& rhs) : data_ { new T[rhs.size()] }
     {
         // so that keep exception-safety
         std::copy(rhs.data_, rhs.data_ + rhs.size(), data_);
@@ -96,10 +97,10 @@ public:
     // assign semantic
     // should be suppressed by = delete notation
     // it can be used to suppress any operation
-    vector& operator=(const vector& rhs) 
+    vector& operator=(const vector& rhs)
     {
 
-        if(&rhs != this) {
+        if (&rhs != this) {
             // so that keep exception-safety
             T* data = nullptr;
             try {
@@ -122,14 +123,14 @@ public:
     // A move constructor does not take a const argument: after all, 
     // a move constructor is supposed to remove the value from its argument
     // A move assignment is defined similarly
-    vector(vector&& rhs) noexcept 
+    vector(vector&& rhs) noexcept
     {
         data_ = rhs.data_;
         sz_ = rhs.sz_;
         rhs.data_ = nullptr;
         rhs.sz_ = 0;
     }
-    
+
     // If the definition of a class X does not explicitly declare a move constructor, 
     // one will be implicitly declared as defaulted if and only if
     // * X does not have a user-declared copy constructor,
@@ -142,9 +143,9 @@ public:
     // The class does not have user-declared any of the other special member functions.
     // The move constructor can be sensibly implemented by moving all its members and bases.
 
-    size_t size() const 
+    size_t size() const
     {
-        return sz_; 
+        return sz_;
     }
 
 private:
@@ -192,21 +193,21 @@ std::unique_ptr<int> ret_unique_ptr()
 
 // recursive call for all params
 template <typename T>
-void process(T t) 
+void process(T t)
 {
     std::cout << t << "=" << typeid(t).name() << std::endl;
 }
 
 // call for the head param
 template <typename T, typename... Tail>
-void variadic_func(T head, Tail... tail) 
+void variadic_func(T head, Tail... tail)
 {
     process(head);
     variadic_func(tail...);
 }
 
 // close recursion
-void variadic_func(){}
+void variadic_func() {}
 
 // 6. Type aliases
 // introduce a synonym for a type or a template
@@ -234,24 +235,24 @@ using StringMap = std::map<Key, std::string>;
 } // namespace cpp4
 
 
-void show_complex() 
+void show_complex()
 {
     cpp4::complex c1;
-    cpp4::complex c2{ 1.0 };
-    cpp4::complex c3{ 1.0, 2.0 };
+    cpp4::complex c2 { 1.0 };
+    cpp4::complex c3 { 1.0, 2.0 };
 
     std::cout << c1.imag() << std::endl;
     std::cout << c2.imag() << std::endl;
     std::cout << c3.imag() << std::endl;
 }
 
-void show_vector() 
+void show_vector()
 {
-    cpp4::vector<int> v1{ 1,2,3,4,5 };
+    cpp4::vector<int> v1 { 1,2,3,4,5 };
     std::cout << v1.size() << std::endl;
 }
 
-void show_return_by_move() 
+void show_return_by_move()
 {
     std::unique_ptr<int> p = cpp4::ret_unique_ptr();
     std::cout << *p << std::endl;
@@ -259,12 +260,12 @@ void show_return_by_move()
 
 // show lambdas in 11
 
-void show_variadics() 
+void show_variadics()
 {
     cpp4::variadic_func(1, 1.2, "hello");
 }
 
-void show_type_aliaces() 
+void show_type_aliaces()
 {
     std::vector<int> v;
     cpp4::algo(v);
@@ -274,7 +275,7 @@ void show_type_aliaces()
     m[2] = "tatata";
 }
 
-int main() 
+int main()
 {
     show_complex();
     show_vector();

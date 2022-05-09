@@ -21,16 +21,17 @@ Examples:
 */
 
 //1. Nested class in templates(23.4.6.3)
-namespace cpp4 {
+namespace cpp4
+{
 
 template <typename T>
 class list
 {
 public:
-    
+
     void insert(const T& t)
     {
-        link* new_link = new link{ t, tail, nullptr };
+        link* new_link = new link { t, tail, nullptr };
         if (tail) {
             tail->next = new_link;
             tail = new_link;
@@ -46,7 +47,7 @@ public:
     ~list()
     {
         link* l = head;
-        while (l){
+        while (l) {
             link* n = l->next;
             delete l;
             l = n;
@@ -80,12 +81,13 @@ void show_nested_class()
 
 
 //2. Template friends(23.4.7)
-namespace cpp4 {
+namespace cpp4
+{
 
 // Assume we have a vector and matrix that could be multiplied
 // <> notation set the friend as a template function
 
-/*    
+/*
 template <typename T>
 class matrix {
 public:
@@ -104,7 +106,8 @@ public:
 
 
 //3. Reference deduction and forwarding(23.5.2.1)
-namespace cpp4 {
+namespace cpp4
+{
 
 // Due to reference collapse lvalue reference & have precedence
 // & & = &
@@ -117,13 +120,15 @@ namespace cpp4 {
 // - T& if t is lvalue
 // - T if t is rvalue
 template <class T>
-void func(T&& t) {
+void func(T&& t)
+{
     std::cout << typeid(t).name() << std::endl;
 }
 
 // Perfect forwarding is implemented this way
 template<class T>
-T&& forward(typename std::remove_reference<T>::type& t) noexcept {
+T&& forward(typename std::remove_reference<T>::type& t) noexcept
+{
     return static_cast<T&&>(t);
 }
 // note: std::remove_reference instead of T&& is used for type-deduction
@@ -138,7 +143,7 @@ unique_ptr<T> make_unique(Args&&... args)
 
 struct example_class
 {
-    example_class(int a, int b) :a_{ a }, b_{ b } {}
+    example_class(int a, int b) :a_ { a }, b_ { b } {}
     int a_ = 1;
     int b_ = 2;
 };
@@ -168,20 +173,21 @@ void show_reference_forwarding()
 
 
 //4. Argument Substitution Failure(23.5.3.2)
-namespace cpp4 {
+namespace cpp4
+{
 
 // Let we have two template overloads
 template<typename Iter>
 typename Iter::value_type mean(Iter first, Iter last)
 {
-    auto it = first + (last- first)/2;
+    auto it = first + (last - first) / 2;
     return *(it);
 }
 
-template<typename T> 
+template<typename T>
 T mean(T* first, T* last)
 {
-    int* m = first + (last - first)/2;
+    int* m = first + (last - first) / 2;
     return *m;
 }
 
@@ -189,7 +195,7 @@ T mean(T* first, T* last)
 
 void show_sfinae_functions()
 {
-    std::vector<int> v{ 1,2,3,4,5 };
+    std::vector<int> v { 1,2,3,4,5 };
     int a[] = { 1,2,3,4,5 };
 
     // works 1-st overload

@@ -32,7 +32,8 @@ Examples:
 */
 
 //1. Limits
-void show_limits() {
+void show_limits()
+{
 
     // limits examples
 
@@ -63,13 +64,16 @@ void show_limits() {
 
 
 //2. valarray
-namespace cpp4 {
-double my_square(double d) {
-    return d*d;
+namespace cpp4
+{
+double my_square(double d)
+{
+    return d * d;
 }
 } // namespace cpp4
 
-void show_valarray() {
+void show_valarray()
+{
 
     // valarray - is a numeric-optimized vector
     // it is designed for fast low-level operations
@@ -86,9 +90,9 @@ void show_valarray() {
 
     // from array or initializer_list
     double arr[] = { 1.0, 2.0, 3.0, 1.5, 1.9 };
-    
+
     // no bound check!
-    valarray<double> v3(arr, 5); 
+    valarray<double> v3(arr, 5);
 
     // Assignment - no bound check!
     valarray<double> v4(5);
@@ -133,79 +137,91 @@ void show_valarray() {
 
 
 //3. Slices(+iterator)
-namespace cpp4 {
+namespace cpp4
+{
 
 // valarray slice iterator (Straus 4 p.1173)
 template <typename T>
-class slice_iter{
+class slice_iter
+{
 public:
 
-	slice_iter(std::valarray<T>& v, std::slice s) :
-		_vector(v),
-		_slice(s),
-		_curr(){}
+    slice_iter(std::valarray<T>& v, std::slice s) :
+        _vector(v),
+        _slice(s),
+        _curr()
+    {
+    }
 
-	slice_iter end(){
-		slice_iter end_slice = *this;
-		end_slice._curr = _slice.size();
-		return end_slice;
-	}
+    slice_iter end()
+    {
+        slice_iter end_slice = *this;
+        end_slice._curr = _slice.size();
+        return end_slice;
+    }
 
-	slice_iter& operator++(){
-		++_curr;
-		return *this;
-	}
+    slice_iter& operator++()
+    {
+        ++_curr;
+        return *this;
+    }
 
-	slice_iter operator++(int){
-		slice_iter t = *this;
-		++_curr;
-		return t;
-	}
+    slice_iter operator++(int)
+    {
+        slice_iter t = *this;
+        ++_curr;
+        return t;
+    }
 
-	// [] indexing
-	T& operator[](size_t i){ return ref(_curr = i); }
+    // [] indexing
+    T& operator[](size_t i) { return ref(_curr = i); }
 
-	T& operator()(size_t i){ return ref(_curr = i); }
+    T& operator()(size_t i) { return ref(_curr = i); }
 
-	T& operator*(){ return ref(_curr); }
+    T& operator*() { return ref(_curr); }
 
 
 private:
-	// vector we iterate over
-	std::valarray<T>& _vector;
-	
-	std::slice _slice;
-	
-	// current element index
-	size_t _curr;
+    // vector we iterate over
+    std::valarray<T>& _vector;
 
-	T& ref(size_t s) const{
-		return _vector[_slice.start() + s * _slice.stride()];
-	}
+    std::slice _slice;
+
+    // current element index
+    size_t _curr;
+
+    T& ref(size_t s) const
+    {
+        return _vector[_slice.start() + s * _slice.stride()];
+    }
 
 public:
-	// binary operators
-	friend bool operator == (const slice_iter& v1, const slice_iter& v2){
-		return v1._curr == v2._curr
-			&& v1._slice.stride() == v2._slice.stride()
-			&& v1._slice.start() == v2._slice.start();
-	}
+    // binary operators
+    friend bool operator == (const slice_iter& v1, const slice_iter& v2)
+    {
+        return v1._curr == v2._curr
+            && v1._slice.stride() == v2._slice.stride()
+            && v1._slice.start() == v2._slice.start();
+    }
 
-	friend bool operator != (const slice_iter& v1, const slice_iter& v2){
-		return !(v1 == v2);
-	}
+    friend bool operator != (const slice_iter& v1, const slice_iter& v2)
+    {
+        return !(v1 == v2);
+    }
 
-	friend bool operator < (const slice_iter& v1, const slice_iter& v2){
-		return v1._curr < v2._curr
-			&& v1._slice.stride() == v2._slice.stride()
-			&& v1._slice.start() == v2._slice.start();
-	}
+    friend bool operator < (const slice_iter& v1, const slice_iter& v2)
+    {
+        return v1._curr < v2._curr
+            && v1._slice.stride() == v2._slice.stride()
+            && v1._slice.start() == v2._slice.start();
+    }
 
 };
 
 } // namespace cpp4
 
-void show_slices() {
+void show_slices()
+{
 
     // std::slice is a slice of eevery n-th elements of vector
     // could be used for matrix arithmetic
@@ -241,7 +257,8 @@ void show_slices() {
 
 }
 
-void show_slices_iterator() {
+void show_slices_iterator()
+{
     // slices could be used for matrix iteration
     // see Straus 4 p.1173
 
@@ -266,7 +283,8 @@ void show_slices_iterator() {
 
 
 //4. gslice
-void show_gslice() {
+void show_gslice()
+{
 
     // general slice (gslice) could represent custom slice of valarray
     // i.e. angular matrix
@@ -287,11 +305,11 @@ void show_gslice() {
 
     // 2 elements in the first dimension
     // 3 elements in the second dimension
-    valarray<size_t> lengths{ 2, 3 };
+    valarray<size_t> lengths { 2, 3 };
 
     // 3 is the stride for the first index
     // 1 is the stride for the second index
-    valarray<size_t> strides{ 3, 1 };
+    valarray<size_t> strides { 3, 1 };
 
     // gslice with 2 pairs represent 2-dimensions
     gslice gs(0, lengths, strides);
@@ -304,74 +322,85 @@ void show_gslice() {
 
 
 //5. Matrix
-namespace cpp4 {
+namespace cpp4
+{
 
 // Based on valarray and slices
 template <typename T>
-class matrix{
+class matrix
+{
 public:
 
-	matrix(size_t d1, size_t d2) :_d1(d1), _d2(d2), _val(d1*d2){}
+    matrix(size_t d1, size_t d2) :_d1(d1), _d2(d2), _val(d1* d2) {}
 
-	matrix(const matrix& rhs) :_d1(rhs._d1), _d2(rhs._d2), _val(rhs._val){}
+    matrix(const matrix& rhs) :_d1(rhs._d1), _d2(rhs._d2), _val(rhs._val) {}
 
     matrix(const matrix&& rhs) :_d1(rhs._d1), _d2(rhs._d2), _val(std::move(rhs._val)) {}
 
-	const matrix& operator=(const matrix& rhs){
-		_d1 = rhs._d1;
-		_d2 = rhs._d2;
-		_val = rhs._val;
-	}
+    const matrix& operator=(const matrix& rhs)
+    {
+        _d1 = rhs._d1;
+        _d2 = rhs._d2;
+        _val = rhs._val;
+    }
 
-    const matrix& operator=(const matrix&& rhs) {
+    const matrix& operator=(const matrix&& rhs)
+    {
         _d1 = rhs._d1;
         _d2 = rhs._d2;
         _val = std::move(rhs._val);
     }
 
-	// non-virtual destructor, not intended to be inherited
-	~matrix(){}
+    // non-virtual destructor, not intended to be inherited
+    ~matrix() {}
 
-	// accessors
-	size_t size() const { return _val; }
-	size_t dim1() const { return _d1; }
-	size_t dim2() const { return _d2; }
+    // accessors
+    size_t size() const { return _val; }
+    size_t dim1() const { return _d1; }
+    size_t dim2() const { return _d2; }
 
-	// row-column iterators
-	slice_iter<T> row(size_t i){
+    // row-column iterators
+    slice_iter<T> row(size_t i)
+    {
         return slice_iter<T>(_val, std::slice(i, _d2, _d1));
-	}
+    }
 
-	slice_iter<T> column(size_t i){
-        return slice_iter<T>(_val, std::slice(i*_d2, _d2, 1));
-	}
+    slice_iter<T> column(size_t i)
+    {
+        return slice_iter<T>(_val, std::slice(i * _d2, _d2, 1));
+    }
 
-	const slice_iter<T> row(size_t i) const {
-		return slice_iter<T>(_val, std::slice(i, _d2, _d1));
-	}
+    const slice_iter<T> row(size_t i) const
+    {
+        return slice_iter<T>(_val, std::slice(i, _d2, _d1));
+    }
 
-	const slice_iter<T> column(size_t i) const {
-		return slice_iter<T>(_val, std::slice(i*_d2, _d2, 1));
-	}
+    const slice_iter<T> column(size_t i) const
+    {
+        return slice_iter<T>(_val, std::slice(i * _d2, _d2, 1));
+    }
 
-	// access elements
-	T& operator()(size_t x, size_t y) {
-		return row(x)[y];
-	}
+    // access elements
+    T& operator()(size_t x, size_t y)
+    {
+        return row(x)[y];
+    }
 
-	T operator()(size_t x, size_t y) const {
-		return row(x)[y];
-	}
+    T operator()(size_t x, size_t y) const
+    {
+        return row(x)[y];
+    }
 
 private:
-	std::valarray<T> _val;
-	size_t _d1;
-	size_t _d2;
+    std::valarray<T> _val;
+    size_t _d1;
+    size_t _d2;
 };
 
 } // namespace cpp4 
 
-void show_matrix() {
+void show_matrix()
+{
 
     cpp4::matrix<double> m1(3, 3);
     cpp4::matrix<double> m2(m1);
@@ -408,7 +437,8 @@ void show_matrix() {
 }
 
 //6. slice_array, valarray mask, indirect valarray
-void show_slice_array() {
+void show_slice_array()
+{
 
     // slice_array allows to represent any subset of valarray
 
@@ -424,7 +454,8 @@ void show_slice_array() {
     // matrices could support lazy evaluation (see Josuttis book examples)
 }
 
-void show_valarray_mask() {
+void show_valarray_mask()
+{
 
     double arr[] = { 1.0, 2.0, 3.0, 1.5, 1.9 };
     valarray<double> v(arr, 5);
@@ -437,7 +468,8 @@ void show_valarray_mask() {
     valarray<double> v1 = v[mask];
 }
 
-void show_indirect_array() {
+void show_indirect_array()
+{
 
     // indirect_array creates valarray subsets and re-arrange elements
     double arr[] = { 1.0, 2.0, 3.0, 1.5, 1.9 };
@@ -453,7 +485,8 @@ void show_indirect_array() {
 }
 
 //7. complex
-void show_complex() {
+void show_complex()
+{
 
     // complex numbers
     // contain several specializations (float, double, long double)
@@ -495,7 +528,8 @@ void show_complex() {
 }
 
 //8. Numeric algorithm
-void show_algorithms() {
+void show_algorithms()
+{
 
     // accumulation
     std::vector<int> v1 = { 0, 1, 2, 3, 4, 5, 5, 4, 3, 2, 1, 0 };
@@ -522,11 +556,13 @@ void show_algorithms() {
 }
 
 //9. Random generators
-namespace cpp4{
+namespace cpp4
+{
 
 // Print integer distribution using ACSII
 template <typename Generator>
-void print_distribution(size_t elements, Generator& g) {
+void print_distribution(size_t elements, Generator& g)
+{
 
     std::map<int, size_t> distr;
 
@@ -542,12 +578,14 @@ void print_distribution(size_t elements, Generator& g) {
 }
 
 // Examples of uniform distributions
-class rand_int {
+class rand_int
+{
 public:
-    
-    rand_int(int lo, int hi) : p{ lo, hi } {}
 
-    int operator()() {
+    rand_int(int lo, int hi) : p { lo, hi } {}
+
+    int operator()()
+    {
         return generator();
     }
 private:
@@ -556,34 +594,38 @@ private:
     std::uniform_int_distribution<>::param_type p;
 
     // distribution has operator() that accepts engine, so we can bind to distribution
-    std::function<int()> generator = std::bind(std::uniform_int_distribution<>{p}, std::default_random_engine{});
+    std::function<int()> generator = std::bind(std::uniform_int_distribution<>{p}, std::default_random_engine {});
 };
 
 
 // Double uniform distribution is the same
-class rand_double {
+class rand_double
+{
 public:
 
-    rand_double(double lo, double hi) : p{ lo, hi } {}
+    rand_double(double lo, double hi) : p { lo, hi } {}
 
-    double operator()() {
+    double operator()()
+    {
         return generator();
     }
 
 private:
     std::uniform_real_distribution<>::param_type p;
-    std::function<double()> generator = std::bind(std::uniform_real_distribution<>{p}, std::default_random_engine{});
+    std::function<double()> generator = std::bind(std::uniform_real_distribution<>{p}, std::default_random_engine {});
 };
 
 // Double uniform distribution is the same
-class rand_double_normal {
+class rand_double_normal
+{
 public:
 
-    rand_double_normal(double lo, double hi) : lo_{ lo }, hi_{ hi }, norm{5.0, 2.0} {}
+    rand_double_normal(double lo, double hi) : lo_ { lo }, hi_ { hi }, norm { 5.0, 2.0 } {}
 
-    double operator()() {
+    double operator()()
+    {
         double rnd = generator();
-        while ((rnd < lo_) || (rnd > hi_)){
+        while ((rnd < lo_) || (rnd > hi_)) {
             rnd = generator();
         }
         return rnd;
@@ -593,12 +635,13 @@ private:
     double hi_ = 0.0;
     double lo_ = 0.0;
     std::normal_distribution<double> norm;
-    std::function<double()> generator = std::bind(norm, std::default_random_engine{});
+    std::function<double()> generator = std::bind(norm, std::default_random_engine {});
 };
 
 } // namespace cpp4
 
-void show_random() {
+void show_random()
+{
 
     // Use the default_random_engine unless you have a real need and know what you are doing
 
@@ -620,16 +663,17 @@ void show_random() {
 }
 
 // 10. Special math function if exists
-void show_special() {
+void show_special()
+{
 
 #if defined(_WIN32) || defined(_WIN64)
 
 #else
     assoc_laguerre();
-    assoc_legendre(); 
-    beta(); 
+    assoc_legendre();
+    beta();
     comp_ellint_2();
-    comp_ellint_3(); 
+    comp_ellint_3();
     cyl_bessel_i();
     cyl_bessel_k();
     cyl_neumann();
@@ -650,7 +694,8 @@ void show_special() {
 #endif
 }
 
-int main() {
+int main()
+{
     show_limits();
     show_valarray();
     show_slices();

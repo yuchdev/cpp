@@ -27,7 +27,8 @@ Examples:
 
 */
 
-namespace cpp4 {
+namespace cpp4
+{
 
 class test_me
 {
@@ -38,7 +39,7 @@ public:
 void point_to_me_static() {}
 
 // A string literal is statically allocated so that it is safe to return one from a function
-constexpr const char* error_message(int i) 
+constexpr const char* error_message(int i)
 {
     return "range error";
 }
@@ -49,13 +50,13 @@ constexpr const char* error_message(int i)
 // "perfect swap" (almost) 
 template<class T>
 void swap(T& a, T& b)
-{ 
+{
     // Since move(x) does not move x (it simply produces an rvalue reference to x), 
     // it would have been better if move() had been called rval(), 
     // but by now move() has been used for years
 
     // move from a  
-    T tmp{ std::move(a) };
+    T tmp { std::move(a) };
 
     //move from b 
     a = std::move(b);
@@ -74,7 +75,7 @@ void show_ptrs_refs()
     // pointer to function
     void(*static_func_ptr)() = &cpp4::point_to_me_static;
 
-    void(cpp4::test_me::* method_ptr)() = &cpp4::test_me::point_to_me;
+    void(cpp4::test_me:: * method_ptr)() = &cpp4::test_me::point_to_me;
 
     // ? better not to do, ensure in Standard
     void* v1 = static_func_ptr;
@@ -90,8 +91,8 @@ void show_ptrs_refs()
     method_ptr = 0;
 
     // An rvalue reference refers to a temporary object
-    std::vector<int> vv1{ 1,2,3 };
-    std::vector<int> vv2{ 4,5,6 };
+    std::vector<int> vv1 { 1,2,3 };
+    std::vector<int> vv2 { 4,5,6 };
     cpp4::swap(vv1, vv2);
 
     // The compiler uses v and v+N as begin(v) and end(v) for a built-in array T v[N]
@@ -120,27 +121,28 @@ tatatat)";
     std::wcout << long_complicated << std::endl;
 }
 
-namespace cpp4 {
+namespace cpp4
+{
 
 class tagged_union
 {
 public:
-    
+
     struct bad_tag {};
 
-    void set_integer(int i) 
+    void set_integer(int i)
     {
         tag_ = tag::integer;
         i_ = i;
     }
 
-    void set_pointer(int* pi) 
+    void set_pointer(int* pi)
     {
         tag_ = tag::pointer;
         pi_ = pi;
     }
 
-    int integer() const 
+    int integer() const
     {
         if (tag_ != tag::integer) {
             throw bad_tag();
@@ -148,7 +150,7 @@ public:
         return i_;
     }
 
-    int* pointer() const 
+    int* pointer() const
     {
         if (tag_ != tag::pointer) {
             throw bad_tag();
@@ -159,7 +161,7 @@ public:
 private:
     enum class tag { integer, pointer };
     tag tag_;
-    union 
+    union
     {
         int i_;
         int* pi_;
@@ -168,19 +170,21 @@ private:
 
 }
 
-void show_union_tags() {
+void show_union_tags()
+{
     cpp4::tagged_union tu;
     int i = 0;
     tu.set_integer(1);
     tu.set_pointer(&i);
 }
 
-void show_enum_classes() {
+void show_enum_classes()
+{
 
     // The underlying type must be one of the signed or unsigned integer types (6.2.4)
     // the default is int. We could be explicit about that:
 
-    enum class warning1 : long {green, yellow, red};
+    enum class warning1 : long { green, yellow, red };
 
     enum class warning2 : unsigned char { green, yellow, red };
 
@@ -199,14 +203,15 @@ void show_enum_classes() {
     enum { arrow_up = 1, arrow_down, arrow_sideways };
 }
 
-namespace cpp4 {
+namespace cpp4
+{
 
 // A class with a constexpr constructor is called a literal type
 // To be simple enough to be constexpr, a constructor must have an empty body 
 // and all members must be initialized by potentially constant expressions. For example:
 struct point
 {
-    constexpr point(double x, double y, double z) :x_{x}, y_{y}, z_{z} {}
+    constexpr point(double x, double y, double z) :x_ { x }, y_ { y }, z_ { z } {}
 private:
     double x_, y_, z_;
 };
@@ -216,11 +221,11 @@ private:
 void show_literal_types()
 {
     // A constant expression is an expression that a compiler can evaluate
-    constexpr cpp4::point p{ 1.,2.,3. };
+    constexpr cpp4::point p { 1.,2.,3. };
     constexpr cpp4::point parr[] = { { 1.,2.,3. } ,{ 1.,2.,3. } ,{ 1.,2.,3. } };
 }
 
-int main() 
+int main()
 {
     show_ptrs_refs();
     show_string_literals();

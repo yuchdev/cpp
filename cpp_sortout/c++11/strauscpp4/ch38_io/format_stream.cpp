@@ -8,7 +8,8 @@ using namespace cpp4;
 
 
 // Flags
-void cpp4::show_formattings_flags() {
+void cpp4::show_formattings_flags()
+{
 
     // Get current stream flags
     ios::fmtflags flags = cout.flags();
@@ -109,7 +110,7 @@ void cpp4::show_formattings_flags() {
 
     {
         // use hexadecimal floats
-        cout.setf(ios_base::fixed | ios_base::scientific, ios_base::floatfield); 
+        cout.setf(ios_base::fixed | ios_base::scientific, ios_base::floatfield);
         cout << "hexadecimal floats: " << 0.000000001 << endl;
         cout.unsetf(ios_base::fixed | ios_base::scientific);
     }
@@ -125,7 +126,8 @@ void cpp4::show_formattings_flags() {
 }
 
 // Methods
-void cpp4::show_formattings_methods() {
+void cpp4::show_formattings_methods()
+{
 
     // precision() method allows to set a number of digits after '.'
     // setting forever
@@ -149,7 +151,8 @@ void cpp4::show_formattings_methods() {
 }
 
 // Manipulators
-void cpp4::show_formattings_manipulators() {
+void cpp4::show_formattings_manipulators()
+{
     // Manipulators changes flags and methods as they are simplier in usage
     // and could be passed just to the stream
 
@@ -227,7 +230,8 @@ void cpp4::show_formattings_manipulators() {
     cout << "Flush me" << flush << " yeah!" << endl;
 }
 
-void cpp4::show_formatted_input() {
+void cpp4::show_formatted_input()
+{
 
     // Manipulators could be used for input as well
     // E.g. skipws/noskipws
@@ -253,7 +257,8 @@ void cpp4::show_formatted_input() {
 }
 
 
-void cpp4::show_user_manip() {
+void cpp4::show_user_manip()
+{
     cout << "Tab user" << cpp4::tab << " manip" << endl;
 
     cout << "User manipilator with params: " << cpp4::binary<unsigned short>(16) << endl;
@@ -268,7 +273,7 @@ std::ostream& cpp4::tab(std::ostream& os)
 }
 
 template <typename T>
-ostream& cpp4::operator<<(ostream&os, const binary<T>& t)
+ostream& cpp4::operator<<(ostream& os, const binary<T>& t)
 {
     T MAX = numeric_limits<T>::max();
     T bit = ~(MAX >> 1);

@@ -24,7 +24,8 @@ Examples:
 */
 
 //1. C++11 algorithms
-void show_new_algorithms() {
+void show_new_algorithms()
+{
     // copy_if(), copy_n(), uninitialized_copy_n()
 
     int source[5] = { 0,12,34,50,80 };
@@ -39,7 +40,7 @@ void show_new_algorithms() {
     int result[n];
     uninitialized_copy_n(first, n, result);
 
-    copy_if(first, first + n, result, [](const int& x) {return x > 0; });
+    copy_if(first, first + n, result, [] (const int& x) {return x > 0; });
 
     // iota (in <numeric>)
     // The new algorithm iota() was inspired by an APL operator with the same name
@@ -50,9 +51,9 @@ void show_new_algorithms() {
     // all_of, any_of and none_of
     // check if the supplied unary predicate return true for all, any or no element in a range
     int numbers[] = { 1, 2, 42, 7, 0 };
-    bool b = std::all_of(std::begin(numbers), std::end(numbers), [](const int& x) {return x > 0; });
-    b = std::any_of(std::begin(numbers), std::end(numbers), [](const int& x) {return x == 0; });
-    b = std::none_of(std::begin(numbers), std::end(numbers), [](const int& x) {return x < 0; });
+    bool b = std::all_of(std::begin(numbers), std::end(numbers), [] (const int& x) {return x > 0; });
+    b = std::any_of(std::begin(numbers), std::end(numbers), [] (const int& x) {return x == 0; });
+    b = std::none_of(std::begin(numbers), std::end(numbers), [] (const int& x) {return x < 0; });
 
     // is_sorted and is_sorted_until
     // The first algorithm, is_sorted, checks if the elements of the range are sorted ascending
@@ -80,7 +81,7 @@ void show_new_algorithms() {
         { "fifth message", true },
     };
 
-    auto is_delivered = [](message const & msg) {return msg.delivered; };
+    auto is_delivered = [] (message const& msg) {return msg.delivered; };
 
     // is not partitioned
     std::cout << std::boolalpha
@@ -109,7 +110,8 @@ void show_new_algorithms() {
 //2. Iterator tags(see ch.05 example)
 
 //3. Iterator traits(33.1.3)
-namespace cpp4 {
+namespace cpp4
+{
 
 // TODO: wtf unable to compile
 //template <typename Iter>
@@ -117,7 +119,8 @@ namespace cpp4 {
 
 } // namespace cpp4 
 
-void show_iterator_traits() {
+void show_iterator_traits()
+{
     // For an iterator that does not have these member types(e.g., an int*), 
     // we provide a specialization of iterator_traits
     std::vector<int> v(5);
@@ -137,7 +140,8 @@ void show_iterator_traits() {
 }
 
 //4. Iterator adapters(move iterator) (33.2)
-void show_iterator_adapters() {
+void show_iterator_adapters()
+{
 
     // In <iterator>, the standard library provides adaptors to generate useful related iterator types
     // reverse_iterator 
@@ -145,15 +149,15 @@ void show_iterator_adapters() {
     // front_insert_iterator 
     // insert_iterator 
     {
-        std::vector<int> v{ 1,2,3,4,5 };
-        std::list<int> l{ -1,-2,-3 };
+        std::vector<int> v { 1,2,3,4,5 };
+        std::list<int> l { -1,-2,-3 };
         std::copy(v.begin(), v.end(), // may be simplified with std::inserter
             std::insert_iterator<std::list<int>>(l, std::next(l.begin())));
     }
 
     {
-        std::vector<int> v{ 1,2,3,4,5 };
-        std::list<int> l{ -1,-2,-3 };
+        std::vector<int> v { 1,2,3,4,5 };
+        std::list<int> l { -1,-2,-3 };
         // std::inserter return a std::insert_iterator which can be used to insert elements
         std::copy(v.begin(), v.end(), std::inserter(l, l.begin()));
     }
@@ -175,23 +179,27 @@ void show_iterator_adapters() {
     // to store results in uninitialized memory
 }
 
-namespace cpp4 {
+namespace cpp4
+{
 
 // some free function
-double cube(double d){
-    return d*d*d;
+double cube(double d)
+{
+    return d * d * d;
 }
 
 
-void out_two_params(int t1, const std::string& t2) {
+void out_two_params(int t1, const std::string& t2)
+{
     std::cout << "T1 = " << t1 << " T2 = " << t2 << std::endl;
 }
 
 } // namespace cpp4 
 
 //5. bind&men_fn(33.5.1 - 2)
-void show_func_adapters() {
-    
+void show_func_adapters()
+{
+
     // bind
     // Given a function and a set of arguments, bind() produces a function object that can be called with
     // the remaining arguments, if any, of the function
@@ -214,7 +222,8 @@ void show_func_adapters() {
     // auto draw = mem_fn(&Shape::draw);
 }
 
-int main() {
+int main()
+{
     show_new_algorithms();
     show_iterator_traits();
     show_iterator_adapters();

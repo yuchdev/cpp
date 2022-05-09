@@ -12,25 +12,26 @@ New features:
 * Hash containers:unordered_map,unordered_multimap,unordered_set,andunordered_multiset (4.4.5, 31.4.3)
 */
 
-namespace cpp4 {
+namespace cpp4
+{
 
-struct Entry 
+struct Entry
 {
     string name;
     string number;
 };
 
-ostream& operator<<(ostream& os, const Entry& e) 
+ostream& operator<<(ostream& os, const Entry& e)
 {
     return os << '{' << e.name << ':' << e.number << '}';
 }
 
 }
 
-void show_forward_list() 
+void show_forward_list()
 {
-    std::forward_list<cpp4::Entry> l{ 
-        {"German Skotobaza", "666-666"}, 
+    std::forward_list<cpp4::Entry> l {
+        {"German Skotobaza", "666-666"},
         {"Gelmut Komatoza", "999-999"}
     };
 
@@ -45,14 +46,14 @@ void show_forward_list()
 
 typedef std::unordered_map<string, string> stringmap;
 
-stringmap merge(stringmap a, stringmap b) 
+stringmap merge(stringmap a, stringmap b)
 {
     stringmap temp(a);
     temp.insert(b.begin(), b.end());
     return temp;
 }
 
-void show_hash() 
+void show_hash()
 {
     // For big maps hash-based containers are faster up to 10 times
     // in case of correctly selected hash-function
@@ -76,14 +77,14 @@ void show_hash()
     // init list
     stringmap second({
         { "apple", "red" },
-        { "lemon", "yellow" } 
-    });
+        { "lemon", "yellow" }
+        });
 
     // init list
-    stringmap third({ 
+    stringmap third({
         { "orange", "orange" },
-        { "strawberry", "red" } 
-    });
+        { "strawberry", "red" }
+        });
 
     // copy
     stringmap fourth(second);
@@ -98,7 +99,7 @@ void show_hash()
     sixth.emplace("banana", "yellow");
 }
 
-int main() 
+int main()
 {
 
     show_forward_list();
