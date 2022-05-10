@@ -1,0 +1,5 @@
+add_subdirectory(abstract)
+add_subdirectory(adapter)
+add_subdirectory(simple_inheritance)
+add_subdirectory(upcast)
+add_subdirectory(virtual)

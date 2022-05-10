@@ -1,0 +1,6 @@
+add_subdirectory(basic_types)
+add_subdirectory(complex_exception)
+add_subdirectory(controlled)
+add_subdirectory(fpe)
+add_subdirectory(seh)
+add_subdirectory(simple_exception)
