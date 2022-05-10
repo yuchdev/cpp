@@ -7,16 +7,16 @@ __doc__ = """Create CMakeLists.txt based on directory content"""
 
 CMAKE_CONTENT = """set(TARGET {project_name})
 
-file(GLOB SOURCES *.cpp *.h *.txt)
+file(GLOB SOURCES *.cpp *.h *.txt, *.md)
 
 include_directories(
-    ${CMAKE_SOURCE_DIR}
+    ${{CMAKE_SOURCE_DIR}}
 )
 
-add_executable(${TARGET} ${SOURCES})
-set_property(TARGET ${TARGET} PROPERTY FOLDER "{vs_folder}")
+add_executable(${{TARGET}} ${{SOURCES}})
+set_property(TARGET ${{TARGET}} PROPERTY FOLDER "{vs_folder}")
 
-target_link_libraries(${TARGET}    
+target_link_libraries(${{TARGET}}    
 PRIVATE
     utilities
 )
@@ -31,14 +31,18 @@ def underline_to_camel(string):
     return "".join(x.capitalize() or " " for x in string.split("_"))
 
 
-def create_project_cmake(project_name, vs_folder):
+def create_project_cmake(project_dir, project_name, vs_folder):
     """
     Create CMakeLists.txt with the same name as the project directory
+    :param project_dir: Full-qualified directory name
     :param project_name: C++ project name same as the directory name
     :param vs_folder: Visual Studio folder name for the solution organization
     """
+    print("Creating CMakeLists.txt for {}".format(project_name))
+    os.chdir(project_dir)
     with open("CMakeLists.txt", "w") as cmake_file:
         cmake_file.write(CMAKE_CONTENT.format(project_name=project_name, vs_folder=vs_folder))
+    os.system('git add CMakeLists.txt')
 
 
 def create_cmake_files(target_dir):
@@ -48,15 +52,16 @@ def create_cmake_files(target_dir):
     """
     os.chdir(target_dir)
     subdirs = sorted([x for x in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, x))])
+    print(f"Project directories: {subdirs}")
     for subdir in subdirs:
-        vs_folder = underline_to_camel(subdir)
-        create_project_cmake(project_name=subdir, vs_folder=vs_folder)
+        vs_folder = underline_to_camel(os.path.split(target_dir)[1])
+        create_project_cmake(project_dir=os.path.join(target_dir, subdir), project_name=subdir, vs_folder=vs_folder)
 
 
-def create_list_cmake(target_dir):
+def create_subdir_cmake(target_dir):
     """
-    Create list of sorted subdirectories in target_dir
-    Iterate over list and write all subdirectories in CMakeLists.txt
+    Create CMakeLists.txt for a set of close-related projects
+    Iterate over directory and write all subdirectories in CMakeLists.txt
     add_subdirectory({subdirectory})
     """
     # Get list of subdirectories without files
@@ -64,10 +69,8 @@ def create_list_cmake(target_dir):
     subdirs = sorted([x for x in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, x))])
     # Create CMakeLists.txt
     with open(os.path.join(target_dir, "CMakeLists.txt"), "w") as cmake_file:
-        cmake_file.write("\n")
         for subdir in subdirs:
             cmake_file.write(f"add_subdirectory({subdir})\n")
-    os.system(f"git commit --all -n -m 'Created CMakeLists.txt in {target_dir}'")
 
 
 def create_numeric_dirs(target_dir):
@@ -87,11 +90,9 @@ def create_numeric_dirs(target_dir):
         counter += 1
         if subdir != new_subdir:
             print(f"git mv {subdir} {new_subdir}")
-            # subprocess.run(["git", "mv", subdir, new_subdir])
             os.system(f"git mv {subdir} {new_subdir}")
     new_subdirs = sorted([x for x in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, x))])
     print(f"New subdirectories: {new_subdirs}")
-    os.system(f"git commit --all -n -m 'Renamed subdirectories in {target_dir}'")
 
 
 def change_project_name(project_name):
@@ -109,7 +110,6 @@ def change_project_name(project_name):
                 cmake_file.write(f"set(TARGET_NAME {project_name})\n")
             else:
                 cmake_file.write(line)
-    os.system(f"git commit --all -n -m 'Changed project name in {project_name}'")
     os.chdir("..")
 
 
@@ -125,7 +125,7 @@ def change_project_names(target_dir):
 
 def main():
     parser = argparse.ArgumentParser(description='Command-line params')
-    parser.add_argument('--destination-dir',
+    parser.add_argument('--create-cmake',
                         help='Directory to create CMakeLists.txt in',
                         default="",
                         required=False)
@@ -133,11 +133,7 @@ def main():
                         help='Create numeric subdirectories',
                         default="",
                         required=False)
-    parser.add_argument('--change-project-name',
-                        help='Change project names in target_dir',
-                        default="",
-                        required=False)
-    parser.add_argument('--create-cmake-lists',
+    parser.add_argument('--create-subdir-cmake',
                         help='Create CMakeLists.txt in target_dir',
                         default="",
                         required=False)
@@ -146,29 +142,24 @@ def main():
                         default="",
                         required=False)
     args = parser.parse_args()
-    if len(args.destination_dir):
-        destination_dir = os.path.abspath(args.destination_dir)
+    if len(args.create_cmake):
+        destination_dir = os.path.abspath(args.create_cmake)
         print(f"Creating CMakeLists.txt in {destination_dir}")
-        create_list_cmake(destination_dir)
+        create_cmake_files(destination_dir)
     elif len(args.numeric_dirs):
         numeric_dirs = os.path.abspath(args.numeric_dirs)
         print(f"Creating numeric subdirectories in {numeric_dirs}")
         create_numeric_dirs(numeric_dirs)
     elif len(args.all):
         target_dir = os.path.abspath(args.all)
-        print(f"Creating numeric subdirectories, CMakeLists.txt and change project names in {target_dir}")
-        create_numeric_dirs(target_dir)
-        create_list_cmake(target_dir)
-        change_project_names(target_dir)
+        print(f"Creating subdir and project CMakeLists.txt in {target_dir}")
+        create_subdir_cmake(target_dir)
+        create_cmake_files(target_dir)
         return 0
-    elif len(args.change_project_name):
-        target_dir = os.path.abspath(args.change_project_name)
-        change_project_names(target_dir)
-        print(f"Changed project names in {target_dir}")
-    elif len(args.create_cmake_lists):
-        target_dir = os.path.abspath(args.create_cmake_lists)
-        create_list_cmake(target_dir)
-        print(f"Created CMakeLists.txt in {target_dir}")
+    elif len(args.create_subdir_cmake):
+        target_dir = os.path.abspath(args.create_subdir_cmake)
+        create_subdir_cmake(target_dir)
+        print(f"Created subdir CMakeLists.txt in {target_dir}")
     os.system(f"git push origin master")
     return 0
 
