@@ -318,6 +318,8 @@ void numeric_promotions()
     // Such conversion called promotion.
     // Promotion never changes the value of converted number
 
+    // Integer Promotion in C++ is pretty much a legacy of ANSI C
+
     // signed char or signed short can be converted to int;
     signed char sc = -127;
     short ss = -32768;
@@ -357,11 +359,33 @@ void numeric_promotions()
 
 #pragma region 06.numeric_conversions
 
+uint8_t safe_avg(uint8_t a, uint8_t b)
+{
+    return a/2 + b/2;
+}
+// What if we pass uint32_t instead of uint8_t
+
+uint8_t truncate(unit32_t u)
+{
+    // TODO: no warnings?
+    return u;
+}
+
+// TODO: int promotion traits
+
 void numeric_conversions()
 {
     // Unlike the promotions, numeric conversions may change the values, with potential loss of precision
 
     // Narrowing conversion - from larger to smaller
+
+    // Truncation of 32-bit
+    // TODO: no warning?
+    uint32_t trunc_me = 0xffff;
+    uint8_t truncated_uint = truncate(trunc_me);
+    // Again, this is legacy on ANSI C. 
+    // In modern languages like Rust problem of truncation and nawworing convertions does not exist
+    // However, all explicit casts do not specify source type, only destination
 
     // warning: conversion with possible loss of data, even 1 is perfectly fit
     long long wide_ll = 1;
