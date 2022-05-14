@@ -115,6 +115,16 @@ void show_initializer_auto()
 }
 
 
+void initializer_list_example()
+{
+    int v = {1,2,3,4,5,6,7,8,9};
+    std::set<int> s1(std::begin(v), std::end(v));
+    // C++17
+    std::set s2{std::begin(v), std::end(v)};
+    std::cout << s1.size() << '\n';
+    std::cout << s2.size() << '\n';
+}
+
 // Pass variadic template params to lambda
 namespace cpp4
 {
