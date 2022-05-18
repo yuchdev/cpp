@@ -24,7 +24,7 @@ Examples:
 namespace cpp4
 {
 
-// 1. Finally
+// 1. `finally` implementation
 // The 'finally action' is provided as an argument to the constructor
 template<typename F>
 struct final_action
@@ -41,7 +41,7 @@ struct final_action
     F clean;
 };
 
-// we define a function that conveniently deduces the type of an action
+// we define a function that conveniently deduces the type of action
 template<class F>
 final_action<F> finally(F f)
 {

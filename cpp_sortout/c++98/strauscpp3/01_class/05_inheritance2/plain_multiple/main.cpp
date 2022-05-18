@@ -16,9 +16,7 @@ using std::type_info;
 // Demonstration of simple multiple inheritance
 void show_simple()
 {
-
     size_t sz = 0;
-
     {
         control_t control;
         // Here and below we check the size of class

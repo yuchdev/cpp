@@ -49,7 +49,7 @@ public:
 
     // Operators which are better to be overloaded by a method
     // have to return a reference to this, as they change their state
-    // Is is done in odeer to provide the ability of "chaining" them (`a += b += c ...`)
+    // It is done in order to provide the ability of "chaining" them (`a += b += c ...`)
     // and prevent accidental creation of unnamed objects
     complex_t& operator+=(const complex_t& a);
     complex_t& operator-=(const complex_t& a);

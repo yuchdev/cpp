@@ -42,8 +42,8 @@ Assigning a longer string to an object, we can try the following sequence (incor
 Before performing the first of these operations, the object data is consistent, after the last one is done, too.
 Between the first and last operations, consistency is broken.
 
-Rule 1: Before returning from any public method, object data must be consistent.
-Rule 2: Ensure object data is consistent before making an outgoing call.
-Rule 3: Consider that during the outgoing call the object's state can be changed.
+* Rule 1: Before returning from any public method, object data must be consistent.
+* Rule 2: Ensure object data is consistent before making an outgoing call.
+* Rule 3: Consider that during the outgoing call the object's state can be changed.
 
 TODO: class invariant

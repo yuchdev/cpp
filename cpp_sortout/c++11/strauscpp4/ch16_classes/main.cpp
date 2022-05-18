@@ -58,8 +58,6 @@ void show_memberwise_init()
 
 } // namespace cpp4 
 
-
-
 //2. Explicit destroy(17.2.4)
 namespace cpp4
 {
@@ -296,7 +294,6 @@ public:
 
         // my: hmm, it is safe, but anyway not efficient
         // I would add != this check
-
         std::swap(tmp, *this);
 
         return *this;
@@ -453,7 +450,7 @@ struct heap_allocated
     // don't call destructor 
     ~heap_allocated() = delete;
 
-    // call destroy() instaed
+    // call destroy() instead
     void destroy() {}
 };
 

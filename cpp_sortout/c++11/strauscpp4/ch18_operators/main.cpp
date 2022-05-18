@@ -43,11 +43,10 @@ void show_deleted_operations()
     cpp4::some b;
 
     // all these operations not possible
-    //a = b;
-    //some* pa = &a;
-    //a,b;
+    // a = b;
+    // some* pa = &a;
+    // a,b;
 }
-
 
 //2. Complex & literals(18.3.4)
 // It is possible to go further and introduce a user-defined literal in support of our type
@@ -143,7 +142,7 @@ void show_explicit_convert_operator()
     // error ; suspicious use
     // bool b = p1;
 
-    // // error; we definitly don't want this
+    // // error; we definitely don't want this
     // int x = 1 + p1;
 }
 

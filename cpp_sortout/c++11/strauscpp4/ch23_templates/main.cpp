@@ -176,7 +176,7 @@ void show_reference_forwarding()
 namespace cpp4
 {
 
-// Let we have two template overloads
+// Let us have two template overloads
 template<typename Iter>
 typename Iter::value_type mean(Iter first, Iter last)
 {

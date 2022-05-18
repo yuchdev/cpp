@@ -3,7 +3,7 @@
 // We consider in this class basic problems of construction and destruction
 // The class could be created and destructed in the number of methods
 // 1. Named object in the automatic memory (in the stack)
-// 2. Onbect in a free dynamic memory (new/delete).
+// 2. Object in a free dynamic memory (new/delete).
 // 3. Non-static class member.
 // 4. Object-element of array.
 // 5. Local static object.

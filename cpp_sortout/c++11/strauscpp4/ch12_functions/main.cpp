@@ -225,7 +225,7 @@ namespace cpp4
 {
 
 // exception-noexcept
-void nexcept_f(int) noexcept {}
+void noexcept_f(int) noexcept {}
 void plain_f(int) {}
 
 // calling convention specifiers
@@ -239,10 +239,10 @@ void __cdecl cdecl_call_func(int) {}
 void show_function_ptrs_specifiers()
 {
     // OK: but we throw away useful information 
-    void(*p1)(int) = cpp4::nexcept_f;
+    void(*p1)(int) = cpp4::noexcept_f;
 
     // OK: we preserve the noexcept information 
-    void(*p2)(int) noexcept = cpp4::nexcept_f;
+    void(*p2)(int) noexcept = cpp4::noexcept_f;
 
     // error: we don't know that g doesn't throw
     //  error C2440: 'initializing': cannot convert from 'void (__cdecl *)(int)' to 'void (__cdecl *)(int) noexcept'

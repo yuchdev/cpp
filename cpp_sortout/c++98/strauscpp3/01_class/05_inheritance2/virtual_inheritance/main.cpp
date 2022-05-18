@@ -14,9 +14,8 @@ using std::endl;
 using std::type_info;
 
 // Demonstration of virtual multiple inheritance
-void show_vitrual()
+void show_virtual()
 {
-
     size_t sz = 0;
 
     // The object contains 3 pointers to the base class, the base class itself and the derived class
@@ -147,7 +146,7 @@ int main()
 {
 
     show_simple();
-    show_vitrual();
+    show_virtual();
     show_sizes();
     show_final();
     show_typeid_rtti();

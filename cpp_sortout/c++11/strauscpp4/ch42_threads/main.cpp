@@ -11,7 +11,7 @@ using namespace std;
 New features:
 * Thread-local storage: thread_local (42.2.8)
 * Concurrency support: thread (5.3.1, 42.2), mutexes (5.3.4, 42.3.1), locks (5.3.4, 42.3.2), and condition variables (5.3.4.1, 42.3.4)
-* Higher-levelconcurrency support: packaged_thread, future, promise, and async() (5.3.5, 42.4)
+* Higher-level concurrency support: packaged_thread, future, promise, and async() (5.3.5, 42.4)
 
 Examples:
 1. Native handles (tread, mutex etc)

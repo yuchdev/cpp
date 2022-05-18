@@ -56,8 +56,8 @@ void show_local_and_defaults()
 // 3. More explicit control of template instantiation: extern templates
 // http://stackoverflow.com/questions/8130602/using-extern-template-c0x
 // You should only use extern template to force the compiler to not instantiate a template 
-// when you know that it will be instantiated somewhere else, its used to reduce compile time and reduce object file size
-// It could be useful for really big template functions
+// when you know that it will be instantiated somewhere else, it used to reduce compile time and reduce object file size
+// It could be useful for huge template functions
 
 int main()
 {

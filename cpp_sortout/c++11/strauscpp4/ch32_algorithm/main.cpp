@@ -99,7 +99,9 @@ void show_new_algorithms()
     // minmax_element
     // std::tie() creates a tuple of lvalue references to its arguments or instances of std::ignore
     // std::vector<int>::iterator minimum, maximum;
-    //TODO: ? std::tie(minimum, maximum) = std::minmax_element(std::begin(numbers), std::end(numbers));
+    int minimum{};
+    int maximum{};
+    std::tie(minimum, maximum) = std::minmax_element(std::begin(numbers), std::end(numbers));
 
     auto mm = std::minmax_element(std::begin(numbers), std::end(numbers));
 
@@ -142,7 +144,6 @@ void show_iterator_traits()
 //4. Iterator adapters(move iterator) (33.2)
 void show_iterator_adapters()
 {
-
     // In <iterator>, the standard library provides adaptors to generate useful related iterator types
     // reverse_iterator 
     // back_insert_iterator 
@@ -199,7 +200,6 @@ void out_two_params(int t1, const std::string& t2)
 //5. bind&men_fn(33.5.1 - 2)
 void show_func_adapters()
 {
-
     // bind
     // Given a function and a set of arguments, bind() produces a function object that can be called with
     // the remaining arguments, if any, of the function

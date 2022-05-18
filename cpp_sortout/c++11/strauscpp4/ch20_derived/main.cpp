@@ -39,10 +39,10 @@ public:
     // ok: bring public method to interface
     using base::pub_method;
 
-    // ok, but bad: public morozoff anti-pattern
+    // ok, but bad: public morozoff antipattern
     using base::prot_method1;
 
-    // unaccessible: 'cpp4::base': not all overloads are accessible
+    // inaccessible: 'cpp4::base': not all overloads are accessible
     // using base::priv_method;
 protected:
     using base::prot_data;

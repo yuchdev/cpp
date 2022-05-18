@@ -39,7 +39,7 @@ public:
 protected:
 
     // For the sake of simplicity, we use a single protected function
-    // for `operator new()` and `operator new[]()`.
+    // for `operator new()` and `operator new[]()`
     // This works, because in the overloaded operator new (or new[]) we just allocate memory 
     // and don't do anything specific with constructed objects.
     // In practice, there can be difference; for example, in `operator new` we may want to check if

@@ -46,11 +46,12 @@ int show_initializer_list()
 
     // Unqualified {...}, for which the the type must be determined from the context of use
 
-    //A unqualified list is used where an expected type is unambiguously known.It can be used as an expression only as :
-    //* A function argument
-    //* A return value
-    //* The right-hand operand of an assignment operator (=, but not +=, *=, etc.)
-    //* An array subscript
+    // An unqualified list is used where an expected type is unambiguously known.
+    // It can be used as an expression only as:
+    // * A function argument
+    // * A return value
+    // * The right-hand operand of an assignment operator (=, but not +=, *=, etc.)
+    // * An array subscript
 
     // When used as the initializer for a named object without the use of a = (as for v above), 
     // an unqualified{}-list performs direct initialization(16.2.6)
@@ -88,7 +89,7 @@ int show_initializer_list()
 }
 
 /*
-Unfortunately, we do not deduce the type of an unqualified list for a plain template argument
+Unfortunately, we do not deduce the type of unqualified list for a plain template argument
 
 template<typename T> void f(T);
 
@@ -101,7 +102,7 @@ this is a language restriction, rather than a fundamental rule
 
 void show_initializer_auto()
 {
-    // The type of a{}-list can be deduced(only) if all elements are of the same type
+    // The type of {}-list can be deduced(only) if all elements are of the same type
     // and at least one element present
 
     //auto x0 = {};
@@ -151,7 +152,6 @@ void algo(Var... args)
 }
 
 }
-
 
 void show_lambda()
 {

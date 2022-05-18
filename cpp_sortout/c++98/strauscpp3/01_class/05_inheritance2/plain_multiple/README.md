@@ -10,7 +10,7 @@ Multimethods. Visitor Pattern
 Pointers to members
 Free memory
 
-### Multiple Inheritance Defenition
+### Multiple Inheritance Definition
 
 * Multiple inheritance could be used to separate implementation from interface, with some tricky approaches
 * If a class defines `operator delete`, it is necessary to define a virtual destructor
@@ -18,7 +18,7 @@ Free memory
 * Ambiguity during the function call can be resolved with the explicit call using class name (`Base::method()`)
 * Declaring data in protected section indicates a design error
 * Constructors are called in the order declared during inheritance
-* Multimethods are not part of C++ langiage
+* Multimethods are not part of C++ language
   > "I rejected multi-methods with regret, because I liked the idea, but couldn't find an acceptable form under which to accept it"
   Bjarne Stroustrup, The Design and Evolution of C++
 * However, multimethods could be implemented with Visitor or Double-Dispatching pattern
@@ -79,6 +79,7 @@ CALL funcadr
 ##### GNU g++ 
 
 g++ uses a tricky space optimisation, also adopted by IBM's VisualAge and XLC.
+```c++
 struct GnuMFP {
    union {
      CODEPTR funcadr; // always even
@@ -89,12 +90,13 @@ struct GnuMFP {
 adjustedthis = this + delta
 if (funcadr & 1) CALL (* ( *delta + (vindex+1)/2) + 4)
 else CALL funcadr
+```
 
 ##### Microsoft and Intel
 
 Microsoft and Intel use this for the 'Unknown' case.
 Microsoft also use it when the /vmg option is used
-
+```c++
 struct MicrosoftUnknownMFP{
    FunctionPointer m_func_address; // 64 bits for Itanium.
    int m_delta;
@@ -104,3 +106,5 @@ struct MicrosoftUnknownMFP{
 if (vindex=0) adjustedthis = this + delta
 else adjustedthis = this + delta + vtordisp + *(*(this + vtordisp) + vindex)
 CALL funcadr
+
+```

@@ -5,7 +5,7 @@
 * Designing class hierarchies
 
 
-### Defenition of Inheritance
+### Definition of Inheritance
 
 * A hierarchy of classes can be a non-cyclic graph. The depth of the hierarchy is not limited
 * Do not use fields storing type information unless you really need it (e.g. for object serialization in database)
@@ -18,17 +18,17 @@
 * Destructors are called in an order reverse to construction
 * The derived class fields may have same named as the base one, although it is not recommended.
   In this case, the base class member is replaced by the one from derived class.
-* You can't initialize base class members in the derived construcor initialization list, 
+* You can't initialize base class members in the derived constructor initialization list, 
   you can change them in constructor body at the best (if they are not hidden in `private` section)
 * The methods of the base class can be called explicitly
 * Public inheritance in most cases declares that is called "is-a" relationship between base and derived class.
-  During the design stage, choose the base entity carefully (the classic anti-pattern here is classic "square-rectangle" inheritance)
+  During the design stage, choose the base entity carefully (the classic antipattern here is classic "square-rectangle" inheritance)
 * Private inheritance establish "has-a" relationship
 * `private` or `protected` inheritance could be used to hide the interface of a base class (Adapter pattern)
 * For implementing an Adapter, prefer composition. Use inheritance only when you have to
-  (e.g. you have to provide an access to protected members or ensure polymorphic behavior)
+  (e.g. you have to provide access to protected members or ensure polymorphic behavior)
 * In the case of closed inheritance, the casting pointer or reference to a base class does not work either
-* You can use `using base::method` derective in order to override the parent method
+* You can use `using base::method` directive in order to override the parent method
 
 * When calling virtual functions from constructors and destructors only static binding works
 * Declaring data in protected section indicates a design error

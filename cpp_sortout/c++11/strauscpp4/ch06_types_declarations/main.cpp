@@ -14,7 +14,7 @@ New features:
 * Unicode characters (6.2.3.2, 7.3.2.2)
 * long long integer type (6.2.4)
 * Alignment controls: alignas and alignof(6.2.9)
-* The ability to use the type of an expression as a type in a declaration: decltype
+* The ability to use the type of expression as a type in a declaration: decltype
   Important note: decltype has new behavior in C++14
 * C99 features (long long)
 * Integer type names, such as int16_t, uint32_t, and int_fast64_t (6.2.8)
@@ -51,7 +51,6 @@ void show_bool()
 
 void show_chars()
 {
-
     // Character types
 
     // the choice of signed or unsigned for a char is implementation-defined
@@ -198,7 +197,7 @@ void show_init()
 
     // The trap is that if the initializer is a{}-list, we may not want its type deduced
 
-    // Important note: z1 is an initializer_list<int> in C++11 and int in C++14 and further
+    // Important note: z1 is an `initializer_list<int>` in C++11 and `int` in C++14 and further
     auto z1 { 99 };
 
     // z2 is an int

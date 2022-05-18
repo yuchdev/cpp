@@ -23,7 +23,7 @@ New features:
 
 Examples:
 1. Error propagation basic
-2. Error propagation multithread
+2. Error propagation in multithreading
 3. packaged task propagation
 4. system_error example with file
 5. system_error + error_category
@@ -36,12 +36,12 @@ namespace cpp4
 
 
 // pass exception_ptr by value
-void propagate_exception(std::exception_ptr eptr)
+void propagate_exception(std::exception_ptr ex)
 {
 
     // check whether exception is exists
-    if (eptr) {
-        std::rethrow_exception(eptr);
+    if (ex) {
+        std::rethrow_exception(ex);
     }
 }
 
@@ -79,14 +79,14 @@ void show_exception_propagation()
 }
 
 
-// 2. Error propagation multithread
+// 2. Error propagation in multithreading
 namespace cpp4
 {
 
 // bad example
 std::promise<int> global_promise;
 
-void thread_propagate_excetion()
+void thread_propagate_exception()
 {
 
     std::vector<int> v;
@@ -102,7 +102,7 @@ void thread_propagate_excetion()
     }
 }
 
-int thread_throw_excetion()
+int thread_throw_exception()
 {
     std::vector<int> v;
     int hhh {};
@@ -114,10 +114,10 @@ int thread_throw_excetion()
 } // namespace cpp4 
 
 
-void show_multithreaded_propagation()
+void show_multithreading_propagation()
 {
 
-    std::thread t { cpp4::thread_propagate_excetion };
+    std::thread t { cpp4::thread_propagate_exception };
 
     // instead of future current exception is thrown
     try {
@@ -140,7 +140,7 @@ void show_packaged_task_propagation()
 
     // This means that it is enough to throw an exception inside the function associated 
     // with the packaged task in order for that exception to be caught by the task's future
-    std::packaged_task<int()> task { cpp4::thread_throw_excetion };
+    std::packaged_task<int()> task { cpp4::thread_throw_exception };
 
     std::future<int> f = task.get_future();
 
@@ -301,7 +301,6 @@ struct is_error_code_enum<cpp4::http_error> : public true_type {};
 
 }
 
-
 void show_custom_error_condition()
 {
 
@@ -380,7 +379,7 @@ int main()
 
     // propagation
     show_exception_propagation();
-    show_multithreaded_propagation();
+    show_multithreading_propagation();
     show_packaged_task_propagation();
 
     // system_error

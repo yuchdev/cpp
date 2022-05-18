@@ -109,7 +109,6 @@ void show_volatile()
 
 int main()
 {
-
     show_instructions_reordering();
     show_fences();
     show_volatile();

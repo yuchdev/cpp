@@ -34,10 +34,10 @@
   A type with a virtual destructor performs the call to its own delete from the most derived destructor
 
 #### Sort it out later
-* delete[] usually includes object counter by offset 0
-* new/delete pointer should be compared to zero
-* new_handler function is a function which is called by the default allocation functions when they fail to allocate
-* every class may have its own new handler, set by set_new_handler()
+* `delete[]` usually includes object counter by offset 0
+* `new`/`delete` pointer should be compared to zero
+* `new_handler` function is a function which is called by the default allocation functions when they fail to allocate
+* every class may have its own new handler, set by `set_new_handler()`
 * Mixture pattern could be used to apply some particular allocation algorithm towards the class
 
 

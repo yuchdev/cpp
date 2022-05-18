@@ -20,11 +20,11 @@ Advices:
 * The standard conversions allow 0 to be used as a constant of pointer or pointer-to-member type
 * In C, NULL is typically (void*)0, which makes it illegal in C++
 * A string literal is statically allocated
-* The backslash convention for representing nongraphic characters
+* The backslash convention for representing non-graphic characters
 * Raw string literals use the R"(ccc)" notation for a sequence of characters "ccc"
 * Unless you work with regular expressions, raw string literals are probably just a curiosity
 * Similarly, a string with the prefix LR, such as LR"(angst)"
-* Basically, constexpr's role is to enable and ensure compile-time evaluation, 
+* Basically, `constexpr` role is to enable and ensure compile-time evaluation,
   whereas const's primary role is to specify immutability in interfaces
 * To reflect the lvalue/rvalue and const/non-const distinctions, there are three kinds of references:
 	* lvalue references: to refer to objects whose value we want to change

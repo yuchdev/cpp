@@ -25,8 +25,7 @@ Examples:
 //2. Clocks(35.2.3), Time Traits(35.2.4)
 void show_time()
 {
-
-    // Duration consists of a count of ticks of type Rep and a tick period, where the tick period 
+    // Duration consists of a count of ticks of type Rep and a tick period, where the tick period
     // is a compile-time rational constant representing the number of seconds from one tick to the next
     using shakes = std::chrono::duration<int, std::ratio<1, 100000000>>;
     using jiffies = std::chrono::duration<int, std::centi>;
@@ -144,7 +143,6 @@ void show_types()
         << cpp4::decay_equiv<int(int), int(*)(int)>::value << '\n';
 }
 
-
 // 5. string to numeric value conversions (36.3.5)
 void show_string_conv()
 {
@@ -167,7 +165,7 @@ void show_string_conv()
     s = " 123.45";
     auto x1 = stoi(s); // x1 = 123
 
-    // If a conversion function doesn’t find characters in its string argument that it 
+    // If a conversion function doesnï¿½t find characters in its string argument that it 
     // can convert to a number, it throws invalid_argument
     // If it finds a number that it cannot represent in its target type, it throws out_of_range; 
     // in addition, the conversions to floating-point types set errno to ERANGE

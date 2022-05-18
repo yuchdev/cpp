@@ -54,12 +54,10 @@ void show_tuple()
     // TODO: piecewise construct
 }
 
-
 // 2. weak_ptr example (34.3.3)
 void show_weak_ptr()
 {
-
-    // std::weak_ptr is a very good way to solve the dangling pointer problem. By just using raw pointers 
+    // std::weak_ptr is a very good way to solve the dangling pointer problem. By just using raw pointers
     // it is impossible to know if the referenced data has been deallocated or not. 
     // Instead, by letting a shared_ptr manage the data, and supplying weak_ptr to users of the data, 
     // the users can check validity of the data by calling expired() or lock()
@@ -208,7 +206,7 @@ public:
     // destroy one element
     void destroy(pointer p)
     {
-        // case of explicit destr call
+        // case of explicit destructor call
         p->~T();
     }
 
