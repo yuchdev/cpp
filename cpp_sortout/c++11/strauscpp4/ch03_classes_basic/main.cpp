@@ -198,6 +198,9 @@ void process(T t)
     std::cout << t << "=" << typeid(t).name() << std::endl;
 }
 
+// close recursion
+void variadic_func() {}
+
 // call for the head param
 template <typename T, typename... Tail>
 void variadic_func(T head, Tail... tail)
@@ -205,9 +208,6 @@ void variadic_func(T head, Tail... tail)
     process(head);
     variadic_func(tail...);
 }
-
-// close recursion
-void variadic_func() {}
 
 // 6. Type aliases
 // introduce a synonym for a type or a template
@@ -230,7 +230,6 @@ template<typename Container> void algo(Container& c)
 // another example
 template<typename Key>
 using StringMap = std::map<Key, std::string>;
-
 
 } // namespace cpp4
 
