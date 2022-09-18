@@ -47,7 +47,7 @@ namespace your
 
 // Namespace alias
 // Could be convenient while using namespaces vor versioning
-namespace aaa = my;
+namespace my_namespace_alias = my;
 
 
 // It is recommended to bring interface of C library into distinct namespace
@@ -60,20 +60,20 @@ int printf();
 
 // While namespace member is not being used, it can't cause name conflict
 // Example:
-namespace A
+namespace unused_namespace_a
 {
-    int aaa;
+    int unused_int{};
 }
 
-namespace B
+namespace unused_namespace_b
 {
-    int aaa;
+    int unused_int{};
 }
 
-namespace AB
+namespace unused_namespaces
 {
-    using namespace A;
-    using namespace B;
+    using namespace unused_namespace_a;
+    using namespace unused_namespace_b;
 }
 
 
@@ -100,18 +100,18 @@ void show_namespaces()
 
         // using-declaration
         // Allow usage of a single namespace member
-        // Prefer using-declaration whinever possible
+        // Prefer using-declaration whenever possible
         // it has priority towards using-directives
         using your1::belongs_to_your1;
         belongs_to_your1 = 5;	// your1::a
     }
 
-    aaa::belongs_to_my = 6;
+    my_namespace_alias::belongs_to_my = 6;
 
     // Overload works through all overloaded declarations
     // Declaring operator+(), we allow all overloaded operator+()
 
-    // Example of ambuguosity with the class name
+    // Example of ambiguity with the class name
     {
         using namespace std;
         // local names hides using-directive opened names
@@ -121,7 +121,7 @@ void show_namespaces()
     {
         using std::vector;
         // local names overloads with using-declaration opened names
-        // int vector = 10; compiler error (hahaha)
+        // int vector = 10; compiler error (haha)
     }
 }
 
