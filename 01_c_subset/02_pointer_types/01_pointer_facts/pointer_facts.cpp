@@ -139,6 +139,46 @@ void pointer_conversions()
 #endif
 }
 
+void show_const_pointers()
+{
+    // Pointer to constant
+    const int *pp1 = new const int(3);
+
+    // Update: almost recently uninitialized const free memory, both pointers and arrays
+    // Before we could create a useless const pointer to a const int or array of ints,
+    // and leave it uninitialized.
+    // TODO: try on different standards
+#if 0
+    const int* pp2 = new const int;
+
+    // You can initialize it with any legal way
+    // Even const_cast will not work
+    //const_cast<int>(*pp2) = 1;
+
+    // You can create uninitialized const dynamic array
+    // You can't even use default initialization, and can't change its values in any way
+    const int* pp3 = new const int[100];
+#endif
+
+    // Standard permits dynamic array of zero size
+    int *pp5 = new int[0];
+
+    // unlike regular array
+    //int p6[0];
+
+    // Windows-specific function _msize allows to determine real size of dynamic array
+    // ()
+#if defined(_WIN32) || defined(_WIN64)
+    size_t sz = _msize(pp5);
+#endif
+
+    delete pp1;
+#if 0
+    delete pp2;
+    delete[] pp3;
+#endif
+}
+
 int main()
 {
     // TODO: insert any function call

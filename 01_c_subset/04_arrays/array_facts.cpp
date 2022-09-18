@@ -48,7 +48,7 @@ void array_facts()
 
 // Let's use this static type
 template <typename T, std::size_t N>
-inline std::size_t arraysize(T(&arr)[N])
+inline std::size_t array_size(T(&arr)[N])
 {
     return N;
 }
@@ -99,13 +99,29 @@ void array_pointer_and_array()
 
     // 5. However, the trick is quite vague, and really not necessary,
     // since array size is included statically in every array type
-    std::cout << arraysize(integer_array) << '\n';
+    std::cout << array_size(integer_array) << '\n';
 
     // 6. Pointer to multi-dimensional array
     int m_arr[10][20] = {};
     int(*m_dim_ptr)[10][20] = &m_arr;
 }
 
+void typedef_arrays()
+{
+    // carefully use typedef with C-arrays
+    typedef int week_array[7];
+    int* s = new week_array;
+
+    // You should use delete with this type (delete[] is correct), but from the name it's not that obvious
+    delete[] s;
+
+    // X* x = new Y[2];
+    // delete[] x;
+    // It invokes undefined behavior.
+    // This is correct.
+    // When deleting an array, the dynamic and the static type of the object must be the same,
+    // or the behavior is undefined (C++ Standard 5.3.5/3).
+}
 
 int main()
 {
