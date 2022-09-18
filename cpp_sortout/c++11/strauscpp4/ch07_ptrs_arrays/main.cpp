@@ -180,9 +180,8 @@ void show_union_tags()
 
 void show_enum_classes()
 {
-
     // The underlying type must be one of the signed or unsigned integer types (6.2.4)
-    // the default is int. We could be explicit about that:
+// the default is int. We could be explicit about that:
 
     enum class warning1 : long { green, yellow, red };
 
@@ -202,6 +201,15 @@ void show_enum_classes()
     // A plain enum can be unnamed, e.g.:
     enum { arrow_up = 1, arrow_down, arrow_sideways };
 }
+
+// Print enum as int
+enum class warning { green, yellow, red };
+
+void print_warning(warning w)
+{
+    std::cout << static_cast<int>(w) << '\n';
+}
+
 
 namespace cpp4
 {

@@ -10,33 +10,33 @@
 // Simple names namespace
 namespace my
 {
-    int a;
+    int belongs_to_my{};
 }
 
 // When we use same namespace specifier, namespaces are being merged
 // Such namespaces could be declared anywhere, in different translation units, in different libraries
 namespace my
 {
-    int aa;
+    int also_belongs_to_my{};
 }
 
-// Unnamed namespace
-// Could be used for resolvind name conflicts, and preventing access from other translation units
+// Unnamed namespace anonymous
+// Could be used for resolving name conflicts, and preventing access from other translation units
 namespace
 {
-    int anonimous;
+    int belongs_to_anonymous{};
 }
 
 
 // One more way to merge two namespaces inside third namespace
 namespace your1
 {
-    int a;
+    int belongs_to_your1;
 }
 
 namespace your2
 {
-    int b;
+    int belongs_to_your2;
 }
 
 namespace your
@@ -79,17 +79,17 @@ namespace AB
 
 void show_namespaces()
 {
-    my::a = 1;
-    your1::a = 2;
+    my::belongs_to_my = 1;
+    your1::belongs_to_your1 = 2;
 
     // Merged namespaces your1 and your2
-    your::a = 3;
+    your::belongs_to_your1 = 3;
 
     // using-directive could be utilized in a closed scope
     // to prevent names conflict
     {
         using namespace your;
-        a = 4;
+        belongs_to_your1 = 4;
     }
 
     {
@@ -102,11 +102,11 @@ void show_namespaces()
         // Allow usage of a single namespace member
         // Prefer using-declaration whinever possible
         // it has priority towards using-directives
-        using your1::a;
-        a = 5;	// your1::a
+        using your1::belongs_to_your1;
+        belongs_to_your1 = 5;	// your1::a
     }
 
-    aaa::a = 6;
+    aaa::belongs_to_my = 6;
 
     // Overload works through all overloaded declarations
     // Declaring operator+(), we allow all overloaded operator+()

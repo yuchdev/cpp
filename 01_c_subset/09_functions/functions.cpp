@@ -32,7 +32,7 @@ int cdecl cdecl_func(int a, long b) cdecl_gcc
     // Save base register into stack
     // 00411440  push        ebp
 
-    // Save surrent top of the stack
+    // Save current top of the stack
     // 00411441  mov         ebp,esp
 
     // Set the stack frame for local variables
@@ -78,7 +78,7 @@ int stdcall stdcall_func(int a, long* b) stdcall_gcc
     // Save base register into stack
     //  push        ebp
 
-    // Save surrent top of the stack
+    // Save current top of the stack
     //  mov         ebp,esp
 
     // Set the stack frame for local variables
@@ -120,10 +120,9 @@ int stdcall stdcall_func(int a, long* b) stdcall_gcc
 }
 
 
-// "Fast" calling convention
-// calling convention specifies that arguments to functions are to be passed in registers, 
+// "Fast" calling convention specifies that arguments to functions are to be passed in registers,
 // when possible. When all registers are busy, remaining parameters are passed thriugh stack
-//  This calling convention only applies to the x86 architecture
+// This calling convention only applies to the x86 architecture
 // the stack is cleaned up by the called function
 int fastcall fastcall_func(char a, short b) fastcall_gcc
 {
@@ -172,7 +171,7 @@ double f_var(double n, ...)
 
 // If we pass arguments by non-const reference, we cant implicitly convert passed argument
 // to avoid UB or slicing
-// Passed argiment must be non-const either
+// Passed argument must be non-const either
 void update(float& f)
 {
     f += 1.0f;
@@ -264,9 +263,9 @@ int main()
 
 
     int e = fastcall_func(aa, bb);
-    // both aa and bb are being passed through registers
+    // both also_belongs_to_my and bb are being passed through registers
     //mov         dx,word ptr [bb]
-    //mov         cl,byte ptr [aa]
+    //mov         cl,byte ptr [also_belongs_to_my]
     //call        fastcall_func (411019h)
     //mov         dword ptr [e],eax
 

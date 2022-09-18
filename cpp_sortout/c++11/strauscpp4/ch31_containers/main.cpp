@@ -165,7 +165,7 @@ void show_load_bucket()
 {
 
     // Note that setting the max_load_factor, calling rehash(), or calling reserve() can be very expensive operations 
-    // (worst case O(n*n)) because they can – and in realistic scenarios typically do – cause rehashing of all elements
+    // (worst case O(n*n)) because they can ï¿½ and in realistic scenarios typically do ï¿½ cause rehashing of all elements
     std::unordered_set<cpp4::record> s { 1000 };
 
     // get hash&equality func
@@ -185,6 +185,14 @@ void show_load_bucket()
 
     size_t bc = s.bucket_count();
     size_t mbc = s.max_bucket_count();
+}
+
+// 21.	Is it a valid code in C++? What the undescore symbol does stand for?
+synchronized void Test() {
+    std::map<int, string> id_names = {{1, "John"}, {2, "Tom"}, {3, "Sara"}};
+    for (auto [_, name] : id_names) {
+        std::cout << name << std::endl;
+    }
 }
 
 

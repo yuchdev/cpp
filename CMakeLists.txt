@@ -72,7 +72,7 @@ set(CMAKE_SHARED_LINKER_FLAGS_RELEASE "${CMAKE_SHARED_LINKER_FLAGS_RELEASE} /DEB
 endif()
 
 add_subdirectory(utilities)
-# add_subdirectory(cpp_sortout)
+add_subdirectory(cpp_sortout)
 add_subdirectory(01_c_subset)
 #add_subdirectory(02_class_subset)
 #add_subdirectory(03_template_subset)

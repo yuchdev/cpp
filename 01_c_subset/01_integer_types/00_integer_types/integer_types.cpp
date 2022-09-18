@@ -62,7 +62,6 @@ void boolean_type()
  * Motorola dsp56k char==24bit
  * The exact number being recorded in macro CHAR_BIT
  */
-
 void character_types()
 {
     // Pointer to unsigned char often used to represent raw memory, as a pointer to byte
@@ -147,7 +146,7 @@ void integer_types()
     // is stored in memory at the lowest address, and the high-order byte 
     // at the highest address, i.e. the little end comes first
 
-    // Let's use variable of type unsigned long long and pointer to unsigned char
+    // Let's use variable of type `unsigned long long` and pointer to unsigned char
     unsigned long long little_endian = 0x8899aabbccddeeff;
     unsigned char* p_byte = reinterpret_cast<unsigned char*>(&little_endian); // NOLINT(modernize-use-auto)
     for (size_t i = 0; i < sizeof(unsigned long long); ++i, ++p_byte) {
@@ -191,21 +190,20 @@ void integer_types()
     are collectively known as data model. Four data models found wide acceptance:
 
     1.  LP32 or 2/4/4 (int is 16-bit, long and pointer are 32-bit)
-        16 bit systems, Win16 API
+        16-bit systems, Win16 API
     2.  ILP32 or 4/4/4 (int, long, and pointer are 32-bit):
-        32 bit systems
+        32-bit systems
         Win32 API
         Unix and Unix-like systems (32-bit Linux, macOS)
     3.  LLP64 or 4/4/8 (int and long are 32-bit, pointer is 64-bit)
-        64 bit systems
+        64-bit systems
         Win64 API
     4.  LP64 or 4/8/8 (int is 32-bit, long and pointer are 64-bit)
-        64 bit systems
+        64-bit systems
         Unix and Unix-like systems (64-bit Linux, macOS)
-
-    Other models are very rare. For example, ILP64 (8/8/8: int, long, and pointer are 64-bit)
-    only appeared in some 64-bit Unix systems (UNICOS Cray Unix)
-    https://en.wikipedia.org/wiki/UNICOS
+    5.  Other models are very rare. For example, ILP64 (8/8/8: int, long, and pointer are 64-bit)
+        only appeared in some 64-bit Unix systems (UNICOS Cray Unix)
+        https://en.wikipedia.org/wiki/UNICOS
 */
 
 #if _WIN32 || _WIN64
@@ -384,7 +382,7 @@ void numeric_conversions()
     uint32_t trunc_me = 0xffff;
     uint8_t truncated_uint = truncate(trunc_me);
     // Again, this is legacy on ANSI C. 
-    // In modern languages like Rust problem of truncation and nawworing convertions does not exist
+    // In modern languages like Rust problem of truncation and narrowing conversions does not exist
     // However, all explicit casts do not specify source type, only destination
 
     // warning: conversion with possible loss of data, even 1 is perfectly fit
@@ -476,7 +474,7 @@ void fixed_size_types()
 
     // (un)signed integer type capable of holding a pointer
     // intptr_t can't be assigned a nullptr, it's just an int size of pointer
-    intptr_t iptr = 0;
+    intptr_t int_ptr = 0;
 
     // maximum-width (un)signed integer type
     intmax_t imax {};
