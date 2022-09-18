@@ -12,40 +12,39 @@
 // 8. Object created by a user-defined allocator.
 // 9. Member of union
 
-// Unlike methid, c-tor can't be virtual, static, and does not return any value
+// Unlike method, c-tor can't be virtual, static, and does not return any value
 
 /** @brief
 That's a simple class
 */
-struct intern
+struct SimpleStruct
 {
     int a;
-    intern();
-    intern(int);
-    ~intern();
+    SimpleStruct();
+    SimpleStruct(int);
+    ~SimpleStruct();
 };
 
-// Note: See Satter 1.04
 class A;
 
 /** @brief
 That's a class, containing other member objects
 */
-class construct
+class SimpleClass
 {
 public:
     // Default c-tor always call default c-tors of aggregated classes
-    construct();
+    SimpleClass();
 
     // C-tor with default members may work like a default
-    construct(int i/* = 0*/);
+    SimpleClass(int i/* = 0*/);
 
     // Note: The compiler does not generate const operator=(const A&) if non-const is defined
-    construct(const construct& c);
+    SimpleClass(const SimpleClass& c);
 
     // Copy c-tor defines how object behave if returned by value
     // Move c-tor defines, how object pass its state to another object
-    ~construct();
+    ~SimpleClass();
 
     // In order to access a static class member, you should define a static method
     static void out_static_array();
@@ -55,7 +54,7 @@ public:
 private:
 
     // C-tor of this class is being called in default c-tor
-    intern intrn;
+    SimpleStruct intrnal;
     int b {};
 
     // You can define a C-array member, however, 
@@ -81,16 +80,16 @@ private:
 };
 
 /** @brief
-This was the method to deny class copying before C++11
+Placing copy c-tor and assignment in private section was the method to deny class copying before C++11
 */
-class noncopyble
+class NonCopyClass
 {
 private:
     int d;
-    noncopyble(const noncopyble& n);
-    noncopyble& operator=(const noncopyble& n);
+    NonCopyClass(const NonCopyClass& n);
+    NonCopyClass& operator=(const NonCopyClass& n);
 public:
-    noncopyble() : d(5) {  /*d = 5; - better not to do so*/ }
+    NonCopyClass() : d(5) {  /*d = 5; - better not to do so*/ }
 };
 
 /** @brief
@@ -106,17 +105,17 @@ int& return_static();
 /** @brief
 This class contains a C-pointer. The pointer could be initialized as any other class member
 */
-class contain_pointer
+class ContainsPointer
 {
-    construct* _pc = nullptr;
+    SimpleClass* _pc = nullptr;
 
-    // The class can caontain a pointer to itself
+    // The class can contain a pointer to itself
     // However, be careful with recursion here!
-    contain_pointer* _p_cp;
+    ContainsPointer* _p_cp;
 
     // You can initialize the pointer in declaration, in constructor,
     // or as a default value of constructor
-    contain_pointer(construct* pc = new construct) : _pc(pc) {}
-    ~contain_pointer() { delete _pc; }
+    ContainsPointer(SimpleClass* pc = new SimpleClass) : _pc(pc) {}
+    ~ContainsPointer() { delete _pc; }
 };
 

@@ -1,10 +1,11 @@
 #include <utilities/defines.h>
 SUPPRESS_PRAGMA_WARNINGS()
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
+#include <type_traits>
 
-// Pro-argument for data accessors and mutators
+// Arguments for using data accessors and mutators
 // * distinctive read-write access
-// * support of functional abstractness - class member could be replaced with calculation, or even moved outside the class
+// * support of functional abstractness - class member could be replaced with calculation, cached, or even moved outside the class
 // * value evaluation, checking the consistency
 // * logging
 // * if we see open class member in method, we expect it to be this class member
@@ -14,24 +15,26 @@ SUPPRESS_PRAGMA_WARNINGS()
 // (same for class, enum, union)
 void struct_one_name()
 {
-    struct A
+    struct struct_one_name
     {
         int a;
     };
 
-    A aa;
-    aa.a = 2;
-    int A = 1;
+    struct_one_name s;
+    s.a = 2;
+    constexpr int struct_one_name = 1;
+    static_assert(struct_one_name == 1, "struct_one_name");
+    static_assert(std::is_same<decltype(s.a), decltype(struct_one_name)>::value, "struct_one_name");
 }
 
 // Methods overload
 // https://en.cppreference.com/w/cpp/language/overload_resolution
 
-class A
+class SimpleClass
 {
 public:
 
-    A(char* const cp1) : cp1(cp1) {}
+    SimpleClass(char* const cp1) : cp1(cp1) {}
 
     // Static members COULD be changed in const members, as it does not change class state
     void set_static(int i) const
