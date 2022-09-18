@@ -165,7 +165,7 @@ void show_load_bucket()
 {
 
     // Note that setting the max_load_factor, calling rehash(), or calling reserve() can be very expensive operations 
-    // (worst case O(n*n)) because they can � and in realistic scenarios typically do � cause rehashing of all elements
+    // (worst case O(n*n)) because they may cause rehashing of all elements
     std::unordered_set<cpp4::record> s { 1000 };
 
     // get hash&equality func

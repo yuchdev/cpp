@@ -100,7 +100,7 @@ void show_namespaces()
 
         // using-declaration
         // Allow usage of a single namespace member
-        // Prefer using-declaration whinever possible
+        // Prefer using-declaration whenever possible
         // it has priority towards using-directives
         using your1::belongs_to_your1;
         belongs_to_your1 = 5;	// your1::a
@@ -111,7 +111,7 @@ void show_namespaces()
     // Overload works through all overloaded declarations
     // Declaring operator+(), we allow all overloaded operator+()
 
-    // Example of ambuguosity with the class name
+    // Example of ambiguity with the class name
     {
         using namespace std;
         // local names hides using-directive opened names
