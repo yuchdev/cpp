@@ -28,7 +28,7 @@ private:
 // If we want to inherit a realization without interface,
 // in other words, we do not want an instance of the adapter_stack_t class to access
 // all operations of the deque_t class (as we can only add to the stack at the end).
-// We can use _private_ inheritance, so that all of the public class members become private
+// We can use _private_ inheritance, so that all the public class members become private
 // for the user of adapter_stack_t.
 // However, if we want to inherit further from adapter_stack_t, it is better to use protected.
 // For private inheritance, casting pointer or reference to a base class also won't work

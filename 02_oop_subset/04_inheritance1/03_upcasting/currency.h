@@ -23,14 +23,14 @@ public:
     virtual Currency& operator*=(const Currency& c);
     virtual Currency& operator/=(const Currency& c);
 
-    friend const Currency operator+(const Currency& a, const Currency& b);
-    friend const Currency operator-(const Currency& a, const Currency& b);
-    friend const Currency operator*(const Currency& a, const Currency& b);
-    friend const Currency operator/(const Currency& a, const Currency& b);
+    friend Currency operator+(const Currency& a, const Currency& b);
+    friend Currency operator-(const Currency& a, const Currency& b);
+    friend Currency operator*(const Currency& a, const Currency& b);
+    friend Currency operator/(const Currency& a, const Currency& b);
 
 
 
-    void print();
+    void print() const;
 protected:
     double _currency;
 };

@@ -111,7 +111,7 @@ inline ostream& operator<<(ostream& t, A_virt& c)
 // The destructor can be purely virtual, but its pure virtuality
 // differs from other methods
 
-// Purely virtual functions have no body.
+// Purely virtual functions does not have the body.
 // In the table of virtual functions they are represented by a nullptr
 // This function can't be called, or rather it can be, but it will crash the program
 
@@ -155,7 +155,7 @@ struct v_derived : public v_base
 // A couple more important points:
 // When a default parameter is specified in a virual function, it is inherited
 // The type of the return value can be different, if it is a pointer or a reference,
-// that can be casted to each other, so-called co-variant type
+// that can be cast to each other, so-called co-variant type
 struct Base1
 {
     // just a virtual function to indicate an overload
@@ -198,11 +198,11 @@ public:
 
 struct Derived1 : Base1
 {
-    // TODO: repeat for static and dynamic binding
-    //int f(int) {
-    //	std::cout << "int Derived1::f()" << std::endl;
-    //	return 1;
-    //}
+    // TODO: complete the implementation of the derived class
+    //    int f(int) {
+    //    	std::cout << "int Derived1::f()" << std::endl;
+    //    	return 1;
+    //    }
 
     // a virtual function to show inheritance of default values
     // (i = 20) overrides (i = 10) from the base
@@ -212,7 +212,7 @@ struct Derived1 : Base1
     }
 
     // a virtual function to show different return types
-    // the return pointer B_virt could be casted to A_virt
+    // the return pointer B_virt could be cast to A_virt
     virtual B_virt* pf(int i = 2)
     {
         std::cout << "B_virt* B::pf(int) " << i << std::endl;

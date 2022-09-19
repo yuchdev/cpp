@@ -39,30 +39,30 @@ Currency& Currency::operator /=(const Currency& c)
     return *this;
 }
 
-void Currency::print()
+void Currency::print() const
 {
     std::cout << _currency << " dollars" << std::endl;
 }
 
-const Currency operator+(const Currency& a, const Currency& b)
+Currency operator+(const Currency& a, const Currency& b)
 {
     Currency tmp(a);
     return tmp += b;
 }
 
-const Currency operator-(const Currency& a, const Currency& b)
+Currency operator-(const Currency& a, const Currency& b)
 {
     Currency tmp(a);
     return tmp -= b;
 }
 
-const Currency operator*(const Currency& a, const Currency& b)
+Currency operator*(const Currency& a, const Currency& b)
 {
     Currency tmp(a);
     return tmp *= b;
 }
 
-const Currency operator/(const Currency& a, const Currency& b)
+Currency operator/(const Currency& a, const Currency& b)
 {
     Currency tmp(a);
     return tmp /= b;

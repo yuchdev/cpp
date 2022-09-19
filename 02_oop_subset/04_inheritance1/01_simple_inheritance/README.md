@@ -12,7 +12,7 @@
 * Liskov Substitution Principle idea is following: a function that uses a reference or a pointer to a base class 
   must also be able to work with descendant classes, without checking thir types explicitly
 * Do not pass polymorphic objects by value to avoid slicing
-* It is common practice to inherit classes from classes (i.e., structures are not involved in inheritance)
+* It is common practice to inherit classes from classes (i.e., structures usually are not involved in inheritance, however, perfectly can be)
 * The constructor and destructor are never inherited, it is either created by default or implemented explicitly
 * Assignment operators and friend functions are not inherited as well
 * Destructors are called in an order reverse to construction

@@ -1,13 +1,9 @@
-#include "abstract.h"
-#include "classes.h"
-#include "currency.h"
-#include "adapter.h"
-#include "virtual.h"
-
 #include <memory>
 #include <vector>
 #include <algorithm>
 #include <functional>
+
+// TODO: sort out the examples
 
 void show_simple_inheritance()
 {
@@ -24,7 +20,7 @@ void show_simple_inheritance()
     // The opposite is incorrect
     pe1->show_name();
 
-    // For accessing sudh methods, explicit cast to a derived class is possible
+    // For accessing such methods, explicit cast to a derived class is possible
     static_cast<Manager*>(pe1)->show_level();
 
 
@@ -45,14 +41,14 @@ void show_simple_inheritance()
 // Show operator overloading and inheritance
 void show_operators()
 {
-    currency_t c1 = 1.0;
-    currency_t c2 = 20;
+    Currency c1 = 1.0;
+    Currency c2 = 20;
 
-    roubles_t r1(1.);
-    roubles_t r2 = r1;
+    Usd r1(1.);
+    Usd r2 = r1;
 
     // Test the base class operators
-    currency_t c3 = c1;
+    Currency c3 = c1;
     c3 = c1 + c2;
     c3 += 2.;
     c3 = c2 + 1;
@@ -60,7 +56,7 @@ void show_operators()
     // Test the derived class operators
     r2 = r1;
     r1 += r2;
-    roubles_t r3 = r1 + r2;
+    Usd r3 = r1 + r2;
 
     // Test the operators between base abd derived
     r3 = r1 + c1;
@@ -70,20 +66,20 @@ void show_operators()
     // to a base class and sent by parameters to operator+()
     // And it returns Currency by value
 
-    // To resolve such a situation, let's introduce in Usd class
+    // To resolve such a situation, let's introduce in Currency class
     // overloaded upcasting `operator=()`, as well as a similar constructor
 
     // This call in functional form: `r1.operator =( c1 )`
     r1 = c1;
 
     // This call in functional form: `cr3( r1 + r2 )`
-    const currency_t cr3 = r1 + r2;
+    const Currency cr3 = r1 + r2;
 
     // This call in functional form: `r3( cr3 )`
-    roubles_t r4 = cr3;
+    Usd r4 = cr3;
 
     // dynamic_cast is safer tool for downcasting
-    if (roubles_t* r = dynamic_cast<roubles_t*>(&c3)) {
+    if (Usd* r = dynamic_cast<Usd*>(&c3)) {
         r->print();
     }
 }
