@@ -123,6 +123,23 @@ def change_project_names(target_dir):
         change_project_name(subdir)
 
 
+def create_readme(target_dir):
+    """
+    Create README.md file in target_dir or rename readme.txt if present
+    """
+    os.chdir(target_dir)
+    subdirs = sorted([x for x in os.listdir(target_dir) if os.path.isdir(os.path.join(target_dir, x))])
+    for subdir in subdirs:
+        os.chdir(subdir)
+        if os.path.isfile("readme.txt"):
+            os.system("git mv readme.txt README.md")
+        elif not os.path.isfile("README.md"):
+            with open("README.md", "w") as readme_file:
+                readme_file.write(f"# {target_dir}\n")
+        os.system("git add README.md")
+        os.chdir("..")
+
+
 def main():
     parser = argparse.ArgumentParser(description='Command-line params')
     parser.add_argument('--create-cmake',
@@ -137,10 +154,15 @@ def main():
                         help='Create CMakeLists.txt in target_dir',
                         default="",
                         required=False)
+    parser.add_argument('--create-readme',
+                        help='Create README.md or rename readme.txt in target_dir',
+                        default="",
+                        required=False)
     parser.add_argument('--all',
                         help='Effect of all options',
                         default="",
                         required=False)
+
     args = parser.parse_args()
     if len(args.create_cmake):
         destination_dir = os.path.abspath(args.create_cmake)
@@ -150,16 +172,20 @@ def main():
         numeric_dirs = os.path.abspath(args.numeric_dirs)
         print(f"Creating numeric subdirectories in {numeric_dirs}")
         create_numeric_dirs(numeric_dirs)
+    elif len(args.create_subdir_cmake):
+        target_dir = os.path.abspath(args.create_subdir_cmake)
+        create_subdir_cmake(target_dir)
+        print(f"Created subdir CMakeLists.txt in {target_dir}")
+    elif len(args.create_readme):
+        target_dir = os.path.abspath(args.create_readme)
+        create_readme(target_dir)
+        print(f"Created README.md in {target_dir}")
     elif len(args.all):
         target_dir = os.path.abspath(args.all)
         print(f"Creating subdir and project CMakeLists.txt in {target_dir}")
         create_subdir_cmake(target_dir)
         create_cmake_files(target_dir)
         return 0
-    elif len(args.create_subdir_cmake):
-        target_dir = os.path.abspath(args.create_subdir_cmake)
-        create_subdir_cmake(target_dir)
-        print(f"Created subdir CMakeLists.txt in {target_dir}")
     os.system(f"git push origin master")
     return 0
 

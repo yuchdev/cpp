@@ -222,17 +222,6 @@ I use the suffix return type syntax to be able to express the return type in ter
 Important note: decltype has new behavior in C++14
 */
 
-// What will be the behavior of the code below? How to fix it but save static_assert?
-consteval auto SumDifferentTypes(std::integral auto a, auto b) {
-    if (std::is_same_v<decltype(a), decltype(b)>) {
-        static_assert(false, "a and b must have different types");
-    }
-    return a + b;
-}
-
-constexpr auto c = SumDifferentTypes(1, 2.2);
-
-
 int main()
 {
     show_bool();
