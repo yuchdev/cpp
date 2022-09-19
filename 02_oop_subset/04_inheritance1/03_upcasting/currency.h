@@ -1,32 +1,32 @@
 #pragma once
 
-class currency_t
+class Currency
 {
 public:
-    currency_t();
-    currency_t(double c);
-    currency_t(const currency_t& c);
-    ~currency_t();
+    Currency();
+    Currency(double c);
+    Currency(const Currency& c);
+    ~Currency();
 
-    currency_t& operator=(const currency_t& c);
+    Currency& operator=(const Currency& c);
 
     // Operator virtuality
     // 1. If the same actions are performed in the base and derived classes, 
     // it is not necessary to redefine the operators and make them virtual. 
     // A reference polymorphism kicks in, and the derived class is accepted as the base class by the reference
-    currency_t& operator+=(const currency_t& c);
-    currency_t& operator-=(const currency_t& c);
+    Currency& operator+=(const Currency& c);
+    Currency& operator-=(const Currency& c);
 
     // 2. But if there is a complex system of inheritance 
         // with overriding operations in derived classes takes place (a rare phenomenon),
     // operators can be virtual (just for the sake of example)
-    virtual currency_t& operator*=(const currency_t& c);
-    virtual currency_t& operator/=(const currency_t& c);
+    virtual Currency& operator*=(const Currency& c);
+    virtual Currency& operator/=(const Currency& c);
 
-    friend const currency_t operator+(const currency_t& a, const currency_t& b);
-    friend const currency_t operator-(const currency_t& a, const currency_t& b);
-    friend const currency_t operator*(const currency_t& a, const currency_t& b);
-    friend const currency_t operator/(const currency_t& a, const currency_t& b);
+    friend const Currency operator+(const Currency& a, const Currency& b);
+    friend const Currency operator-(const Currency& a, const Currency& b);
+    friend const Currency operator*(const Currency& a, const Currency& b);
+    friend const Currency operator/(const Currency& a, const Currency& b);
 
 
 
@@ -35,23 +35,23 @@ protected:
     double _currency;
 };
 
-class roubles_t : public currency_t
+class Usd : public Currency
 {
 public:
-    roubles_t(double d);
+    Usd(double d);
     void print();
 
     // In order to work correctly with instances of the base class returned by value
     // overload the downcasting operator=()
     // this will allow to transform a base class into a derived one
-    roubles_t& operator=(const currency_t& c);
+    Usd& operator=(const Currency& c);
 
     // Define the transform constructor as well
-    roubles_t(const currency_t& c);
+    Usd(const Currency& c);
 
     // This is just an example of operator virtualization
-    virtual currency_t& operator*=(const currency_t& c);
-    virtual currency_t& operator/=(const currency_t& c);
+    virtual Currency& operator*=(const Currency& c);
+    virtual Currency& operator/=(const Currency& c);
 };
 
 // You cannot inherit from built-in types!

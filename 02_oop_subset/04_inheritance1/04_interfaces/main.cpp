@@ -68,9 +68,9 @@ void show_operators()
     // Addition doesn't work this way anymore
     // r1 and r2 are silently converted as a result of the _increasing_ transformation
     // to a base class and sent by parameters to operator+()
-    // And it returns currency_t by value
+    // And it returns Currency by value
 
-    // To resolve such a situation, let's introduce in roubles_t class
+    // To resolve such a situation, let's introduce in Usd class
     // overloaded upcasting `operator=()`, as well as a similar constructor
 
     // This call in functional form: `r1.operator =( c1 )`
