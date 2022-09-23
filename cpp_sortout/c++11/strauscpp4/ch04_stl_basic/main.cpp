@@ -101,7 +101,6 @@ void show_hash()
 
 int main()
 {
-
     show_forward_list();
     show_hash();
 

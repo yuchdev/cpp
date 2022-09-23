@@ -54,6 +54,9 @@ void lvalue_reference()
     // However, keyword this was introduced before references were added to C++
 
     // * Use references when you can, and pointers when you have to
+
+    // * You can't save references in STL containers, 
+    //   due to its inability to be initialized with the default value
 }
 
 void rvalue_reference()

@@ -21,6 +21,7 @@ SUPPRESS_UNSIGNED_COUNTEREXAMPLE_WARNINGS()
 using char8_t = unsigned char;
 #endif
 
+
 #pragma region 01.boolean_type
 
 // void - type with an empty set of values
@@ -40,7 +41,7 @@ void boolean_type()
         << "bitwise(bool) = " << bitwise(is_root) << '\n';
 
     // Operator sizeof() yields size in bytes of the object representation of type or expression
-    // sizeof() cannot be used with function types, incomplete types, or bit-field glvalues
+    // sizeof() cannot be used with function types, incomplete types, or bit-field values
 }
 
 #pragma endregion
@@ -499,7 +500,6 @@ void fixed_size_types()
 }
 
 #pragma endregion
-
 
 int main(int argc, char* argv[])
 {
