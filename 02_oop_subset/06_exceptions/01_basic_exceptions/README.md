@@ -45,7 +45,7 @@ Exception | Parent | Throws
   as it would call destructors of global objets
 * Controlled constructor intercept all exceptions in the body and initialization list, and passes them on
 * There's a temptation to say it's possible to release some resources in controlled `catch` section,
-  but it's not true. We can't make any assumptions, on what stage of cinstruction exception iccured,
+  but it's not true. We can't make any assumptions, on what stage of instruction exception occured,
   and what resources were already initialized
 * Controlled constructor used only for diagnostic purposes
 * If one exception throws another, the application will crash by terminate()
