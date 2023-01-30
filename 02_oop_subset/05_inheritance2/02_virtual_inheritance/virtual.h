@@ -53,11 +53,11 @@ private:
 class cpp_code_generator : public virtual code_generator_base
 {
 public:
-    cpp_code_generator(int i);
+    explicit cpp_code_generator(int i);
     ~cpp_code_generator();
 
     // virtual method print() is overridden
-    virtual void print();
+    virtual void print() override;
     virtual void f1();
 private:
 };

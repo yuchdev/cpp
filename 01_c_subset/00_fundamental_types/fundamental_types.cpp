@@ -15,7 +15,30 @@ SUPPRESS_PRAGMA_WARNINGS()
 
 #pragma region 01.boolean_type
 
-void boolean_type()
+/// Radix sort of integer vector
+void radix_sort(const std::vector<int>& v)
+{
+    std::vector<int> result;
+    std::vector<int> buckets[10];
+
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < v.size(); ++j)
+        {
+            int bucket_index = (v[j] / static_cast<int>(std::pow(10, i))) % 10;
+            buckets[bucket_index].push_back(v[j]);
+        }
+
+        for (int j = 0; j < 10; ++j)
+        {
+            result.insert(result.end(), buckets[j].begin(), buckets[j].end());
+            buckets[j].clear();
+        }
+    }
+}
+
+
+bool boolean_type()
 {
     // The value of sizeof(bool) is implementation defined and might differ from 1
     // Bitwise representation is implementation-defined
@@ -28,6 +51,7 @@ void boolean_type()
 
     // Operator sizeof() yields size in bytes of the object representation of type or expression
     // sizeof() cannot be used with function types, incomplete types, or bit-field l-values
+    return false;
 }
 
 #pragma endregion

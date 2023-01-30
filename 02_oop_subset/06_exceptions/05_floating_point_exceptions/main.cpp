@@ -63,25 +63,12 @@ void show_seh()
 
 int main()
 {
-    show_base_type();
-    show_simple_ex();
-    show_out_of_range();
-    complex_object_exception();
-
     // int and float zero div exception
     // test with /EHa
     show_zero_div_exception();
     show_fpe_zero_div();
 
     show_seh();
-    show_controlled();
-
-    show_standard_handlers();
-
-    show_exception_private_inherit();
-
-    test_autoptr();
-
     return 0;
 }
 

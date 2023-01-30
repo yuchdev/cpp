@@ -47,7 +47,7 @@ void set_fpe_zero_div2()
 // warning C4996: '_controlfp': This function or variable may be unsafe
 void set_zero_div_exception()
 {
-    // clear FP flags is performed before each FP word change
+    // clear FP flags is performed before each FP word chang
     _clearfp();
 
     // get the current state
