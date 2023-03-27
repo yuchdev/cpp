@@ -10,34 +10,8 @@ SUPPRESS_PRAGMA_WARNINGS()
 
 #include <utilities/bitwise.h>
 
-// Fundamental C++ types
-// https://en.cppreference.com/w/cpp/language/types
-
-#pragma region 01.boolean_type
-
-/// Radix sort of integer vector
-void radix_sort(const std::vector<int>& v)
-{
-    std::vector<int> result;
-    std::vector<int> buckets[10];
-
-    for (int i = 0; i < 3; ++i)
-    {
-        for (int j = 0; j < v.size(); ++j)
-        {
-            int bucket_index = (v[j] / static_cast<int>(std::pow(10, i))) % 10;
-            buckets[bucket_index].push_back(v[j]);
-        }
-
-        for (int j = 0; j < 10; ++j)
-        {
-            result.insert(result.end(), buckets[j].begin(), buckets[j].end());
-            buckets[j].clear();
-        }
-    }
-}
-
-
+/// Fundamental C++ types
+/// https://en.cppreference.com/w/cpp/language/types
 bool boolean_type()
 {
     // The value of sizeof(bool) is implementation defined and might differ from 1
@@ -54,15 +28,11 @@ bool boolean_type()
     return false;
 }
 
-#pragma endregion
-
-#pragma region 02.nullptr_type
-
-// Prior to C++11 standard null pointer was served by C-macro NULL
-// C++11 standard null pointer is defined as nullptr
-// The problem with NULL is that when we pass integer 0, we can't say if it's a pointer or integer
-// It potentially could be a problem during function overloading over types void* and int,
-// and template metaprogramming
+/// Prior to C++11 standard null pointer was served by C-macro NULL
+/// C++11 standard null pointer is defined as nullptr
+/// The problem with NULL is that when we pass integer 0, we can't say if it's a pointer or integer
+/// It potentially could be a problem during function overloading over types void* and int,
+/// and template metaprogramming
 void accept_null(int)
 {
     std::cout << "accept_null(int)\n";
@@ -83,7 +53,7 @@ void accept_null(std::nullptr_t)
     std::cout << "accept_null(std::nullptr_t)\n";
 }
 
-// 2. nullptr_type
+/// 2. nullptr_type
 void nullptr_type()
 {
     // Trying to call with NULL
@@ -112,17 +82,13 @@ void nullptr_type()
         << std::is_null_pointer<int*>::value << '\n';
 }
 
-#pragma endregion
-
-#pragma region 03.void_type
-
-// void - type with an empty set of values
-// It is an incomplete type that cannot be completed
-// (consequently, objects of type void are disallowed)
-// There are no arrays of void, nor references to void.
-// However, pointers to void and functions returning type void.
-// Type void have use in template metaprogramming
-// to show that a type is not known at compile time
+/// void is type with an empty set of values
+/// It is an incomplete type that cannot be completed
+/// (consequently, objects of type void are disallowed)
+/// There are no arrays of void, nor references to void.
+/// However, pointers to void and functions returning type void.
+/// Type void have use in template metaprogramming
+/// to show that a type is not known at compile time
 void void_type()
 {
     // Pointer of any type can be implicitly converted to pointer to void, without changing its value
@@ -133,8 +99,6 @@ void void_type()
     int* p_int2 = static_cast<int*>(p_void);
     assert(p_int == p_int2);
 }
-
-#pragma endregion
 
 // TODO: watch
 
