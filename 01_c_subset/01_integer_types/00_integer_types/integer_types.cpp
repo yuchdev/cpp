@@ -6,12 +6,12 @@ SUPPRESS_PRAGMA_WARNINGS()
 #pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 #pragma ide diagnostic ignored "cert-str34-c"
 
-#include <iostream>
-#include <cstdint>
-
 #include <utilities/bitwise.h>
 #include <utilities/defines.h>
 SUPPRESS_UNSIGNED_COUNTEREXAMPLE_WARNINGS()
+
+#include <iostream>
+#include <cstdint>
 
 // Fundamental C++ types
 // https://en.cppreference.com/w/cpp/language/types
@@ -96,7 +96,7 @@ void character_types()
     // Literals of fixed size are presented as sequences
     // of two, four or eight hexadecimal digits
     // Wide characters (16 and 32 bit) preceded by a u'' or U''
-    // 16-bit Unicode symbols hold most of alphabetical and pseudographic symbols
+    // 16-bit Unicode symbols hold most of alphabetical and pseudographical symbols
     // 32-bit Unicode symbol may hold emoji and other extended symbols
     // See also https://en.wikipedia.org/wiki/UTF-32
 
@@ -364,9 +364,9 @@ uint8_t safe_avg(uint8_t a, uint8_t b)
 }
 // What if we pass uint32_t instead of uint8_t
 
-uint8_t truncate(unit32_t u)
+uint8_t truncate(uint32_t u)
 {
-    // TODO: no warnings?
+    // no warnings?
     return u;
 }
 
@@ -405,6 +405,37 @@ void numeric_conversions()
     // fp -> integer leads to truncation
     int narrow_i = narrow_f;
 }
+
+#pragma endregion
+
+/// Arithmetic operations in C/C++ are NOT guaranteed to yield a correct mathematical result.
+/// Integer overflow results in undefined behavior
+
+#pragma region 06.1.safe_arithmetic
+
+int safe_addition(int x, int y)
+{
+  if (((y > 0) && (x > (INT_MAX - y))) || ((y < 0) && (x < (INT_MIN - y)))) {
+      // handle error
+      return INT_MAX;
+  }
+  return x + y;
+}
+
+void integer_overflow()
+{
+    // Is there overflow?
+    int16_t x = 30000;
+    int16_t y = x * 2 / 4;
+}
+
+// Solution could be a library like boost::safe_numerics
+// It checks for overflow and underflow in compile time if possible,
+// and in runtime if required
+
+// Undefined Behavior in LLVM
+// LLVM-compiled code sometimes generates SIGTRAP signals when the optimizer is turned on
+// http://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html
 
 #pragma endregion
 

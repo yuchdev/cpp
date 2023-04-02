@@ -100,21 +100,6 @@ void void_type()
     assert(p_int == p_int2);
 }
 
-// TODO: watch
-
-// 
-// https://www.boost.org/doc/libs/1_70_0/libs/numeric/conversion/doc/html/index.html
-// https://www.boost.org/doc/libs/develop/libs/safe_numerics/doc/html/index.html
-// https://us-cert.cisa.gov/bsi/articles/knowledge/coding-practices/safe-integer-operations
-// http://blog.llvm.org/2011/05/what-every-c-programmer-should-know.html
-
-// https://www.youtube.com/watch?v=93Cjg42bGEw&t=91s
-// TODO: Move to int overflow
-// boost safe numeric library 
-// int32 = int16+int16 never cause an error 
-// int16 x = 30000;
-// Z = x* 2/4; correct because x * 2 promoted and after / 4 it fits into int16
-
 int main(int argc, char* argv[])
 {
     if (argc != 2) {
