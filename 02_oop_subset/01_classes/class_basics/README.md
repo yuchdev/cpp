@@ -1,5 +1,7 @@
 ### Classes
 
+Advices:
+
 * Do not add many c-tors to a class, just because you think they could be useful for someone
 * Start declaring class members from public, to make emphasis on interface
 * Elements of member array could be constructed only by default. This effectively makes constant array members useless

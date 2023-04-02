@@ -29,16 +29,94 @@ void runtime_constness()
  * can be computed at compile-time.
  * This allows the compiler to optimize code based on the assumption
  * that the value will not change during program execution
+ *
  */
- constexpr int square(int x) {
+// For C++11/14
+constexpr int square(int x) {
     return x * x;
 }
 
+constexpr int factorial(int n) {
+    int result = 1;
+    for (int i = 1; i <= n; ++i) {
+        result *= i;
+    }
+    return result;
+}
+
+// For C++17
+constexpr int fib(int n) {
+    if (n == 0) {
+        return 0;
+    }
+    else if (n == 1) {
+        return 1;
+    }
+    else {
+        int a = 0;
+        int b = 1;
+        for (int i = 2; i <= n; ++i) {
+            int c = a + b;
+            a = b;
+            b = c;
+        }
+        return b;
+    }
+}
+
+constexpr int sum_fibonacci(int n) {
+    int sum = 0;
+    for (int i = 0; i <= n; ++i) {
+        if (fib(i) % 2 == 0) {
+            sum += fib(i);
+        }
+    }
+    return sum;
+}
+
+
+// For C++20
+class Circle {
+public:
+    constexpr Circle(double r) : radius_(r) {}
+    constexpr double area() const {
+        return pi * radius_ * radius_;
+    }
+    constexpr void set_radius(double r) {
+        radius_ = r;  // allowed in C++20, as long as it doesn't affect the final value
+    }
+private:
+    double radius_;
+    static constexpr double pi = 3.14159265358979323846;
+};
+
 void compiletime_constness()
 {
+    // In C++11, constexpr could only be used to specify that a function or variable's
+    // value or return value could be computed at compile-time
     constexpr int side = 5;
     constexpr int area = square(side);
+
+    // In C++14, the constexpr specifier was extended to allow
+    // more general-purpose programming constructs to be used in constant expressions.
+    // For example, a function could contain a constexpr variable
+    constexpr int square_factorial = factorial(2) * factorial(2);  // computed at compile-time
+
+    // In C++17, constexpr was further extended to allow if-statements and loops
+    // to be used in constant expressions
+    constexpr int sum_fib = sum_fibonacci(10);  // computed at compile-time
+
+    // In C++20, constexpr was extended further to allow constexpr functions
+    // to be used in more contexts, such as template arguments, virtual functions,
+    // and non-static member functions
+    constexpr Circle c1(1.0);
+    constexpr Circle c2(2.0);
+    constexpr double total_area = c1.area() + c2.area();
 }
+
+
+
+
 
 /**
  * Bitwise constness refers to the fact that a const object cannot be modified
@@ -101,7 +179,7 @@ void conceptual_constness()
 
     const Polygon poly2(5);
     // violate conceptual constness on purpose
-    Point p = poly.get_point(0);
+    Point p = poly2.get_point(0);
 }
 
 
