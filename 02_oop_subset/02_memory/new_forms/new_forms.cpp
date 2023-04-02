@@ -5,7 +5,7 @@
 using namespace std;
 
 /** @brief
-TODO: Undate with C++20
+TODO: Update with C++20
 Forms of operator new()
 https://en.cppreference.com/w/cpp/memory/new/operator_new
 */
