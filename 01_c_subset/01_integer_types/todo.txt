@@ -1,8 +1,0 @@
-Alignment:
-
-TODO: relate to alognof()
-https://stackoverflow.com/questions/5435841/memory-alignment-in-c-structs
-
-https://en.cppreference.com/w/c/language/object
-
-TODO: why fp multiplication faster than integer?

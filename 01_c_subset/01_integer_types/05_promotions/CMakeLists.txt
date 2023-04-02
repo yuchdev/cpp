@@ -1,4 +1,4 @@
-set(TARGET 00_integer_types)
+set(TARGET 05_promotions)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 
