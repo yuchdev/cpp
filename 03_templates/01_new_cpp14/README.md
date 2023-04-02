@@ -1,20 +1,10 @@
 Questions:
-http://habrahabr.ru/post/264157/
-http://habrahabr.ru/post/157961/
-http://habrahabr.ru/post/226229/
 http://eli.thegreenplace.net/2014/perfect-forwarding-and-universal-references-in-c
 Perfect Forwarding, Universal References
 Friend template operators example
 
-Links:
-http://habrahabr.ru/post/242639/
 
-New C++14 features:
-* Type and template aliases (23.6)
-* Simpler and more general SFINAE rule (23.5.3.2)
-* Reference forwarding (23.5.2.1)
 
-Advices:
 * When designing a class template, it is usually a good idea to debug a particular class before turning it into a template
 * We call template param check predicate a concept
 * A concept is not (yet) a language construct in C++; it is a notion that we can use to reason about requirements on template arguments
@@ -81,4 +71,15 @@ f(i,"Remember!");
 * It could be useful complex, esoteric, or frequently changing template libraries
 
 
-Book advices: 
+### New C++14 features
+
+* Type and template aliases (23.6)
+* Simpler and more general SFINAE rule (23.5.3.2)
+* Reference forwarding (23.5.2.1)
+
+### TODOs
+
+* http://eli.thegreenplace.net/2014/perfect-forwarding-and-universal-references-in-c
+* Perfect Forwarding, Universal References
+* Friend template operators example
+

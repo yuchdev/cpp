@@ -1,4 +1,4 @@
-set(TARGET class)
+set(TARGET concrete_class)
 
 file(GLOB SOURCES *.cpp *.h *.txt, *.md)
 

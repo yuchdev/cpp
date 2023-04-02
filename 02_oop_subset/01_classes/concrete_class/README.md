@@ -19,6 +19,15 @@
 * Use function objects, including lambdas, to represent policies and actions
 * Use type and template aliases to provide a uniform notation for types that may vary among similar types or among implementations
 
+### Class and structure
+
+* In general, the choice of using a class or a struct depends on your preference and coding style
+* Some people prefer to use a struct for simple data containers, while others prefer to use a class for everything 
+* Use a class if you want to define a type that has both data and behavior, and you want to control access to the data.
+* Use a struct if you want to define a simple data container with no behavior, and you don't care about access control.
+* If you are working on a codebase that already has a convention for using classes or structs, it's a good idea to follow that convention for consistency.
+* If you are working with a library or framework that requires you to use classes or structs in a certain way, follow those guidelines to ensure compatibility.
+
 ### TODOs
 
 Proof of a statement in C++ Standard

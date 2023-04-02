@@ -1,21 +1,9 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include <string>
 #include <memory>
 
 /*
-
-New features:
-
-* Language mapping of {}-list to std::initializer_list (3.2.1.3, 17.3.4)
-* Rvalue references (enabling move semantics; 3.3.2, 7.7.2)
-* Nested template arguments ending with >> (no space between the >s; 3.4.1)
-* Lambdas(3.4.3,11.4)
-* Variadic templates (3.4.4, 28.6)
-* Type and template aliases (3.4.5, 6.5, 23.6)
-* initializer_list constructors for containers (3.2.1.3, 17.3.4, 31.3.2)
-* Move semantics for containers (3.3.1, 17.5.2, 31.3.2)
 
 1. Class complex
 * {}-init

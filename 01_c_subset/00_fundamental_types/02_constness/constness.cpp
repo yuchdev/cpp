@@ -114,10 +114,6 @@ void compiletime_constness()
     constexpr double total_area = c1.area() + c2.area();
 }
 
-
-
-
-
 /**
  * Bitwise constness refers to the fact that a const object cannot be modified
  * through its non-const pointer or reference. In other words, the bits of the object are read-only,
