@@ -45,6 +45,7 @@ void enum_class()
 
 int main()
 {
-    // TODO: insert any function call
+    enum_size();
+    enum_class();
     return 0;
 }

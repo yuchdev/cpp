@@ -139,7 +139,7 @@ bool raised_to2(int x)
     return false;
 }
 
-void raised_to2_examples_and_explanation()
+void raised_to2_explanation()
 {
     // Let's try with some numbers
     long numbers[] = { 2, 64, 1024, 25, 120 };
@@ -171,6 +171,11 @@ void raised_to2_examples_and_explanation()
 
 int main()
 {
-    // TODO: insert any function call
+    bitwise_ops();
+    negative_integer();
+    shift_operations();
+    multiply_and_divide();
+    powers_of_2();
+    raised_to2_explanation();
     return 0;
 }
