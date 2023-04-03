@@ -1,6 +1,8 @@
+#include <utilities/elapsed.h>
+
 #include <iostream>
 #include <cstdint>
-#include <elapsed.h>
+#include <vector>
 #include <map>
 
 /// Radix sort of integer vector

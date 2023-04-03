@@ -59,5 +59,7 @@ void compiletime_constness()
 
 int main(int argc, char* argv[])
 {
+    runtime_constness();
+    compiletime_constness();
     return 0;
 }

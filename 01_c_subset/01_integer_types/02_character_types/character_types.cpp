@@ -37,12 +37,27 @@ void character_types()
     // Output of char types
     std::cout
         << "char c1 = " << c1
-        << "signed char c2 = " << c2
-        << "unsigned char c3 = " << c3
+        << "; signed char c2 = " << c2
+        << "; unsigned char c3 = " << c3
         << '\n';
 
     // The functional cast notation int{c} gives the integer value for a character c
     std::cout << c1 << " == " << int { c1 } << '\n';
+
+    // When embedding a numeric constant in a string using the octal notation,
+    // it is wise always to use three digits for the number
+
+    // 6 chars: 'a' '\xa' 'h' '\12' '9' '\0'
+    char v1[] = "a\xah\129";
+
+    // 5 chars: 'a' '\xa' 'h' '\127' '\0'
+    char v2[] = "a\xah\127";
+
+    // 4 chars: 'a' '\xad' '\127' '\0'
+    char v3[] = "a\xad\127";
+
+    // 5 chars: 'a' '\xad' '\012' '7' '\0'
+    char v4[] = "a\xad\0127";
 
     // wchar_t - type for wide character representation
     // Required to be large enough to represent any supported character code point

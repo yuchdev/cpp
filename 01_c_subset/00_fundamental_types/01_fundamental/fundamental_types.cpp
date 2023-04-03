@@ -25,7 +25,21 @@ bool boolean_type()
 
     // Operator sizeof() yields size in bytes of the object representation of type or expression
     // sizeof() cannot be used with function types, incomplete types, or bit-field l-values
-    return false;
+
+    // Old and new style of initialization
+    bool b1 = true;
+    bool b2 { false };
+
+    // narrowing in expression (cast to 1)
+    int i1 = b1;
+    int i2 { b1 };
+
+    // narrowing in expression (cast to 1)
+    int i3 = 5 + b1;
+
+    // narrowing to pointers (cast to nullptr)
+    int* pint = nullptr;
+    if (pint) {/*never be there*/ }
 }
 
 /// Prior to C++11 standard null pointer was served by C-macro NULL
@@ -78,7 +92,7 @@ void nullptr_type()
 
     // Since C++14, we have a template struct is_null_pointer()
     std::cout
-        << "std::is_null_pointer<int*>::value"
+        << "std::is_null_pointer<int*>::value="
         << std::is_null_pointer<int*>::value << '\n';
 }
 
@@ -102,27 +116,8 @@ void void_type()
 
 int main(int argc, char* argv[])
 {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <function>\n";
-        return 1;
-    }
-    std::string func = argv[1];
-
-    std::cout << "Current C++ version: " << __cplusplus << '\n';
-
-    if (func == "boolean_type") {
-        boolean_type();
-    }
-    else if (func == "nullptr_type") {
-        nullptr_type();
-    }
-    else if (func == "void_type") {
-        void_type();
-    }
-    else {
-        std::cerr << "Unknown function: " << func << '\n';
-        return 1;
-    }
-
+    boolean_type();
+    nullptr_type();
+    void_type();
     return 0;
 }

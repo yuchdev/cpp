@@ -29,7 +29,33 @@ SUPPRESS_PRAGMA_WARNINGS()
 // 0.00...0001
 // 10000000000
 // 5*10^-10; 7*10^9
+void show_int_float()
+{
+    // The reason for providing more than one integer type, more than one unsigned type,
+    // and more than one floating-point type is to allow the programmer
+    // to take advantage of hardware characteristics
 
+    // This is what is guaranteed about sizes of fundamental types :
+    // 1 = sizeof(char) <= sizeof(short) <= sizeof(int) <= sizeof(long) <= sizeof(long long)
+    // 1 <= sizeof(bool) <= sizeof(long)
+    // sizeof(char) <= sizeof(wchar_t) <= sizeof(long)
+    // sizeof(float) <= sizeof(double) <= sizeof(long double)
+    // sizeof(N) == sizeof(signed N) == sizeof(unsigned N)
+
+    // Some implementation-defined aspects of fundamental types
+    //can be found by a simple use of sizeof, and more can be found in <limits>
+
+    int i1 = 077;
+    int i2 = 0xaa;
+    long l1 = 100l;
+    unsigned long l2 = 100ul;
+    unsigned long long l3 = 100ull;
+
+    float f1 = 1.f;
+    //long float f2 = 1.f;
+    double d1 = 1.0;
+    long double d2 = 1.0;
+}
 
 
 // In computing, floating-point arithmetic (FP) is arithmetic 
