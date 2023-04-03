@@ -1,34 +1,34 @@
 #define _USE_MATH_DEFINES
 #include <iostream>
 #include <vector>
-#include <iomanip>
-#include <bitset>
 #include <cmath>
 
 // OsX workaround
+#ifdef __APPLE__
 #include <cfloat>
 #include <cstdint>
+#endif
 
 #include <utilities/bitwise.h>
 #include <utilities/generate.h>
 
 /*
-*  Significand is stored without whole part, which is 1.0 anyway
-*  So we can set 1 and shift significand to the right.
-*
-*  CPU makes significand shift itself before any operation under floating point numbers
-*  with different exponent value. To be exact, it moves significand of a smaller number,
-*  until it matches significand of bigger number. Say, we want to add 36.72 and 10000.0
-*  They could be written in a scientific notation as 3.672e1 and 1.0e5
-*  CPU takes 3.672e1 and moves it 5-1=4 digits right, receiving 0.0003672e5
-*  Now we can add both number and receive 1.0003672e5
-*  Now imagine, if we keep moving 3672 to the right, eventually 2 and then 7 would be truncated,
-*  and 36 is everything what left. But this is exactly the whole part of 36.72!
-*  For 32-bit floating point value you shoud move it to the size of exponent (TODO: check)
-*
-*  TODO:
-*  However, with negative numbers this trick won't work.
-*  In case of adding decimal numbers, we should
+ *  It's important to know this technique is outdated by now.
+ *  However, it perfectly demonstrates how floating point numbers are stored in memory,
+ *  and their (sometimes unexpected) interconnections with integer types.
+ *
+ *  Significand is stored without whole part, which is 1.0 anyway
+ *  So we can set 1 and shift significand to the right.
+ *
+ *  CPU makes significand shift itself before any operation under floating point numbers
+ *  with different exponent value. To be exact, it moves significand of a smaller number,
+ *  until it matches significand of bigger number. Say, we want to add 36.72 and 10000.0
+ *  They could be written in a scientific notation as 3.672e1 and 1.0e5
+ *  CPU takes 3.672e1 and moves it 5-1=4 digits right, receiving 0.0003672e5
+ *  Now we can add both number and receive 1.0003672e5
+ *  Now imagine, if we keep moving 3672 to the right, eventually 2 and then 7 would be truncated,
+ *  and 36 is everything what left. But this is exactly the whole part of 36.72!
+ *  For 32-bit floating point value you should move it to the size of exponent
 */
 
 namespace
@@ -40,6 +40,7 @@ namespace
     };
 }
 
+// TODO: It's hard to show without access to any old CPU
 void classic_ftol()
 {
     // Converting floating point to integer
@@ -248,7 +249,6 @@ void benchmark()
 
 int main()
 {
-    // TODO: insert any function call
     classic_ftol();
     return 0;
 }

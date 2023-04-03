@@ -3,7 +3,6 @@
 
 namespace cpp
 {
-
     class test_me
     {
     public:
@@ -19,7 +18,6 @@ namespace cpp
 // * ptrdiff_t is closely tied to the machine pointer type, so as size_t
 // * size_t holds sizes of objects, whereas ptrdiff_t the differences of addresses within the objects
 // * Legit use of intmax_t is for formatting, and probably serialization
-
 
 // Facts about pointers
 void pointers_facts()
@@ -53,6 +51,7 @@ void pointers_facts()
 
     // Integer is constant, pointer does not
     const int* ptr2 = &a;
+
     // .. basically the same
     int const* ptr3 = &a;
 
@@ -181,6 +180,8 @@ void show_const_pointers()
 
 int main()
 {
-    // TODO: insert any function call
+    pointers_facts();
+    nullptr_type();
+    show_const_pointers();
     return 0;
 }

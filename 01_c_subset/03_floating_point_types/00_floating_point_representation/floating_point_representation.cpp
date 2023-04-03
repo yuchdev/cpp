@@ -52,7 +52,7 @@ void show_int_float()
     unsigned long long l3 = 100ull;
 
     float f1 = 1.f;
-    //long float f2 = 1.f;
+    // long float f2 = 1.f;
     double d1 = 1.0;
     long double d2 = 1.0;
 }
@@ -83,7 +83,7 @@ void floating_point_representation()
 
     for (auto float_number : float_numbers) {
 
-        long* float_hack = reinterpret_cast<long*>(&float_number);
+        uint32_t* float_hack = reinterpret_cast<uint32_t*>(&float_number);
         static_assert(sizeof(float_number) == sizeof(*float_hack), "Float and long should have equal size");
         std::cout << "Binary representation of " << float_number << " =\n\t " << *float_hack
             << " =\n\t " << bitwise(*float_hack) << '\n';

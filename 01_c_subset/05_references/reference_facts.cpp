@@ -7,8 +7,7 @@
 
 void lvalue_reference()
 {
-
-    // * Aliasing is when more than one lvalue refers to the same memory location 
+    // * Aliasing is when more than one lvalue refers to the same memory location
     // (when you hear lvalue, think of things (variables) that can be on the left-hand side of assignments), 
     // i.e. that are modifiable. As an example:
 

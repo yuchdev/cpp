@@ -12,7 +12,7 @@ SUPPRESS_PRAGMA_WARNINGS()
 
 /// Fundamental C++ types
 /// https://en.cppreference.com/w/cpp/language/types
-bool boolean_type()
+void boolean_type()
 {
     // The value of sizeof(bool) is implementation defined and might differ from 1
     // Bitwise representation is implementation-defined

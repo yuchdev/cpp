@@ -50,6 +50,7 @@ void compare_pointers_2()
 
 int main()
 {
-    // TODO: insert any function call
+    compare_pointers_1();
+    compare_pointers_2();
     return 0;
 }

@@ -1,6 +1,6 @@
-#include <iostream>
-
 #include <utilities/bitwise.h>
+
+#include <iostream>
 
 // warning C4018: '<': signed/unsigned mismatch as a counter-example
 #ifdef _MSC_VER
@@ -126,6 +126,8 @@ void show_shift()
 
 int main()
 {
-    // TODO: insert any function call
+    unsigned_types();
+    comparing_unsigned();
+    show_shift();
     return 0;
 }

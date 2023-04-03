@@ -14,24 +14,24 @@
 // * Effective exponent is exponent_value-127
 void extract_fp_components(float val)
 {
-    static_assert(sizeof(long) == sizeof(float), "sizeof(long) should be equal sizeof(float)");
+    static_assert(sizeof(uint32_t) == sizeof(float), "sizeof(uint32_t) should be equal sizeof(float)");
 
     union
     {
         float floating_number;
-        long bitwise_representation;
+        uint32_t bitwise_representation;
     } float_bits;
 
     float_bits.floating_number = val;
 
     // extract sign bit
-    long sign_bit = (float_bits.bitwise_representation >> 31) ? -1 : 1;
+    uint32_t sign_bit = (float_bits.bitwise_representation >> 31) ? -1 : 1;
 
     // extract exponent
-    long exponent = (float_bits.bitwise_representation >> 23) & 0xFF;
+    uint32_t exponent = (float_bits.bitwise_representation >> 23) & 0xFF;
 
     // extract significand
-    long significand = float_bits.bitwise_representation & 0x7FFFFF;
+    uint32_t significand = float_bits.bitwise_representation & 0x7FFFFF;
 
     std::cout << "Significand binary representation = " << bitwise(significand) << '\n';
 
@@ -112,7 +112,7 @@ void extract_fp_components(FloatingPoint val)
         << " exponent = " << e << '\n';
 }
 
-void fp_components_extract()
+void floating_point_components()
 {
     extract_fp_components(1.0);
     extract_fp_components(1.5);
@@ -121,6 +121,6 @@ void fp_components_extract()
 
 int main()
 {
-    // TODO: insert any function call
+    floating_point_components();
     return 0;
 }

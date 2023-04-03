@@ -47,9 +47,9 @@ void numeric_conversions()
     long narrow_l = wide_ll;
 
     // When signed integer arithmetic operation overflows (the result does not fit), the behavior is undefined:
-    // it may cut value, it may trap on some platforms or due to compiler options (e.g. -ftrapv in GCC and Clang), 
-    // it can sometimes saturate to minimal or maximal value (on many DSPs), 
-    // or may be completely optimized out by the compiler
+    // * it may cut value, it may trap on some platforms or due to compiler options (e.g. -ftrapv in GCC and Clang),
+    // * it can sometimes saturate to minimal or maximal value (on many DSPs),
+    // * it may be completely optimized out by the compiler
 
     // floating-point narrowing conversion loses precision, implementation-defined
     // If narrow type can't represent wide type, it is UB

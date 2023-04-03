@@ -53,7 +53,7 @@ inline std::size_t array_size(T(&arr)[N])
     return N;
 }
 
-void array_pointer_and_array()
+void pointer_and_array()
 {
 
     // Step 1. Let's create array of integers and pointer to integer
@@ -118,13 +118,14 @@ void typedef_arrays()
     // X* x = new Y[2];
     // delete[] x;
     // It invokes undefined behavior.
-    // This is correct.
     // When deleting an array, the dynamic and the static type of the object must be the same,
     // or the behavior is undefined (C++ Standard 5.3.5/3).
 }
 
 int main()
 {
-    // TODO: insert any function call
+    array_facts();
+    pointer_and_array();
+    typedef_arrays();
     return 0;
 }

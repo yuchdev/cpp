@@ -16,6 +16,9 @@
 
 // http://en.wikipedia.org/wiki/Fast_inverse_square_root
 // return 1/sqrt(number)
+// It's important to know this technique is outdated by now.
+// However, it perfectly demonstrates how floating point numbers are stored in memory,
+// and their interconnections with integer types.
 float reverse_sqrt(float number)
 {
     const float x2 = number * 0.5F;
