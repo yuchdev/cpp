@@ -1,4 +1,4 @@
-Functions
+## Functions
 
 * Function pointer types could be defined with typedef or using
 * Explicit inline makes sense if
