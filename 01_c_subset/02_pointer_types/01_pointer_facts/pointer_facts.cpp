@@ -178,10 +178,130 @@ void show_const_pointers()
 #endif
 }
 
+class test_me
+{
+public:
+    void point_to_me() {}
+};
+
+void point_to_me_static() {}
+
+void show_ptrs_refs()
+{
+    // A pointer to any type of object can be assigned to a variable of type void*,
+    // but a pointer to to member(20.6) cannot
+
+    // pointer to function
+    void(*static_func_ptr)() = &cpp4::point_to_me_static;
+
+    void(cpp4::test_me:: * method_ptr)() = &cpp4::test_me::point_to_me;
+
+    // ? better not to do, ensure in Standard
+    void* v1 = static_func_ptr;
+
+    //void* v2 = method_ptr;
+
+    // assign nullptr - OK
+    static_func_ptr = nullptr;
+    method_ptr = nullptr;
+
+    // assign 0 - OK
+    static_func_ptr = 0;
+    method_ptr = 0;
+
+    // An rvalue reference refers to a temporary object
+    std::vector<int> vv1 { 1,2,3 };
+    std::vector<int> vv2 { 4,5,6 };
+    cpp4::swap(vv1, vv2);
+
+    // The compiler uses v and v+N as begin(v) and end(v) for a built-in array T v[N]
+    int arr[] = { 7,2,5,9,5,3,5,8,0,3 };
+    std::sort(std::begin(arr), std::end(arr));
+}
+
+void show_string_literals()
+{
+
+    // Raw string literals use the R"(ccc)" notation for a sequence of characters ccc
+    const char* qs = R"(quoted string)"; // the string is "quoted string"
+    const char* complicated = R"("('(?:[^\\\\']|\\\\.)*'|\"(?:[^\\\\\"]|\\\\.)*\")|")";
+    const char* with_returns = R"(atatat
+tatatat)";
+
+    std::cout << qs << std::endl;
+    std::cout << complicated << std::endl;
+    std::cout << with_returns << std::endl;
+
+    // Unless you work with regular expressions, raw string literals are probably just a curiosity
+
+    // Similarly, a string with the prefix LR, such as LR"(angst)", is a raw string
+    const wchar_t* long_complicated = LR"("('(?:[^\\\\']|\\\\.)*'|\"(?:[^\\\\\"]|\\\\.)*\")|")";
+
+    std::wcout << long_complicated << std::endl;
+}
+
+namespace cpp4
+{
+
+class tagged_union
+{
+public:
+
+    struct bad_tag {};
+
+    void set_integer(int i)
+    {
+        tag_ = tag::integer;
+        i_ = i;
+    }
+
+    void set_pointer(int* pi)
+    {
+        tag_ = tag::pointer;
+        pi_ = pi;
+    }
+
+    int integer() const
+    {
+        if (tag_ != tag::integer) {
+            throw bad_tag();
+        }
+        return i_;
+    }
+
+    int* pointer() const
+    {
+        if (tag_ != tag::pointer) {
+            throw bad_tag();
+        }
+        return pi_;
+    }
+
+private:
+    enum class tag { integer, pointer };
+    tag tag_;
+    union
+    {
+        int i_;
+        int* pi_;
+    };
+};
+
+}
+
+void show_union_tags()
+{
+    cpp4::tagged_union tu;
+    int i = 0;
+    tu.set_integer(1);
+    tu.set_pointer(&i);
+}
+
 int main()
 {
     pointers_facts();
     nullptr_type();
     show_const_pointers();
+    show_ptrs_refs();
     return 0;
 }

@@ -23,17 +23,6 @@ Examples:
 */
 
 
-void show_bitwise()
-{
-    int* p = nullptr;
-    while (p && !(*p)) ++p;
-    // Here, p is not dereferenced if it is the nullptr
-
-    // For example, one could extract the middle 16 bits of a 32 - bit int like this
-    static_assert(sizeof(int) == 4, "unexpected int size");
-    static_assert(sizeof(short) == 2, "unexpected short size");
-}
-
 int show_initializer_list()
 {
     // The basic idea of initializer lists as expressions is that if you can initialize a variable x using the notation

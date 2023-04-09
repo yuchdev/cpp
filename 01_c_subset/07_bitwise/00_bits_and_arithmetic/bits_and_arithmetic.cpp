@@ -169,6 +169,17 @@ void raised_to2_explanation()
 //a || b
 //This is correct.  NOT (NOT A  AND  NOT B) equals A OR B.  Conversely, NOT (NOT A  OR  NOT B) equals A AND B.
 
+void show_bitwise()
+{
+    int* p = nullptr;
+    while (p && !(*p)) ++p;
+    // Here, p is not dereferenced if it is the nullptr
+
+    // For example, one could extract the middle 16 bits of a 32 - bit int like this
+    static_assert(sizeof(int) == 4, "unexpected int size");
+    static_assert(sizeof(short) == 2, "unexpected short size");
+}
+
 int main()
 {
     bitwise_ops();

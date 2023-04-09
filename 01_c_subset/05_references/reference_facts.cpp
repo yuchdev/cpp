@@ -58,6 +58,24 @@ void lvalue_reference()
     //   due to its inability to be initialized with the default value
 }
 
+// "perfect swap" (almost)
+template<class T>
+void swap(T& a, T& b)
+{
+    // Since move(x) does not move x (it simply produces an rvalue reference to x),
+    // it would have been better if move() had been called rval(),
+    // but by now move() has been used for years
+
+    // move from a
+    T tmp { std::move(a) };
+
+    //move from b
+    a = std::move(b);
+
+    //move from tmp
+    b = std::move(tmp);
+}
+
 void rvalue_reference()
 {
     // TODO:

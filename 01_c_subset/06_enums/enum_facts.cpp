@@ -38,9 +38,36 @@ void enum_size()
     long long l = e4;
 }
 
-void enum_class()
+void show_enum_classes()
 {
-    // TODO:
+    // The underlying type must be one of the signed or unsigned integer types (6.2.4)
+    // the default is int. We could be explicit about that:
+
+    enum class warning1 : long { green, yellow, red };
+
+    enum class warning2 : unsigned char { green, yellow, red };
+
+    long l = static_cast<long>(warning1::green);
+    unsigned char c = static_cast<unsigned char>(warning2::green);
+
+    //
+    enum plain : long { plain1, plain2, plain3 };
+    plain p = plain1;
+
+    // Todo plain and class name resolution
+
+    // An enum is a user-defined type, so we can define the | and & operators
+
+    // A plain enum can be unnamed, e.g.:
+    enum { arrow_up = 1, arrow_down, arrow_sideways };
+}
+
+// Print enum as int
+enum class warning { green, yellow, red };
+
+void print_warning(warning w)
+{
+    std::cout << static_cast<int>(w) << '\n';
 }
 
 int main()

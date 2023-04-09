@@ -57,6 +57,42 @@ void compiletime_constness()
     constexpr int square_factorial = factorial(2) * factorial(2);  // computed at compile-time
 }
 
+
+namespace cpp4
+{
+
+// A string literal is statically allocated so that it is safe to return one from a function
+constexpr const char* error_message(int i)
+{
+    return "range error";
+}
+
+// Basically, constexpr's role is to enable and ensure compile-time evaluation,
+// whereas const's primary role is to specify immutability in interfaces
+
+namespace cpp4
+{
+
+// A class with a constexpr constructor is called a literal type
+// To be simple enough to be constexpr, a constructor must have an empty body
+// and all members must be initialized by potentially constant expressions. For example:
+struct point
+{
+    constexpr point(double x, double y, double z) :x_ { x }, y_ { y }, z_ { z } {}
+private:
+    double x_, y_, z_;
+};
+
+}
+
+void show_literal_types()
+{
+    // A constant expression is an expression that a compiler can evaluate
+    constexpr cpp4::point p { 1.,2.,3. };
+    constexpr cpp4::point parr[] = { { 1.,2.,3. } ,{ 1.,2.,3. } ,{ 1.,2.,3. } };
+}
+
+
 int main(int argc, char* argv[])
 {
     runtime_constness();
