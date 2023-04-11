@@ -1,14 +1,5 @@
 ## Functions
 
-* Function pointer types could be defined with typedef or using
-* Explicit inline makes sense if
-   - its definition is in *.cpp file
-   - in template functions (std::max)
-* inline could be cancelled by the recursion, cycle, virtual methos or taking function address
-* std lib has function pointers callback: new_handler
-* If you put the inline function's definition into a .cpp file, and if it is called from some other .cpp file, 
-  you'll get an "unresolved external" error from the linker
-* Function default argument value may be function call 
 * The C++ standard algorithms (e.g., find, sort, and iota) provide a good start for functions design
 * The most basic advice is to keep a function of a size so that you can look at it in total on a screen
 * The cost of a function call is not a significant factor
@@ -51,6 +42,15 @@ void odd(int buf[1020]);
     * A reference to an array of T, where the values of the list can be implicitly converted to T
 * If there is a possible ambiguity, an initializer_list parameter takes priority
 * Default arguments may be provided for trailing arguments only
+* Function pointer types could be defined with typedef or using
+* Explicit inline makes sense if
+   - its definition is in *.cpp file
+   - in template functions (std::max)
+* inline could be cancelled by the recursion, cycle, virtual methos or taking function address
+* std lib has function pointers callback: new_handler
+* If you put the inline function's definition into a .cpp file, and if it is called from some other .cpp file, 
+  you'll get an "unresolved external" error from the linker
+* Function default argument value may be function call 
 
 ## Automatic Overload Resolution
 
@@ -82,22 +82,26 @@ using Pn = void(int) noexcept; // error: noexcept in alias
 err_print("The answer",54);
 
 * A few macros are predefined by the compiler 
-	* __cplusplus: defined in a C++ compilation (and not in a C compilation). Its value is 201103L
-	  in a C++11 program; previous C++ standards have lower values
-	* __DATE__: date in ‘‘yyyy:mm:dd’’ format.
-	* __TIME__: time in ‘‘hh:mm:ss’’ format.
-	* __FILE__: name of current source file.
-	* __LINE__: source line number within the current source file.
-	* __FUNC__: an implementation-defined C-style string naming the current function.
-	* __STDC_HOSTED__: 1 if the implementation is hosted (6.1.1); otherwise 0.
-	In addition, a few macros are conditionally defined by the implementation:
-	* __STDC__: defined in a C compilation (and not in a C++ compilation)
-	* __STDC_MB_MIGHT_NEQ_WC__: 1 if, in the encoding for wchar_t, a member of the basic
-	character set (6.1) might have a code value that differs from its value as an ordinary charac-
-	ter literal
-	* __STDCPP_STRICT_POINTER_SAFETY__: 1 if the implementation has strict pointer safety
-	(34.5); otherwise undefined.
-	* __STDCPP_THREADS__: 1 if a program can have more than one thread of execution; otherwise undefined
+  * __cplusplus: defined in a C++ compilation (and not in a C compilation). Its value is 201103L in a C++11 program; previous C++ standards have lower values
+  * __DATE__: date in YYYYMMDD format.
+  * __TIME__: time in HHMMSS format.
+  * __FILE__: name of current source file.
+  * __LINE__: source line number within the current source file.
+  * __FUNC__: an implementation-defined C-style string naming the current function.
+  * __STDC_HOSTED__: 1 if the implementation is hosted (6.1.1); otherwise 0. In addition, a few macros are conditionally defined by the implementation.
+    * __STDC__: defined in a C compilation (and not in a C++ compilation)
+    * __STDC_MB_MIGHT_NEQ_WC__: 1 if, in the encoding for wchar_t, a member of the basic character set (6.1) might have a code value that differs from its value as an ordinary character literal
+    * __STDCPP_STRICT_POINTER_SAFETY__: 1 if the implementation has strict pointer safety (34.5); otherwise undefined.
+    * __STDCPP_THREADS__: 1 if a program can have more than one thread of execution; otherwise undefined
+    * __cplusplus macro should expand to:
+```
+199711L (until C++11),
+201103L (C++11),
+201402L (C++14),
+201703L (C++17)
+```
+* The difference between `#if` and `#ifdef` directives is that `#ifdef` should be used to check whether given macro has been defined to allow a section of code to be compiled.
+* On the other hand `#if` (`#else`, `#elif`) directives can be used to check whether specified condition is met (just like typical if-condition)
 
 ## Initializer List
 

@@ -4,7 +4,6 @@ SUPPRESS_UNSIGNED_COUNTEREXAMPLE_WARNINGS()
 
 #include <iostream>
 
-
 #pragma clang diagnostic ignored "-Wuninitialized"
 
 void initialization_order()

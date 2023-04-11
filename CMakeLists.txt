@@ -77,4 +77,4 @@ add_subdirectory(02_oop_subset)
 #add_subdirectory(03_template_subset)
 #add_subdirectory(04_stl_subset)
 #add_subdirectory(05_multithread_subset)
-#add_subdirectory(cpp_sortout)
+

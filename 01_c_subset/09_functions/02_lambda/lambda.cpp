@@ -8,18 +8,18 @@ using namespace std;
 
 /*
 
-New features:
+New features C++14
 * Lambdas (3.4.3,11.4) Note lambda changed in C++14
 * Local classes as template arguments (11.4.2, 25.2.1)
 
 
 Examples:
-1. Bitwise operations
-2. Initializer list
-3. Initializer list with auto
-4. Lambda
-5. C++14 Generic Lambda and generalized lambda capture
-6. emplace {} and copy = {} difference
+
+* Initializer list
+* Initializer list with auto
+* Lambda
+* C++14 Generic Lambda and generalized lambda capture
+* emplace {} and copy = {} difference
 */
 
 
