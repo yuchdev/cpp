@@ -1,4 +1,5 @@
 #include <vector>
+#include <iostream>
 
 // Unnamed and named exceptions, aliases, merge namespaces
 // * standard usecases of namespaces:

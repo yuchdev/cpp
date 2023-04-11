@@ -192,9 +192,9 @@ void show_ptrs_refs()
     // but a pointer to to member(20.6) cannot
 
     // pointer to function
-    void(*static_func_ptr)() = &cpp4::point_to_me_static;
+    void(*static_func_ptr)() = &cpp::point_to_me_static;
 
-    void(cpp4::test_me:: * method_ptr)() = &cpp4::test_me::point_to_me;
+    void(cpp::test_me:: * method_ptr)() = &cpp::test_me::point_to_me;
 
     // ? better not to do, ensure in Standard
     void* v1 = static_func_ptr;
@@ -212,7 +212,7 @@ void show_ptrs_refs()
     // An rvalue reference refers to a temporary object
     std::vector<int> vv1 { 1,2,3 };
     std::vector<int> vv2 { 4,5,6 };
-    cpp4::swap(vv1, vv2);
+    cpp::swap(vv1, vv2);
 
     // The compiler uses v and v+N as begin(v) and end(v) for a built-in array T v[N]
     int arr[] = { 7,2,5,9,5,3,5,8,0,3 };
@@ -240,7 +240,7 @@ tatatat)";
     std::wcout << long_complicated << std::endl;
 }
 
-namespace cpp4
+namespace cpp
 {
 
 class tagged_union
@@ -291,7 +291,7 @@ private:
 
 void show_union_tags()
 {
-    cpp4::tagged_union tu;
+    cpp::tagged_union tu;
     int i = 0;
     tu.set_integer(1);
     tu.set_pointer(&i);

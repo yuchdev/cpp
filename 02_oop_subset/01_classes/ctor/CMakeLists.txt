@@ -1,4 +1,4 @@
-set(TARGET class_constness)
+set(TARGET constructor)
 
 file(GLOB SOURCES *.cpp *.h *.txt, *.md)
 

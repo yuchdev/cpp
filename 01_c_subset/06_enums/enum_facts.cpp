@@ -38,7 +38,7 @@ void enum_size()
     long long l = e4;
 }
 
-void show_enum_classes()
+void enum_class()
 {
     // The underlying type must be one of the signed or unsigned integer types (6.2.4)
     // the default is int. We could be explicit about that:

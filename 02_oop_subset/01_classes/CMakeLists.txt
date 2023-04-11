@@ -1,4 +1,5 @@
 add_subdirectory(class_basics)
 add_subdirectory(concrete_class)
 add_subdirectory(class_constness)
+add_subdirectory(ctor)
 add_subdirectory(ref_count)

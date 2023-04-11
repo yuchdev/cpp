@@ -1,5 +1,6 @@
 #include <iostream>
 #include <map>
+#include <set>
 #include <vector>
 #include <algorithm>
 #include <functional>
@@ -23,7 +24,7 @@ Examples:
 */
 
 
-int show_initializer_list()
+auto show_initializer_list()
 {
     // The basic idea of initializer lists as expressions is that if you can initialize a variable x using the notation
     int x { 1 };
@@ -107,7 +108,7 @@ void show_initializer_auto()
 
 void initializer_list_example()
 {
-    int v = {1,2,3,4,5,6,7,8,9};
+    std::vector<int> v = {1,2,3,4,5,6,7,8,9};
     std::set<int> s1(std::begin(v), std::end(v));
     // C++17
     std::set s2{std::begin(v), std::end(v)};
