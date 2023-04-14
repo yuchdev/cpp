@@ -12,4 +12,5 @@ target_include_directories(${TARGET} INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
+set_property(TARGET ${TARGET} PROPERTY ALLOW_INTERFACE_FOLDER ON)
 set_property(TARGET ${TARGET} PROPERTY FOLDER "Utilities")

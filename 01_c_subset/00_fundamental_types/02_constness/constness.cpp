@@ -8,6 +8,8 @@ SUPPRESS_PRAGMA_WARNINGS()
 
 #include <utilities/bitwise.h>
 
+namespace cpp
+{
 
 /**
  * In C++, the const keyword is used to indicate that a variable's value is read-only
@@ -57,10 +59,6 @@ void compiletime_constness()
     constexpr int square_factorial = factorial(2) * factorial(2);  // computed at compile-time
 }
 
-
-namespace cpp4
-{
-
 // A string literal is statically allocated so that it is safe to return one from a function
 constexpr const char* error_message(int i)
 {
@@ -69,9 +67,6 @@ constexpr const char* error_message(int i)
 
 // Basically, constexpr's role is to enable and ensure compile-time evaluation,
 // whereas const's primary role is to specify immutability in interfaces
-
-namespace cpp4
-{
 
 // A class with a constexpr constructor is called a literal type
 // To be simple enough to be constexpr, a constructor must have an empty body
@@ -88,14 +83,14 @@ private:
 void show_literal_types()
 {
     // A constant expression is an expression that a compiler can evaluate
-    constexpr cpp4::point p { 1.,2.,3. };
-    constexpr cpp4::point parr[] = { { 1.,2.,3. } ,{ 1.,2.,3. } ,{ 1.,2.,3. } };
+    constexpr cpp::point p { 1.,2.,3. };
+    constexpr cpp::point parr[] = { { 1.,2.,3. } ,{ 1.,2.,3. } ,{ 1.,2.,3. } };
 }
 
 
 int main(int argc, char* argv[])
 {
-    runtime_constness();
-    compiletime_constness();
+    cpp::runtime_constness();
+    cpp::compiletime_constness();
     return 0;
 }
