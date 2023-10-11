@@ -122,8 +122,22 @@ int main(int argc, char* argv[])
         { "nullptr_type", nullptr_type },
         { "void_type", void_type }
     };
-    boolean_type();
-    nullptr_type();
-    void_type();
+
+    std::string function_name;
+    if (argc < 2) {
+        function_name = "boolean_type";
+    }
+    else {
+        function_name = argv[1];
+    }
+
+    auto function = function_map.find(function_name);
+    if (function != function_map.end()) {
+        function->second();
+    }
+    else {
+        std::cout << "Function " << argv[1] << " not found\n";
+    }
+
     return 0;
 }
