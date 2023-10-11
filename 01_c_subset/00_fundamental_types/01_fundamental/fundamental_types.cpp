@@ -1,4 +1,5 @@
 #include <utilities/defines.h>
+#include <utilities/functional.h>
 SUPPRESS_PRAGMA_WARNINGS()
 #pragma ide diagnostic ignored "UnusedValue"
 #pragma ide diagnostic ignored "UnusedLocalVariable"
@@ -116,6 +117,11 @@ void void_type()
 
 int main(int argc, char* argv[])
 {
+    constexpr FunctionMap function_map{
+        { "boolean_type", boolean_type },
+        { "nullptr_type", nullptr_type },
+        { "void_type", void_type }
+    };
     boolean_type();
     nullptr_type();
     void_type();
