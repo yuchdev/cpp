@@ -117,11 +117,11 @@ void void_type()
 
 int main(int argc, char* argv[])
 {
-    const FunctionMap function_map{
+    const FunctionMap<void> function_map({
         { "boolean_type", boolean_type },
         { "nullptr_type", nullptr_type },
         { "void_type", void_type }
-    };
+    });
 
     std::string function_name;
     if (argc < 2) {
@@ -131,13 +131,8 @@ int main(int argc, char* argv[])
         function_name = argv[1];
     }
 
-    auto function = function_map.find(function_name);
-    if (function != function_map.end()) {
-        function->second();
-    }
-    else {
-        std::cout << "Function " << argv[1] << " not found\n";
-    }
+    auto function = function_map.get(function_name);
+    function();
 
     return 0;
 }
