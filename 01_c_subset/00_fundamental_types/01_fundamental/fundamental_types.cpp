@@ -117,7 +117,7 @@ void void_type()
 
 int main(int argc, char* argv[])
 {
-    constexpr FunctionMap function_map{
+    const FunctionMap function_map{
         { "boolean_type", boolean_type },
         { "nullptr_type", nullptr_type },
         { "void_type", void_type }
