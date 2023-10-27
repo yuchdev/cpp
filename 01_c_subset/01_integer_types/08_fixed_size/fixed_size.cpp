@@ -13,7 +13,7 @@ SUPPRESS_UNSIGNED_COUNTEREXAMPLE_WARNINGS()
 
 void fixed_size_types()
 {
-    // Problem of C++ borrowed from C: we have lots of types 
+    // Problem of C++ borrowed from C: we have lots of types
     // whose sizes are all depend on system or architecture
     // That's why fixed-size (or guaranteed size) types are provided
 
@@ -57,7 +57,7 @@ void fixed_size_types()
     // is needed only if one believes they will ever port to an exotic architecture 
     // where CHAR_BIT is larger than eight, which means it won't be even POSIX compatible,
     // which totally exist though (ClearPath, OS2200)
-    // It features 36-bit words, 9-bit char, 72-bit non-IEEE floating point, 
+    // It features 36-bit words, 9-bit char, 72-bit non-IEEE floating point,
     // separate address space for code and data, word-addressed
     // and don't have dedicated stack pointer
     // https://en.wikipedia.org/wiki/OS_2200

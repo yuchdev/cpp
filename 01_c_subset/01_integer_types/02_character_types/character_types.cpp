@@ -79,7 +79,7 @@ void character_types()
     // 32-bit Unicode symbol may hold emoji and other extended symbols
     // See also https://en.wikipedia.org/wiki/UTF-32
 
-    // type for UTF - 8 character representation; Same size as unsigned char
+    // type for UTF-8 character representation; Same size as unsigned char
     char8_t c5 = 'c';
     // type for UTF-16 character representation; Same size as std::uint_least16_t
     char16_t c6 = u'\u00df';

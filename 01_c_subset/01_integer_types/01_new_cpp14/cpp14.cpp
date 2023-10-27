@@ -21,20 +21,19 @@ void show_align()
     // the bytes used to hold it must have proper alignment 
     // for the hardware to access it efficiently (or in extreme cases to access it at all)
 
-    // The alignof() operator returns the alignment of its argument expression.For example :
-
+    // The alignof() operator returns the alignment of its argument expression.
+    // For example :
     // TODO: alignof
 
     // Sometimes, we have to use alignment in a declaration, where an expression, 
     // such as alignof(x + y) is not allowed.
     // Instead, we can use the type specifier alignas: alignas(T)means 'align just like a T'
-
     //TODO: alignas
 }
 
 // C++14 auto return type deduction (impossible in C++11)
 template <typename T>
-auto add_things(T a, T b)
+auto add_things(T a, T b) -> decltype(a + b)
 {
     const auto ret = a + b;
     return ret;
@@ -77,14 +76,11 @@ void show_init()
 }
 
 /*
-template<class T, class U>
-auto operator+(const Matrix<T>& a, const Matrix<U>& b) -> Matrix<decltype(T{}+U{})>;
-
-I use the suffix return type syntax to be able to express the return type in terms of the arguments
-
-Important note: decltype has new behavior in C++14
+ * template<class T, class U>
+ * auto operator+(const Matrix<T>& a, const Matrix<U>& b) -> Matrix<decltype(T{}+U{})>;
+ * We use the suffix return type syntax to be able to express the return type in terms of the arguments
+ * Important note: decltype has new behavior in C++14
 */
-
 int main()
 {
     show_align();
@@ -93,4 +89,3 @@ int main()
 }
 
 #pragma clang diagnostic pop
-

@@ -6,7 +6,6 @@ void compare_pointers_1()
     // Detailed explanation: there are two ways to compare pointers in C++:
     // * equality operators, which is != and ==
     // * more-less operators, < <= > >=
-
     int a { 10 }, b { 20 };
     int* pa = &a;
     int* pb = &b;

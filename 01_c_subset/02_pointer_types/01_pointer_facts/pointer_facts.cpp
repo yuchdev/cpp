@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdint>
+#include <vector>
 
 namespace cpp
 {
@@ -80,7 +81,8 @@ void pointers_facts()
     void* vp = reinterpret_cast<void*>(some_array);
     // ++vp; there's no increment/decrement for void*
 
-    // 4.pointer + pointer: why do we even need this?
+    // 4.pointer + pointer: forbidden
+    // Why do we even need this?
 }
 
 void nullptr_type()

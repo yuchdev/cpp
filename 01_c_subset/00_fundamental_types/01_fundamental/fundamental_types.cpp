@@ -1,5 +1,6 @@
 #include <utilities/defines.h>
 #include <utilities/functional.h>
+#include <utilities/bitwise.h>
 SUPPRESS_PRAGMA_WARNINGS()
 #pragma ide diagnostic ignored "UnusedValue"
 #pragma ide diagnostic ignored "UnusedLocalVariable"
@@ -8,8 +9,6 @@ SUPPRESS_PRAGMA_WARNINGS()
 #include <iostream>
 #include <type_traits>
 #include <cassert>
-
-#include <utilities/bitwise.h>
 
 /// Fundamental C++ types
 /// https://en.cppreference.com/w/cpp/language/types

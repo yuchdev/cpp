@@ -31,7 +31,6 @@ void runtime_constness()
  * can be computed at compile-time.
  * This allows the compiler to optimize code based on the assumption
  * that the value will not change during program execution
- *
  */
 // For C++11/14
 constexpr int square(int x) {

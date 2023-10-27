@@ -10,8 +10,6 @@ SUPPRESS_UNSIGNED_COUNTEREXAMPLE_WARNINGS()
 
 // Fundamental C++ types
 // https://en.cppreference.com/w/cpp/language/types
-
-
 namespace cpp
 {
     enum MyEnum : long long
@@ -25,8 +23,8 @@ namespace cpp
 void numeric_promotions()
 {
     // https://en.cppreference.com/w/cpp/language/implicit_conversion
-    // Numeric types could be implicitly converted to larger type.
-    // Such conversion called promotion.
+    // Numeric types could be implicitly converted to larger type
+    // Such conversion called promotion
     // Promotion never changes the value of converted number
 
     // Integer Promotion in C++ is pretty much a legacy of ANSI C
@@ -49,6 +47,7 @@ void numeric_promotions()
     char32_t c32 = U'\U0001e36d';
     promote_to_int = c32;
     promote_to_uint = c32;
+
     // clang-tidy Promoting from char32_t to long is implementation-defined
     long promote_to_long = c32;
     unsigned long promote_to_ulong = c32;

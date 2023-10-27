@@ -52,16 +52,6 @@ void unsigned_types()
     unsigned int i1 = 1;
     int j1 = -1;
 
-    // i1 == 1, j1 == -1, arithmetically it's bigger, right?
-    // In Soviet C++ unsigned type cast you!
-    if (j1 < i1) {
-        std::cout << "Unreachable;";
-    }
-
-    // Unreachable section will never be reached,
-    // because unsigned(-1) is being casted to maxint == 2147483647 == 0xffffffff
-    // Using unsigned introduces the potential for these sorts of bugs, and there's not really any upside
-
     // Historically, unsigned is being used for size, offset, bitmask and other values of non-negative nature
     // Note: as with all type specifiers, any order is permitted:
     // 'unsigned long long' int and 'long int unsigned long' name the same type
@@ -93,13 +83,13 @@ void comparing_unsigned()
 
     // Unreachable section will never be reached, 
     // because unsigned(-1) being casted to maxint == 2147483647 == 0xffffffff
+    // Using unsigned introduces the potential for these sorts of bugs, and there's not really any upside
 }
 
 // This cast was really unexpected
 // TODO: some explanation
 void show_shift()
 {
-
     // Let's have, for example, b10(1075) == b2(10000110011)
     // And move it right as many times how many bits in the integer type
 

@@ -8,6 +8,11 @@ SUPPRESS_UNSIGNED_COUNTEREXAMPLE_WARNINGS()
 // Fundamental C++ types
 // https://en.cppreference.com/w/cpp/language/types
 
+// If less than C++20
+#if (__cplusplus <= 201703L)
+using char8_t = unsigned char;
+#endif
+
 
 void integer_types()
 {
@@ -48,7 +53,6 @@ void integer_types()
     // Look once again on bitwise representation
     std::cout << "bitwise(little_endian) = " << bitwise(little_endian) << '\n';
 
-#if (__cplusplus > 201703L)
     // Purpose of the little-endian popularity is that LE system can read from memory 
     // at different lengths without using different addresses
     // For example, a 64-bit memory location with content [4A 00 00 00 00 00 00 00] 
@@ -67,7 +71,6 @@ void integer_types()
         << "32-bit value = " << u.u32
         << "64-bit value = " << u.u64
         << '\n';
-#endif
 
     // Some big-endian architectures include the IBM z/Architecture, AVR32, SPARC, and OpenRISC
     // Most of ARM processors support switching endianness, being effectively double-endian
