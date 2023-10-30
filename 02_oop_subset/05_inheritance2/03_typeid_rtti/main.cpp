@@ -16,7 +16,6 @@ using std::type_info;
 // Demonstration of dynamic type and RTTI
 void show_typeid_rtti()
 {
-
     code_formatter formatter(1);
     formatter.generate(cpp_lang);
 
@@ -87,7 +86,6 @@ void show_typeid_rtti()
 
 int main()
 {
-
     show_simple();
     show_vitrual();
     show_sizes();

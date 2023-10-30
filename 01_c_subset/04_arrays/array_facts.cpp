@@ -55,7 +55,6 @@ inline std::size_t array_size(T(&arr)[N])
 
 void pointer_and_array()
 {
-
     // Step 1. Let's create array of integers and pointer to integer
     // Pointer let us assign the array address (or the first element's of array address)
     // without any problems

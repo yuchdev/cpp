@@ -16,7 +16,6 @@ using std::type_info;
 // Demonstration of inheritance finalization in pre C++11
 void show_final()
 {
-
     class more : public finalizer
     {
         int i;

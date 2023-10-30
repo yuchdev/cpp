@@ -19,10 +19,11 @@ void lvalue_reference()
     // * Reference must be initialized
     // TODO: can it be re-initialized?
     int val1 = 10;
-    int val2 = 10;
+    int val2 = 20;
     int& val_ref = val1;
+    std::cout << val_ref << '\n'; // prints '10'
     val_ref = val2;
-
+    std::cout << val_ref << '\n'; // prints '20'
 
     // * Underneath, reference is a const pointer which can't be nullptr, 
     // and de-reference automatically
@@ -88,6 +89,6 @@ void function_reference()
 
 int main()
 {
-    // TODO: insert any function call
+    lvalue_reference();
     return 0;
 }

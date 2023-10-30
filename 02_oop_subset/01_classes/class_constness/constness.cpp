@@ -1,8 +1,10 @@
 #include <utilities/defines.h>
+#include <utilities/bitwise.h>
 SUPPRESS_PRAGMA_WARNINGS()
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 #include <type_traits>
 #include <cassert>
+
 
 // Arguments for using data accessors and mutators
 // * distinctive read-write access
@@ -88,7 +90,6 @@ private:
     static int a_stat;
 };
 
-#include <utilities/bitwise.h>
 
 
 /**
@@ -111,7 +112,6 @@ void runtime_constness()
  * can be computed at compile-time.
  * This allows the compiler to optimize code based on the assumption
  * that the value will not change during program execution
- *
  */
 // For C++11/14
 constexpr int square(int x) {

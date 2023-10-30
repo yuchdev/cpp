@@ -85,7 +85,6 @@ public:
     // explicit destruction
     void destroy()
     {
-
         // we can't do the same as private: with = delete
         // error C2280: 'void *cpp4::prevent_destruction_delete::__delDtor(unsigned int)': attempting to reference a deleted function
         // this->~prevent_destruction_delete();

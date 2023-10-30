@@ -1,3 +1,96 @@
+### Classes
+
+Advices:
+
+* Express ideas directly in code rather than documentation
+* The basic idea of concrete classes is that they behave just like built-in types
+* The classical user-defined arithmetic type is complex
+* Avoid 'naked' new and delete operations
+* The `std::initializer_list` used to define the initializer-list constructor
+* The `std::initializer_list` is passed by value
+* It is possible to return a standard-library `unique_ptr`
+* A move constructor does not take a const argument as is supposed to remove the value from its argument
+* A move assignment is defined similarly
+* virtual call mechanism can be made almost as efficient as the 'normal function call' (within 25%)
+* In very much the same way as new and delete disappear from application code, we can make pointers disappear into resource handles
+* The best thing to do is usually to delete the default copy and move operations
+* If you need to copy an object explicitly, write some kind of clone() function
+* The =delete mechanism is general, that is, it can be used to suppress any operation
+* One particularly useful kind of template is the function object (sometimes called a functor)
+* Use function templates to represent general algorithms
+* Use function objects, including lambdas, to represent policies and actions
+* Use type and template aliases to provide a uniform notation for types that may vary among similar types or among implementations
+* Do not add many c-tors to a class, just because you think they could be useful for someone
+* Start declaring class members from public, to make emphasis on interface
+* Elements of member array could be constructed only by default. This effectively makes constant array members useless
+* Constructors for static objects are being called during first access, destructors in an order opposite to creation
+* Member of union can't have c-tors or destructors, as it is unclear which one to call
+* Default c-tor may have arguments with default values
+* If one constructor is defined, the default constructor is not created
+* The default assignment operator does not work with references or constant members (TODO: example)
+* forward declaration decrease compilation time
+* Implement clone() as "virtual copy c-tor"
+* use "lazy evaluation" of not all result dataset could be used
+* use "pre-evaluation" is results could be used too often
+* use ref-count and copy-on-write on big datasets in concurrent environment
+* all function prototype params and return values could be declared via "forward declaration". Even passed by value!
+* friend declarations of non-existent classes are ignored
+* Forward declarations could be used also for function prototypes params (including by value) and returning values (including by value)
+* inline is not a directive, but rather advice to a compiler. It could be canceled by cycles, recursion, de-referencing
+* If copy, move and assignment are OK by default, use =default
+* You can disable copying and assignment if necessary
+* Deep copying methods are the copy constructor, assignment operator, and a virtual destructor
+* Declare constructors with a single argument as explicit if you want to forbid implicit conversions (e.g. if that argument is size)
+* The object is implicitly copied when passing or returning by value, and while throwing an exception
+* Note that the copy constructor parameter cannot be passed by value, otherwise it will result in infinite recursion
+* Uniform initialization is more efficient than assignment in the constructor body
+* In some cases, you can put complex initialization in the private `init()` function
+* In order to avoid warning on some compilers, the order of initialization in the constructor must be the same with the order of declaration
+
+* Use "lazy evaluation" for classes which results are not always needed, or not all of them needed
+* For classes which results are needed often, use "greedy evaluation"
+
+Consistency means that the values of all variables of an object completely match to its state
+and do not conflict with each other
+For example, a string object has two variables: a pointer to memory block, and an integer string size.
+Assigning a longer string to an object, we can try the following sequence (incorrect, in fact)
+* free an old memory block
+* allocate a new one
+* copy the string
+* change the pointer value and the length value
+
+Before performing the first of these operations, the object data is consistent, after the last one is done, too.
+Between the first and last operations, consistency is broken.
+
+* Rule 1: Before returning from any public method, object data must be consistent.
+* Rule 2: Ensure object data is consistent before making an outgoing call.
+* Rule 3: Consider that during the outgoing call the object's state can be changed.
+
+### Constaness of classes and members
+
+* Method which does not change anything in class state must be declared const
+* A non-constant method cannot be called on a constant instance
+* Unnamed `enum` is the analog of `static const` member
+* Compiler does not generate `operator=(const A&)` in non-const version explicitly declared
+* `static` members could be changed in `const` methods
+* Correctly define a constant pointer - `char *const p` and a pointer to a constant `char const* p` (or `const char* p`)
+* If the class contains uninitialized const members of references, default c-tor can't be called
+
+### Class and structure
+
+* In general, the choice of using a class or a struct depends on your preference and coding style
+* Some people prefer to use a struct for simple data containers, while others prefer to use a class for everything 
+* Use a class if you want to define a type that has both data and behavior, and you want to control access to the data.
+* Use a struct if you want to define a simple data container with no behavior, and you don't care about access control.
+* If you are working on a codebase that already has a convention for using classes or structs, it's a good idea to follow that convention for consistency.
+* If you are working with a library or framework that requires you to use classes or structs in a certain way, follow those guidelines to ensure compatibility.
+
+### TODOs
+
+Proof of a statement in C++ Standard
+"A move operation is not implicitly generated for a class where the user has explicitly declared a destructor"
+Effective since C++20
+
 Questions:
 * check if ~suppresses copy&move
 * declare non-const => delete const

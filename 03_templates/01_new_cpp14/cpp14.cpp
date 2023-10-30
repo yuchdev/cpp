@@ -63,7 +63,6 @@ void show_local_and_defaults()
 // It could be useful for huge template functions
 
 /*
-
 New features:
 * Type and template aliases (23.6)
 * Simpler and more general SFINAE rule (23.5.3.2)

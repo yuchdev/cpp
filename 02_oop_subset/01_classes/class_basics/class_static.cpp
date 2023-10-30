@@ -5,8 +5,8 @@ SimpleClass sc_global;
 
 void show_construct_destruct()
 {
-
     std::cout << std::endl << "Create automatic objects" << std::endl;
+ 
     // 1.Named object on stack
     // If the object contains constants and references, it can't be constructed by default
     {

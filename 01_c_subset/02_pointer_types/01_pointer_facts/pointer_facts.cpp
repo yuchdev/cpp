@@ -12,6 +12,36 @@ namespace cpp
 
     void point_to_me_static() {}
 
+    // A string literal is statically allocated so that it is safe to return one from a function
+    constexpr const char* error_message(int i)
+    {
+        return "range error";
+    }
+
+    // Basically, constexpr's role is to enable and ensure compile-time evaluation, 
+    // whereas const's primary role is to specify immutability in interfaces
+    constexpr int f(int i)
+    {
+        return i + 1;
+    }
+
+    // "perfect swap" (almost) 
+    template<class T>
+    void swap(T& a, T& b)
+    {
+        // Since move(x) does not move x (it simply produces an rvalue reference to x), 
+        // it would have been better if move() had been called rval(), 
+        // but by now move() has been used for years
+
+        // move from a  
+        T tmp { std::move(a) };
+
+        //move from b 
+        a = std::move(b);
+
+        //move from tmp
+        b = std::move(tmp);
+    }
 } // namespace cpp
 
 
@@ -180,14 +210,6 @@ void show_const_pointers()
 #endif
 }
 
-class test_me
-{
-public:
-    void point_to_me() {}
-};
-
-void point_to_me_static() {}
-
 void show_ptrs_refs()
 {
     // A pointer to any type of object can be assigned to a variable of type void*,
@@ -245,6 +267,10 @@ tatatat)";
 namespace cpp
 {
 
+// Using unions for tagged data
+// A tagged union is a union that has a member that identifies which of the union members is active
+// A tagged union is a way to implement a discriminated union
+// A discriminated union is a union that has a member that identifies which of the union members is active
 class tagged_union
 {
 public:

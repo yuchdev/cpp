@@ -9,8 +9,8 @@
 
 #include <utilities/bitwise.h>
 
-// 2."Extract" sign bit, significand and exponent
-// * Before significand we always assume 1.
+// 2. "Extract" sign bit, significand and exponent
+// * Before significand we always assume 1
 // * Effective exponent is exponent_value-127
 void extract_fp_components(float val)
 {

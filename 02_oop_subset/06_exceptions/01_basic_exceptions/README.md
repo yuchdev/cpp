@@ -63,11 +63,11 @@ Exception | Parent | Throws
   Handling slows it down by orders of magnitude. That's why exceptions should be used only for special situations
   and not be an element of regular program logic
 * don't throw exception while checking error code is sufficient
-* uncaught_exception() reports that some exception is thrown and not processed yet
+* `uncaught_exception()` reports that some exception is thrown and not processed yet
 * If inheriting from `std::exception` privately, it won't be possible to cast reference to the base class
-  It menans inaccessible what()
+  It menans inaccessible `what()`
 * don't add too many nested `catch` blocks, it will reduce performance dramatically
-* If you catch bad_alloc, you may try to release memory or at least shut down application correctly 
+* If you catch `bad_alloc`, you may try to release memory or at least shut down application correctly 
   rather than crash it (TODO: example with nodes)
 * Some exceptions are just does not mean to be caught, they should not to inherit from `std::exception` (e.g. `boost::thread::tread_interrupted`)
 * Note, by catching an exception in the constructor and trying to create the object again,
@@ -94,13 +94,13 @@ Exception | Parent | Throws
 * A good idea is to include the file name and code line number 
   in your exceptions description, using `__FILE__` and `__LINE__` macroses
 * Exceptions put special requirements on C++ templates.
-  In particular, we cannot be sure that a passed type T does not throw exceptions,
+  In particular, we cannot be sure that a passed type `T` does not throw exceptions,
   especially during construction, copying, passing or returning by value
 * There can be several general recommendations:
-  * passing type T only by pointers or references
+  * passing type `T` only by pointers or references
   * suppressing all exceptions in `catch(...)` section
   * catching all exceptions, and wrapping in your own exception type
-  * using shared_pth nothrow
+  * using `shared_pth` `nothrow`
   * exception transparency in templates; rethrowing everything by `throw`
 * The same applies to the PImpl idiom; in the general we don't know 
   what exceptions the implementation will throw
@@ -154,7 +154,7 @@ Exception | Parent | Throws
 ### Exception safety
 
 * Exception safety is a term that is often used in the C++ standard, however, it is not clearly defined
-* Among C++ community, different authors tend to use the term f different things
+* Among C++ community, different authors tend to use the term for different things
 
 * If an object throw or catch an exception, and still executes its public semantic guarantees, 
   then such an object offers _interface security_
@@ -173,7 +173,7 @@ Exception | Parent | Throws
   If the the constructor that throws the exception is allocating resources, 
   you cannot rely on destructor anymore to release them
   (in general, RAII is a solution of this problem)
-* Some offer to make constructor nothrow(), 
+* Some offer to make constructor `nothrow()`, 
   and move all the complex initialization into `init()` protected method
 * Arguments against `init()`:
   * Using a trivial constructor + `init()` can cause a number of maintenance problems:

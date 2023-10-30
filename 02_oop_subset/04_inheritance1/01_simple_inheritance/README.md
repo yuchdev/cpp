@@ -14,7 +14,7 @@
 * Do not pass polymorphic objects by value to avoid slicing
 * It is common practice to inherit classes from classes (i.e., structures usually are not involved in inheritance, however, perfectly can be)
 * The constructor and destructor are never inherited, it is either created by default or implemented explicitly
-* Assignment operators and friend functions are not inherited as well
+* Assignment and move operators and friend functions are not inherited as well
 * Destructors are called in an order reverse to construction
 * The derived class fields may have same named as the base one, although it is not recommended.
   In this case, the base class member is replaced by the one from derived class.

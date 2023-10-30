@@ -73,7 +73,7 @@ public:
     }
 
     // copy semantic
-    // should be suppressed by = delete notation
+    // chould be suppressed by = delete notation
     // it can be used to suppress any operation
     vector(const vector& rhs) : data_ { new T[rhs.size()] }
     {

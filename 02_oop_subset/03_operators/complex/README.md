@@ -16,8 +16,8 @@
 
 #### General information
 
-* Operators [] () = -> {type} can only be only class members
-* You cannot overload operators :: . .* ?
+* Operators `[]` `()` `=` `->` `{type}` can only be only class members
+* You cannot overload operators `::` `.` `.*` `?:`
 * You cannot use the default parameters in operators, because otherwise you could theoretically make an unary frunction from binary
 * The language does not allow for changing operator precedence or associativity
 * The language does not allow declaring new operators
@@ -46,11 +46,11 @@
 * This can be forbidden explicitly if necessary, by returning a const reference
 * The value is not returned when overloading the type conversion operators
 * Friends can be declared in both public or private sections of the class, it does not matter
-* The operator -> implements the concept of indirect access, which could be seen in iterators
+* The `operator->` implements the concept of indirect access, which could be seen in iterators
 * Member operators do not overload non-member, members always have priority
 * In high-performance environment it is sometimes worth abandoning implicit conversions in operators in order to improve performance
   Such operators could be explicitly overloaded, or better implemented as template functions.
-* Overload of logical operators `operator&&`, `operator||`, `operator~`, etc, is extremely rare, so it is hardly expected
+* Overload of logical operators `operator&&`, `operator||`, `operator~`, etc, is hardly expected
 * In addition, overloading binary logical operatora `operator&&` and `operator||` would not lead to expected "lazy evaluation", 
   all expressions will be evaluated, and the order of evaluation won't be defined
 * Constructors of smart pointers usually declared explicit

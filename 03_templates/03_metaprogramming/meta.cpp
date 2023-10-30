@@ -51,7 +51,6 @@ struct sized_integer
 
 void show_predicates()
 {
-
     // some enums
     enum class Axis : char { x, y, z };
     enum flags { off, x = 1, y = x << 1, z = x << 2, t = x << 3 };

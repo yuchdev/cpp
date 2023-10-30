@@ -78,7 +78,10 @@ void floating_point_representation()
     std::format("Sizeof float {}", sizeof(float));
     std::format("Sizeof long {}", sizeof(long));
     std::format("Sizeof long* {}", sizeof(long*));
-
+#else
+    std::cout << "Sizeof float " << sizeof(float) << '\n';
+    std::cout << "Sizeof long " << sizeof(long) << '\n';
+    std::cout << "Sizeof long* " << sizeof(long*) << '\n';
 #endif
 
     for (auto float_number : float_numbers) {
@@ -102,9 +105,12 @@ void floating_point_representation()
 #if __cplusplus >= 202002L
         std::format("Binary representation of {} =\n\t {} =\n\t {}\n",
             double_number, *double_hack, bitwise(*double_hack));
+#else
+        std::cout << "Binary representation of " << double_number << " =\n\t " << *double_hack
+            << " =\n\t " << bitwise(*double_hack) << '\n';
 #endif
-
     }
+    
     // Unlike integers, distribution of floating-point numbers is not uniform
     // It is denser for smaller and dense for larger numbers
     // Using floating-point numbers is a constant trade-off between range and precision

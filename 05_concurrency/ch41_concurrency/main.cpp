@@ -67,8 +67,8 @@ void show_instructions_reordering()
 }
 
 // 2. Fences
-std::atomic<int> a = 0;
-std::atomic<int> b = 0;
+std::atomic<int> a{};
+std::atomic<int> b{};
 
 extern "C" void handler(int)
 {

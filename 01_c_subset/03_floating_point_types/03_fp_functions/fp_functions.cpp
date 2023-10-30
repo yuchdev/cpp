@@ -9,7 +9,6 @@
 
 #include <utilities/bitwise.h>
 
-
 // 4.Floating point functions and applications
 
 void print_roundings_header()
