@@ -22,8 +22,7 @@ Free memory
   > "I rejected multi-methods with regret, because I liked the idea, but couldn't find an acceptable form under which to accept it"
   Bjarne Stroustrup, The Design and Evolution of C++
 * However, multimethods could be implemented with Visitor or Double-Dispatching pattern
-* Changing the access modifier should not change the logic of the program,
-  therefore, even private members participate in ambiguities resolution
+* Changing the access modifier should not change the logic of the program, therefore, even private members participate in ambiguities resolution
 
 ### Virtual Inheritance
 * Multiple inheritance is well managed in case of an abstract base class
@@ -37,7 +36,6 @@ Free memory
 * If conversion is forbidden, `dynamic_cast<Ref&>` throws `bad_cast`
 
 ### RTTI and `typeid`
-
 
 ### Pointer to Class Member
 
