@@ -29,28 +29,3 @@ However, as it assumes some desent lelel of C++, you can skip and chapter entire
 
 Work under the course content currently is in progress, and examples from the beginning are "more complete", than added the last, 
 which could be just drafts or code snippets.
-
-* Integer types
-    * Integer types representation
-    * Comparing pointers
-    * Facts about pointers
-    * C++ array tricks
-    * Facts about references
-    * Facts about enums
-    * Bits and arithmetic
-    * Hamming weights
-* Floating point types
-    * Floating point representation
-    * Extracting floating point components
-    * Comparing floating point numbers
-    * Functions working with floating point numbers
-    * Floating point errors
-    * Fast converting floating point into integer
-    * Fast Inverse Square Root
-* Functions
-    * Calling conventions: cdecl, stdcall, fastcall
-    * Linkage agreements: internal&external
-    * extern "C" linkage convention
-    * Named and unnamed namespace
-    * Inline namespace
-    * Scope: file, block, function prototype, function, namespace, class
