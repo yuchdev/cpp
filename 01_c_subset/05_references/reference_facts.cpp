@@ -4,6 +4,7 @@
 // TODO:
 // * Const ref makes rvalue object live the same time as ref
 // * Non-const pointer is assigned to const (not otherwise!)
+// * Rvalue references (enabling move semantics)
 
 void lvalue_reference()
 {

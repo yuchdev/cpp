@@ -2,7 +2,7 @@
 #include <iosfwd>
 #include <limits>
 
-namespace cpp4
+namespace cpp
 {
 
 void show_formattings_flags();
@@ -15,10 +15,10 @@ void show_formatted_input();
 
 void show_user_manip();
 
-} // namespace cpp4
+} // namespace cpp
 
 
-namespace cpp4
+namespace cpp
 {
 
 // User-defined manipulators
@@ -43,4 +43,4 @@ private:
 template <typename T>
 std::ostream& operator << (std::ostream& os, const binary<T>& t);
 
-} // namespace cpp4 
+} // namespace cpp

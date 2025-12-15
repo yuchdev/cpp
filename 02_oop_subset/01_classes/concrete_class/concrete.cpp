@@ -25,7 +25,7 @@
 
 */
 
-namespace cpp4
+namespace cpp
 {
 
 // 1. Class complex
@@ -219,14 +219,14 @@ template<typename Container> void algo(Container& c)
 template<typename Key>
 using StringMap = std::map<Key, std::string>;
 
-} // namespace cpp4
+} // namespace cpp
 
 
 void show_complex()
 {
-    cpp4::complex c1;
-    cpp4::complex c2 { 1.0 };
-    cpp4::complex c3 { 1.0, 2.0 };
+    cpp::complex c1;
+    cpp::complex c2 { 1.0 };
+    cpp::complex c3 { 1.0, 2.0 };
 
     std::cout << c1.imag() << std::endl;
     std::cout << c2.imag() << std::endl;
@@ -235,13 +235,13 @@ void show_complex()
 
 void show_vector()
 {
-    cpp4::vector<int> v1 { 1,2,3,4,5 };
+    cpp::vector<int> v1 { 1,2,3,4,5 };
     std::cout << v1.size() << std::endl;
 }
 
 void show_return_by_move()
 {
-    std::unique_ptr<int> p = cpp4::ret_unique_ptr();
+    std::unique_ptr<int> p = cpp::ret_unique_ptr();
     std::cout << *p << std::endl;
 }
 
@@ -249,15 +249,15 @@ void show_return_by_move()
 
 void show_variadics()
 {
-    cpp4::variadic_func(1, 1.2, "hello");
+    cpp::variadic_func(1, 1.2, "hello");
 }
 
 void show_type_aliaces()
 {
     std::vector<int> v;
-    cpp4::algo(v);
+    cpp::algo(v);
 
-    cpp4::StringMap<int> m;
+    cpp::StringMap<int> m;
     m[1] = "atatat";
     m[2] = "tatata";
 }

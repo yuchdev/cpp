@@ -25,7 +25,7 @@ Examples:
 
 // 1. Suffix return
 
-namespace cpp4
+namespace cpp
 {
 
 // The essential use for a suffix return type comes in function template declarations
@@ -37,16 +37,16 @@ auto product(X x, Y y) -> decltype(x* y)
     return x * y;
 }
 
-} // namespace cpp4
+} // namespace cpp
 
 void show_suffix()
 {
-    auto prod = cpp4::product(1, 1.0);
+    auto prod = cpp::product(1, 1.0);
     std::cout << prod << std::endl;
 }
 
 // 2. noreturn
-namespace cpp4
+namespace cpp
 {
 
 // noreturn function does not have normal return (throw, exit)
@@ -56,12 +56,12 @@ void exit(int)
     std::exit(0);
 }
 
-} // namespace cpp4
+} // namespace cpp
 
 
 // 3. Local static is undefined
 
-namespace cpp4
+namespace cpp
 {
 
 //  The effect of initializing a local static recursively is undefined
@@ -86,7 +86,7 @@ int recursive_static(int i)
 #pragma GCC diagnostic pop
 #endif
 
-} // namespace cpp4
+} // namespace cpp
 
 // 3.1 Array
 
@@ -106,7 +106,7 @@ void odd(int buf[1020])
 // [2] A type that can be initialized with the values provided in the list
 // [3] A reference to an array of T, where the values of the list can be implicitly converted to T
 
-namespace cpp4
+namespace cpp
 {
 
 template<class T>
@@ -125,22 +125,22 @@ void f3(T(&)[N]) {}
 
 void f4(int) {}
 
-} // namespace cpp4
+} // namespace cpp
 
 void show_list_args()
 {
     // T is int and the initializer_list has size() 4 
-    cpp4::f1({ 1,2,3,4 });
+    cpp::f1({ 1,2,3,4 });
 
     // f2(S{1,"MKS"})
-    cpp4::f2({ 1,"MKS" });
+    cpp::f2({ 1,"MKS" });
 
     // T is int and N is 4
-    //cpp4::f3({ 1,2,3,4 }); 
+    //cpp::f3({ 1,2,3,4 });
     // cannot convert argument 1 from 'initializer list' to 'int (&)[4]'
 
     // Use direct-list-initialization of the scalar to avoid -Wbraced-scalar-init
-    cpp4::f4(int{1});
+    cpp::f4(int{1});
 
     // If there is a possible ambiguity, an initializer_list parameter takes priority
     // It can affect overloads
@@ -159,7 +159,7 @@ Derived* to Base* (20.2), T* to void* (7.2.1), int to unsigned int (10.5))
 5. Match using the ellipsis ... in a function declaration (12.2.4)
 
 */
-namespace cpp4
+namespace cpp
 {
 
 void print(int)
@@ -187,7 +187,7 @@ void print(char)
     std::cout << "void print(char)" << std::endl;
 }
 
-} // namespace cpp4
+} // namespace cpp
 
 void show_overload_resolution()
 {
@@ -197,31 +197,31 @@ void show_overload_resolution()
     float f {};
 
     // exact match: invoke print(char)
-    cpp4::print(c);
+    cpp::print(c);
 
     // exact match: invoke print(int)
-    cpp4::print(i);
+    cpp::print(i);
 
     // integral promotion: invoke print(int)
-    cpp4::print(s);
+    cpp::print(s);
 
     // float to double promotion: print(double)
-    cpp4::print(f);
+    cpp::print(f);
 
     // exact match: invoke print(char)
-    cpp4::print('a');
+    cpp::print('a');
 
     // exact match: invoke print(int)
-    cpp4::print(49);
+    cpp::print(49);
 
     // exact match: invoke print(int)
-    cpp4::print(0);
+    cpp::print(0);
 
     // exact match: invoke print(const char*)
-    cpp4::print("a");
+    cpp::print("a");
 
     // nullptr_t to const char* promotion: invoke print(const char*)
-    cpp4::print(nullptr);
+    cpp::print(nullptr);
 }
 
 // 6. Pointers to function - new stuff
@@ -243,7 +243,7 @@ void show_overload_resolution()
 #  define CPP4_HAS_MS_CALLCONV 0
 #endif
 
-namespace cpp4
+namespace cpp
 {
 
 // exception-noexcept
@@ -261,24 +261,24 @@ void CPP4_CDECL   cdecl_call_func(int) {}
 void show_function_ptrs_specifiers()
 {
     // OK: but we throw away useful information 
-    void(*p1)(int) = cpp4::noexcept_f; (void)p1;
+    void(*p1)(int) = cpp::noexcept_f; (void)p1;
 
     // OK: we preserve the noexcept information 
-    void(*p2)(int) noexcept = cpp4::noexcept_f; (void)p2;
+    void(*p2)(int) noexcept = cpp::noexcept_f; (void)p2;
 
     // error: we don't know that g doesn't throw
     //  error C2440: 'initializing': cannot convert from 'void (__cdecl *)(int)' to 'void (__cdecl *)(int) noexcept'
-    //void(*p3)(int) noexcept = cpp4::plain_f;
+    //void(*p3)(int) noexcept = cpp::plain_f;
 
 #if CPP4_HAS_MS_CALLCONV
     // A pointer to function must reflect the linkage of a function(15.2.6)
-    void(CPP4_CDECL   * p3)(int) = &cpp4::cdecl_call_func;
-    void(CPP4_STDCALL * p4)(int) = &cpp4::std_call_func;
-    void(CPP4_FASTCALL* p5)(int) = &cpp4::fast_call_func;
+    void(CPP4_CDECL   * p3)(int) = &cpp::cdecl_call_func;
+    void(CPP4_STDCALL * p4)(int) = &cpp::std_call_func;
+    void(CPP4_FASTCALL* p5)(int) = &cpp::fast_call_func;
     (void)p3; (void)p4; (void)p5;
 #else
     // Not supported on this platform; demonstrate plain function pointer instead
-    void(*p3_fallback)(int) = &cpp4::cdecl_call_func;
+    void(*p3_fallback)(int) = &cpp::cdecl_call_func;
     (void)p3_fallback;
     std::cout << "[info] MS-specific calling conventions are not supported on this platform; skipping demo" << std::endl;
 #endif
@@ -292,7 +292,7 @@ void show_function_ptrs_specifiers()
 
     // OK
     using ptr_stdcall_t = void (*)(int);
-    ptr_stdcall_t ptr_alias = &cpp4::plain_f; (void)ptr_alias;
+    ptr_stdcall_t ptr_alias = &cpp::plain_f; (void)ptr_alias;
 }
 
 // 7. Useful macros

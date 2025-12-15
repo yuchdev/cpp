@@ -1,7 +1,7 @@
 #pragma once
 #include <iosfwd>
 
-namespace cpp4
+namespace cpp
 {
 
 void file_stream_write();
@@ -52,4 +52,4 @@ struct RandomArray
     void save(std::ofstream& f);
 };
 
-} // namespace cpp4
+} // namespace cpp

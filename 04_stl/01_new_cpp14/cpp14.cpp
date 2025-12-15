@@ -12,7 +12,7 @@ New features:
 * Hash containers:unordered_map,unordered_multimap,unordered_set,andunordered_multiset (4.4.5, 31.4.3)
 */
 
-namespace cpp4
+namespace cpp
 {
 
 struct Entry
@@ -30,12 +30,12 @@ ostream& operator<<(ostream& os, const Entry& e)
 
 void show_forward_list()
 {
-    std::forward_list<cpp4::Entry> l {
+    std::forward_list<cpp::Entry> l {
         {"German Skotobaza", "666-666"},
         {"Gelmut Komatoza", "999-999"}
     };
 
-    for (cpp4::Entry& e : l) {
+    for (cpp::Entry& e : l) {
         std::cout << e << std::endl;
     }
 

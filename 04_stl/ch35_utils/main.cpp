@@ -69,7 +69,7 @@ void show_ratio()
 }
 
 //4. Type functions(35.4)
-namespace cpp4
+namespace cpp
 {
 
 class A
@@ -83,7 +83,7 @@ struct decay_equiv :
     std::is_same<typename std::decay<T>::type, U>::type
 {};
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_types()
 {
@@ -102,12 +102,12 @@ void show_types()
     // Type property predicates
     // is_const<X> is_volatile<X> is_trivial<X> is_trivially_copyable<X>...
     std::cout << std::is_trivial<float>::value << '\n';
-    std::cout << std::is_trivially_constructible<cpp4::A>::value << '\n';
-    std::cout << std::is_trivially_move_assignable<cpp4::A>::value << '\n';
+    std::cout << std::is_trivially_constructible<cpp::A>::value << '\n';
+    std::cout << std::is_trivially_move_assignable<cpp::A>::value << '\n';
 
     // Type Property Queries
     // n=alignment_of<X>, n=rank<X>, n=extent<X,N>
-    std::cout << std::alignment_of<cpp4::A>::value << '\n';
+    std::cout << std::alignment_of<cpp::A>::value << '\n';
 
     // f X is an array, n is the number of dimensions; otherwise n==0
     std::cout << std::rank<int[1][2][3]>::value << '\n';
@@ -135,12 +135,12 @@ void show_types()
     // remove all references, remove array specifier, make function pointer
     // T&, T&&, const T -> T, [] -> *, ...
     std::cout << std::boolalpha
-        << cpp4::decay_equiv<int, int>::value << '\n'
-        << cpp4::decay_equiv<int&, int>::value << '\n'
-        << cpp4::decay_equiv<int&&, int>::value << '\n'
-        << cpp4::decay_equiv<const int&, int>::value << '\n'
-        << cpp4::decay_equiv<int[2], int*>::value << '\n'
-        << cpp4::decay_equiv<int(int), int(*)(int)>::value << '\n';
+        << cpp::decay_equiv<int, int>::value << '\n'
+        << cpp::decay_equiv<int&, int>::value << '\n'
+        << cpp::decay_equiv<int&&, int>::value << '\n'
+        << cpp::decay_equiv<const int&, int>::value << '\n'
+        << cpp::decay_equiv<int[2], int*>::value << '\n'
+        << cpp::decay_equiv<int(int), int(*)(int)>::value << '\n';
 }
 
 // 5. string to numeric value conversions (36.3.5)

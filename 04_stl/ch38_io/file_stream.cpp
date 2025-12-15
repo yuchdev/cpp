@@ -4,7 +4,7 @@
 #include <ctime>
 
 using namespace std;
-using namespace cpp4;
+using namespace cpp;
 
 // C++ app deal not with a file, but with an abstract stream
 // real files can be connect-disconnect to the stream
@@ -16,7 +16,7 @@ using namespace cpp4;
 // binary does not
 
 
-void cpp4::file_stream_write()
+void cpp::file_stream_write()
 {
     srand(static_cast<unsigned>(time(0)));
 
@@ -28,7 +28,7 @@ void cpp4::file_stream_write()
 }
 
 
-void cpp4::file_stream_read()
+void cpp::file_stream_read()
 {
 
     // file stream could be connected-disconnected to any file any number of times
@@ -42,7 +42,7 @@ void cpp4::file_stream_read()
     }
 }
 
-void cpp4::file_stream_copy()
+void cpp::file_stream_copy()
 {
 
     const std::string& from("random.txt");
@@ -55,7 +55,7 @@ void cpp4::file_stream_copy()
     while (inf.get(c)) outf.put(c);
 }
 
-void cpp4::file_stream_binary_write()
+void cpp::file_stream_binary_write()
 {
     srand(static_cast<unsigned>(time(0)));
 
@@ -78,7 +78,7 @@ void cpp4::file_stream_binary_write()
 }
 
 
-void cpp4::file_stream_binary_read()
+void cpp::file_stream_binary_read()
 {
     int a[10] = {};
 
@@ -93,7 +93,7 @@ void cpp4::file_stream_binary_read()
 }
 
 
-void cpp4::RandomArray::load(std::ifstream& f)
+void cpp::RandomArray::load(std::ifstream& f)
 {
     if (f.is_open()) {
         // read array size
@@ -104,7 +104,7 @@ void cpp4::RandomArray::load(std::ifstream& f)
     }
 }
 
-void cpp4::RandomArray::save(std::ofstream& f)
+void cpp::RandomArray::save(std::ofstream& f)
 {
     if (f.is_open()) {
         // write array size
@@ -115,7 +115,7 @@ void cpp4::RandomArray::save(std::ofstream& f)
     }
 }
 
-void cpp4::show_rnd_access()
+void cpp::show_rnd_access()
 {
 
     // functions family tell/seek allow to set a position 
@@ -173,18 +173,18 @@ void cpp4::show_rnd_access()
 }
 
 
-void cpp4::show_fstream_serialize()
+void cpp::show_fstream_serialize()
 {
 
     {
-        cpp4::RandomArray ra(10);
+        cpp::RandomArray ra(10);
         ra.generate();
         ofstream f("rarray.bin", ios::binary);
         ra.save(f);
     }
 
     {
-        cpp4::RandomArray ra(10);
+        cpp::RandomArray ra(10);
         ifstream f("rarray.bin", ios::binary);
         ra.load(f);
     }

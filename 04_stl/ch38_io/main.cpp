@@ -33,32 +33,32 @@ Examples:
 // 1. Standard input examples
 void show_standard_streams_out()
 {
-    cpp4::simple_ostream();
+    cpp::simple_ostream();
 }
 
 
 // 2. Standard output examples
 void show_standard_streams_input()
 {
-    cpp4::simple_istream();
-    cpp4::istream_end_input();
-    cpp4::istream_noskipws();
-    cpp4::istream_get_read();
+    cpp::simple_istream();
+    cpp::istream_end_input();
+    cpp::istream_noskipws();
+    cpp::istream_get_read();
 }
 
 // 3. String output examples
 void show_string_input()
 {
-    cpp4::istream_strings_get();
-    cpp4::istream_strings_ignore();
-    cpp4::istream_strings_getline();
+    cpp::istream_strings_get();
+    cpp::istream_strings_ignore();
+    cpp::istream_strings_getline();
 }
 
 // 4. String streams
 void show_string_streams()
 {
-    cpp4::output_string_streams();
-    cpp4::bidirect_string_streams();
+    cpp::output_string_streams();
+    cpp::bidirect_string_streams();
 }
 
 
@@ -66,10 +66,10 @@ void show_string_streams()
 // 5. Other istream examples
 void show_istream_other()
 {
-    cpp4::stream_bad_state();
-    cpp4::stream_place_back();
-    cpp4::stream_redirect_buffers();
-    cpp4::stream_tie();
+    cpp::stream_bad_state();
+    cpp::stream_place_back();
+    cpp::stream_redirect_buffers();
+    cpp::stream_tie();
 }
 
 // 6. Standard file stream examples
@@ -87,16 +87,16 @@ void show_simple_fstream()
     // text streams are formatted and could be splitted into strings
     // binary does not
 
-    cpp4::file_stream_write();
-    cpp4::file_stream_read();
-    cpp4::file_stream_copy();
-    cpp4::file_stream_binary_write();
-    cpp4::file_stream_binary_read();
-    cpp4::show_fstream_serialize();
+    cpp::file_stream_write();
+    cpp::file_stream_read();
+    cpp::file_stream_copy();
+    cpp::file_stream_binary_write();
+    cpp::file_stream_binary_read();
+    cpp::show_fstream_serialize();
 
-    cpp4::show_rnd_access();
+    cpp::show_rnd_access();
     // check what we write
-    cpp4::file_stream_binary_read();
+    cpp::file_stream_binary_read();
 }
 
 
@@ -104,22 +104,22 @@ void show_simple_fstream()
 // 10. User-defined formatting
 void show_formatted_streams()
 {
-    cpp4::show_formattings_flags();
-    cpp4::show_formattings_methods();
-    cpp4::show_formattings_manipulators();
-    cpp4::show_formatted_input();
-    cpp4::show_user_manip();
+    cpp::show_formattings_flags();
+    cpp::show_formattings_methods();
+    cpp::show_formattings_manipulators();
+    cpp::show_formatted_input();
+    cpp::show_user_manip();
 }
 
 // 11. User - defined input
 void show_user_defined_input()
 {
-    cpp4::show_formatted_overloads();
+    cpp::show_formatted_overloads();
 }
 
 
 // 13. Iterators
-namespace cpp4
+namespace cpp
 {
 
 // Show output iterator
@@ -206,13 +206,13 @@ int show_iterators()
     return !from_file.eof() && !to_file;
 }
 
-} // namespace cpp4
+} // namespace cpp
 
 void show_stream_iterators()
 {
-    cpp4::show_out_iter();
-    cpp4::show_istr_iter();
-    cpp4::show_iterators();
+    cpp::show_out_iter();
+    cpp::show_istr_iter();
+    cpp::show_iterators();
 }
 
 int main()

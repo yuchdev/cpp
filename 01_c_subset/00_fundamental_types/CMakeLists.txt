@@ -1,2 +1,0 @@
-add_subdirectory(01_fundamental)
-add_subdirectory(02_constness)

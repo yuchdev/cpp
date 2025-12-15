@@ -25,7 +25,7 @@ Examples:
 */
 
 // 1. tuple example (34.2.4)
-namespace cpp4
+namespace cpp
 {
 std::tuple<char, int, double>  create_tuple()
 {
@@ -33,13 +33,13 @@ std::tuple<char, int, double>  create_tuple()
     return std::make_tuple('a', 1, 1.0);
 }
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_tuple()
 {
 
     // create tuple
-    std::tuple<char, int, double> t = cpp4::create_tuple();
+    std::tuple<char, int, double> t = cpp::create_tuple();
 
     char c {};
     int i {};

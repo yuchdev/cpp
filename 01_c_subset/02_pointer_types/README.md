@@ -1,78 +1,172 @@
-Questions:
-Ensure about func_ptr -> void* (Standard)
+## Pointer Facts
 
-New C++14 features:
+### 1. Boolean logic, control flow, and "pointer → bool"
 
-* Null pointer keyword (7.2.2)
-* Rvalue references (enabling move semantics)(7.7.2)
-* Unicode characters (6.2.3.2, 7.3.2.2)
-* Raw string literals (7.3.2.1)
-* Scoped and strongly typed enums: enum class (2.3.3, 8.4.1)
-* Generalized POD (8.2.6)
-* Generalized unions (8.3.1)
-* A fixed-sized contiguous sequence container: array (8.2.4, 34.2.1)
-* Generalized and guaranteed constant expressions: constexpr (2.2.3, 10.4, 12.1.6)
-* Range-for-statement (2.2.5, 9.5.1)
+* The logical operators `&&`, `||`, and `!` take operands of arithmetic and pointer types, convert them to `bool`, and return a `bool` result.
+* The `&&` and `||` operators evaluate their second argument only if necessary, so they can be used to control evaluation order.
+* The order of evaluation of subexpressions within an expression is undefined.
+  (So: don't rely on side-effect order unless the language guarantees sequencing..
 
-Advices
+---
 
-* The logical operators && (and), || (or), and ! (not) take operands of arithmetic and pointer types, convert them to bool, and return a bool result
-* The && and || operators evaluate their second argument only if necessary, so they can be used to control evaluation order
-* A plain enum can be implicitly converted to an integer type and used as an operand to bitwise logical operations
-* int size could be checked with static assert so that work with masks
-* Whenever possible, use standard-library facilities in preference to fiddling with pointers and bytes
-* Wherever possible, have that manager object being a scoped variable
-* Usually two or more words per allocation are used for free-store management
+### 2. Null pointers: `0`, `NULL`, and `nullptr`
 
+* The standard conversions allow `0` to be used as a constant of pointer or pointer-to-member type.
+* In C, `NULL` is typically `(void*.0`, which makes it illegal in C++.
+* Prefer `nullptr`: it has its own type (`std::nullptr_t`., avoids overload ambiguity, and converts to any object pointer, function pointer, or pointer-to-member.
 
-* A pointer to any type of object can be assigned to a variable of type `void*`, but a pointer to member (20.6) cannot
-* The standard conversions allow 0 to be used as a constant of pointer or pointer-to-member type
-* In C, NULL is typically `(void*)0`, which makes it illegal in C++
-* A string literal is statically allocated
-* The backslash convention for representing nongraphic characters
-* Raw string literals use the `R"(ccc)"` notation for a sequence of characters "ccc"
-* Unless you work with regular expressions, raw string literals are probably just a curiosity
-* Similarly, a string with the prefix LR, such as `LR"(angst)"`
-* Basically, constexpr's role is to enable and ensure compile-time evaluation, 
-  whereas const's primary role is to specify immutability in interfaces
+---
+
+### 3. Pointer categories and (non-.interchangeability
+
+* A pointer to any type of object can be assigned to a variable of type `void*`, but a pointer to member cannot.
+* On some machines, an `int` and an `int*` do not occupy the same amount of space.
+* Obscure but important: object pointers, function pointers, and pointer-to-member are distinct categories; they're not required to have the same size/representation, and they are not freely inter-convertible.
+
+---
+
+### 4. Pointer arithmetic and address differences
+
+* `size_t` holds sizes of objects, whereas `ptrdiff_t` holds differences of addresses within objects. (Pointer subtraction yields `ptrdiff_t`..
+* Pointer subtraction is only defined within the same array object (including one-past-the-end.. Subtracting unrelated pointers is undefined behavior.
+* One-past-the-end pointer values are valid to form and compare/subtract within the same array, but dereferencing one-past is undefined behavior.
+* `ptrdiff_t` is closely tied to the machine pointer type, so is `size_t`.
+
+---
+
+### 5. Pointer comparisons
+
+* Equality/inequality (`==`, `!=`. comparisons are always meaningful.
+* Ordering comparisons (`<`, `>`, etc.. are only reliably specified in array/object-related cases; for unrelated pointers, don't assume raw `<` is meaningful.
+* If you need a strict weak ordering of pointers (e.g., for ordered containers., prefer `std::less<T*>`.
+
+---
+
+### 6. Endianness, object representation, and "bytes"
+
+* Sometimes, we want to treat an object as just "plain old data" (a contiguous sequence of bytes in memory..
+* Obscure-but-real rule: inspecting an object's bytes through `unsigned char*` (or `std::byte*`. is a special, permitted aliasing case; other type-punning pointer casts can violate strict aliasing.
+* "Little-endian" (common on x86 today. is a property of how multi-byte values are stored, not a property of pointers.
+
+---
+
+### 7. Free store (`new`/`delete`. and lifetime pitfalls
+
+* Usually two or more words per allocation are used for free-store management.
+* The main problems with free store are:
+
+  * Leaked objects: People use `new` and then forget to `delete` the allocated object.
+  * Premature deletion: People delete an object that they have some other pointer to and later use that other pointer.
+  * Double deletion.
+* Wherever possible, have that manager object being a scoped variable.
+* Whenever possible, use standard-library facilities in preference to fiddling with pointers and bytes.
+* Obscure fact: `new T[0]` is well-formed in standard C++; it returns a pointer value that must be released with `delete[]` (exactly once..
+
+---
+
+### 8. String literals and escape forms
+
+* A string literal is statically allocated.
+* The backslash convention exists for representing nongraphic characters.
+* Raw string literals use the `R"(ccc."` notation for a sequence of characters `ccc`.
+* Unless you work with regular expressions, raw string literals are probably just a curiosity.
+* Similarly, a string with the prefix `LR`, such as `LR"(angst."`, is a raw string (wide..
+
+---
+
+### 9. `const` vs `constexpr`
+
+* Basically, `constexpr`'s role is to enable and ensure compile-time evaluation, whereas `const`'s primary role is to specify immutability in interfaces.
+* A constant expression is an expression that a compiler can evaluate.
+* The address of a statically allocated object, such as a global variable, is a constant.
+
+---
+
+### 10. References, rvalue references, and move semantics
+
 * To reflect the lvalue/rvalue and const/non-const distinctions, there are three kinds of references:
+
   * lvalue references: to refer to objects whose value we want to change
-  * const references: to refer to objects whose value we do not want to change (a constant)
-  * rvalue references: to refer to objects whose value we do not need to preserve after we have used it (a temporary)
-* We use rvalue references to implement a 'destructive read' for optimization
-* Since move(x) does not move x (it simply produces an rvalue reference to x), 
-  it would have been better if move() had been called rval()
-* Rvalue references can also be used to provide perfect forwarding
-* Reference to reference is just a reference. This is sometimes known as reference collapse
-* Use of multiple access specifiers (i.e., public, private, or protected) can affect layout (20.5)
-* Sometimes, we want to treat an object as just 'plain old data' (a contiguous sequence of bytes in memory)
-* Bit field saves data space, but the size of the code needed to manipulate these variables increases
-* The language doesn't keep track of which kind of value is held by a union
-* On some machines, an int and an int* do not occupy the same amount of space
-* Union that holds current type info is often called a tagged union or a discriminated union
-* An anonymous union is an object, not a type, and its members can be accessed without mentioning an object name
-* In general, prefer the enum classes
-* The underlying type must be one of the signed or unsigned integer types (6.2.4)
-  the default is int. We could be explicit about that
-* enum is a user-defined type, so we can define the | and & operators
-* A plain enum can be unnamed
-* The expression in the case labels must be a constant expression of integral or enumeration type
-* The compiler uses v and v+N as begin(v) and end(v) for a built-in array `T v[N]`
-* C++ provides assignment operators for the binary operators
-* The order of evaluation of subexpressions within an expression is undefined
-* A constant expression is an expression that a compiler can evaluate
-* Symbolic names should be used systematically to avoid 'magic numbers' in code
-* In many cases, plain enumerators (8.4) are another alternative to consts
-* A class with a constexpr constructor is called a literal type
-* To be simple enough to be constexpr, a constructor must have an empty body 
-  and all members must be initialized by potentially constant expressions
-* Note that we can have constexpr arrays and also access array elements and object members
-* The address of a statically allocated object (6.4.2), such as a global variable, is a constant
-* Value of fp conversion bigger->smaller is undefined
+  * const references: to refer to objects whose value we do not want to change (a constant.
+  * rvalue references: to refer to objects whose value we do not need to preserve after we have used it (a temporary.
+* We use rvalue references to implement a "destructive read" for optimization.
+* Since `move(x.` does not move `x` (it simply produces an rvalue reference to `x`., it would have been better if `move(.` had been called `rval(.`.
+* Rvalue references can also be used to provide perfect forwarding.
+* Reference to reference is just a reference. This is sometimes known as reference collapse.
 
+---
 
-The main problems with free store are:
-* Leaked objects: People use new and then forget to delete the allocated object.
-* Premature deletion: People delete an object that they have some other pointer to and later
-use that other pointer
-* Double deletion
+### 11. Enums, bitwise operations, and switch/case constraints
+
+* A plain enum can be implicitly converted to an integer type and used as an operand to bitwise logical operations.
+* In general, prefer the enum classes.
+* The underlying type must be one of the signed or unsigned integer types; the default is `int`. We could be explicit about that.
+* `enum` is a user-defined type, so we can define the `|` and `&` operators.
+* A plain enum can be unnamed.
+* The expression in the case labels must be a constant expression of integral or enumeration type.
+* Symbolic names should be used systematically to avoid "magic numbers" in code.
+* In many cases, plain enumerators are another alternative to consts.
+* int size could be checked with static assert so that work with masks.
+
+---
+
+### 12. Arrays and library interop
+
+* The compiler uses `v` and `v+N` as `begin(v.` and `end(v.` for a built-in array `T v[N]`.
+
+---
+
+### 13. Assignment operators
+
+* C++ provides assignment operators for the binary operators.
+
+---
+
+### 14. Layout and representation details (classes, bit-fields, unions.
+
+* Use of multiple access specifiers (i.e., public, private, or protected. can affect layout.
+* Bit field saves data space, but the size of the code needed to manipulate these variables increases.
+* The language doesn't keep track of which kind of value is held by a union.
+* Union that holds current type info is often called a tagged union or a discriminated union.
+* An anonymous union is an object, not a type, and its members can be accessed without mentioning an object name.
+
+---
+
+### 15. `constexpr` objects and literal types
+
+* A class with a `constexpr` constructor is called a literal type.
+* To be simple enough to be `constexpr`, a constructor must have an empty body and all members must be initialized by potentially constant expressions.
+* Note that we can have `constexpr` arrays and also access array elements and object members.
+
+---
+
+### 16. Floating-point conversion hazard
+
+* Value of fp conversion bigger->smaller is undefined.
+
+---
+
+### 17. "Formatting + serialization" integer types
+
+* Legit use of `intmax_t` is for formatting, and probably serialization.
+
+---
+
+## Additions carried over from `pointer_facts.cpp` (new facts, not duplicates.
+
+### 18. `std::addressof` vs overloaded `operator&`
+
+* Obscure pitfall: `operator&` can be overloaded. If you need the real address of an object, use `std::addressof(x.`.
+
+### 19. Strict aliasing escape hatch
+
+* Treating arbitrary objects as "just bytes" is only reliably legal through `char*`, `unsigned char*`, or `std::byte*`. Other reinterpret-cast pointer reads can be undefined behavior.
+
+### 20. Pointer-to-member is not "an address"
+
+* A pointer-to-member can be a "fat" representation (especially with multiple inheritance/virtual bases.. It may not fit in `void*` and is often not meaningful to print.
+
+### 21. Function pointer to `void*`
+
+* Object pointers convert to `void*`; function pointers do not.
+  `T* → void*` is a standard conversion for *object pointers*. A *function pointer* is a different category and is not guaranteed convertible to `void*` in standard C++ (including C++17.. If you see code that casts a function pointer to `void*`, it's relying on a non-portable extension/ABI behavior.

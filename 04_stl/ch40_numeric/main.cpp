@@ -64,13 +64,13 @@ void show_limits()
 
 
 //2. valarray
-namespace cpp4
+namespace cpp
 {
 double my_square(double d)
 {
     return d * d;
 }
-} // namespace cpp4
+} // namespace cpp
 
 void show_valarray()
 {
@@ -127,7 +127,7 @@ void show_valarray()
 
     // apply some f() to every element
     // new vector is generated
-    valarray<double> v7 = v5.apply(cpp4::my_square);
+    valarray<double> v7 = v5.apply(cpp::my_square);
 
     // all arithmetic operations work per elements
     // and create a new vector
@@ -137,7 +137,7 @@ void show_valarray()
 
 
 //3. Slices(+iterator)
-namespace cpp4
+namespace cpp
 {
 
 // valarray slice iterator (Straus 4 p.1173)
@@ -218,7 +218,7 @@ public:
 
 };
 
-} // namespace cpp4
+} // namespace cpp
 
 void show_slices()
 {
@@ -270,7 +270,7 @@ void show_slices_iterator()
     // slice for rows/column iteration
     slice s = std::slice(0, 3, 4);
 
-    cpp4::slice_iter<int> s_iter(foo, s);
+    cpp::slice_iter<int> s_iter(foo, s);
 
     ++s_iter;
     double d = (*s_iter);
@@ -322,7 +322,7 @@ void show_gslice()
 
 
 //5. Matrix
-namespace cpp4
+namespace cpp
 {
 
 // Based on valarray and slices
@@ -397,19 +397,19 @@ private:
     size_t _d2;
 };
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_matrix()
 {
 
-    cpp4::matrix<double> m1(3, 3);
-    cpp4::matrix<double> m2(m1);
+    cpp::matrix<double> m1(3, 3);
+    cpp::matrix<double> m2(m1);
 
     m1(0, 0) = 1.0;
     m1(1, 1) = 2.0;
     m1(2, 2) = 3.0;
 
-    cpp4::slice_iter<double> s_iter1 = m1.row(0);
+    cpp::slice_iter<double> s_iter1 = m1.row(0);
     cout << "First row: ";
     double d1 = *s_iter1;
     cout << d1;
@@ -422,7 +422,7 @@ void show_matrix()
 
     cout << endl;
 
-    cpp4::slice_iter<double> s_iter2 = m1.column(1);
+    cpp::slice_iter<double> s_iter2 = m1.column(1);
     cout << "Second column: ";
     double d2 = *s_iter2;
     cout << d2;
@@ -556,7 +556,7 @@ void show_algorithms()
 }
 
 //9. Random generators
-namespace cpp4
+namespace cpp
 {
 
 // Print integer distribution using ACSII
@@ -638,25 +638,25 @@ private:
     std::function<double()> generator = std::bind(norm, std::default_random_engine {});
 };
 
-} // namespace cpp4
+} // namespace cpp
 
 void show_random()
 {
 
     // Use the default_random_engine unless you have a real need and know what you are doing
 
-    cpp4::rand_int int_gen(1, 20);
-    cpp4::rand_double dbl_gen(1, 20);
-    cpp4::rand_double_normal dbl_normal_gen(1, 20);
+    cpp::rand_int int_gen(1, 20);
+    cpp::rand_double dbl_gen(1, 20);
+    cpp::rand_double_normal dbl_normal_gen(1, 20);
 
     cout << "Uniform int: \n";
-    cpp4::print_distribution(200, int_gen);
+    cpp::print_distribution(200, int_gen);
 
     cout << "Uniform double: \n";
-    cpp4::print_distribution(200, dbl_gen);
+    cpp::print_distribution(200, dbl_gen);
 
     cout << "Normal double: \n";
-    cpp4::print_distribution(200, dbl_normal_gen);
+    cpp::print_distribution(200, dbl_normal_gen);
 
     std::random_device rd;
     cout << "Entropy: " << rd.entropy() << '\n';

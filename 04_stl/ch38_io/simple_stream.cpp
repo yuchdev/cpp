@@ -5,9 +5,9 @@
 #include <string>
 
 using namespace std;
-using namespace cpp4;
+using namespace cpp;
 
-void cpp4::simple_ostream()
+void cpp::simple_ostream()
 {
 
     // Standard streams
@@ -95,7 +95,7 @@ void cpp4::simple_ostream()
     // (cout <<	d)=(f << '\n');
 }
 
-void cpp4::simple_istream()
+void cpp::simple_istream()
 {
 
     // input interrupts by pressing Enter
@@ -119,7 +119,7 @@ void cpp4::simple_istream()
 }
 
 
-void cpp4::istream_end_input()
+void cpp::istream_end_input()
 {
     // enter, spaces, tabs are "end of input" by default
     // enter '1 2 3'
@@ -134,7 +134,7 @@ void cpp4::istream_end_input()
     cin.ignore();
 }
 
-void cpp4::istream_noskipws()
+void cpp::istream_noskipws()
 {
     // this mode could be switched off using manipulator noskipws
     char a, b, c;
@@ -149,7 +149,7 @@ void cpp4::istream_noskipws()
     cin.ignore();
 }
 
-void cpp4::istream_get_read()
+void cpp::istream_get_read()
 {
     // opposite methods to put/write are get/read;
     char c1, c2;
@@ -167,7 +167,7 @@ void cpp4::istream_get_read()
 
 
 
-void cpp4::istream_strings_get()
+void cpp::istream_strings_get()
 {
 
     // It is possible to enter a string with spaces using get() method
@@ -203,7 +203,7 @@ void cpp4::istream_strings_get()
 }
 
 
-void cpp4::istream_strings_ignore()
+void cpp::istream_strings_ignore()
 {
 
     // ignore() is able to remove any number of symbols
@@ -223,7 +223,7 @@ void cpp4::istream_strings_ignore()
 }
 
 
-void cpp4::istream_strings_getline()
+void cpp::istream_strings_getline()
 {
 
     // for entering the whole string getline() function is useful
@@ -258,7 +258,7 @@ void cpp4::istream_strings_getline()
 }
 
 
-void cpp4::stream_bad_state()
+void cpp::stream_bad_state()
 {
     // Every stream can have one of 4 states
     // good - everything ok
@@ -308,7 +308,7 @@ void cpp4::stream_bad_state()
 }
 
 
-void cpp4::stream_place_back()
+void cpp::stream_place_back()
 {
 
     // read symbols could be placed pack to the stream
@@ -344,7 +344,7 @@ void cpp4::stream_place_back()
 }
 
 
-void cpp4::stream_redirect_buffers()
+void cpp::stream_redirect_buffers()
 {
 
     // bu default all streams are buffered
@@ -384,7 +384,7 @@ void cpp4::stream_redirect_buffers()
     // and user-defined buffers
 }
 
-void cpp4::stream_tie()
+void cpp::stream_tie()
 {
 
     // By default, the standard narrow streams cin and cerr are tied to cout, and their
@@ -406,7 +406,7 @@ void cpp4::stream_tie()
 }
 
 
-void cpp4::output_string_streams()
+void cpp::output_string_streams()
 {
 
     char c = 'a';
@@ -423,7 +423,7 @@ void cpp4::output_string_streams()
     cout << "Total symbols: " << os.str().length() << endl;
 }
 
-void cpp4::bidirect_string_streams()
+void cpp::bidirect_string_streams()
 {
 
     // istringstream receives data from some type from string

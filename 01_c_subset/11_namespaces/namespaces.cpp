@@ -129,7 +129,7 @@ void show_namespaces()
 /*
  *Inline namespace
  */
-namespace cpp4
+namespace cpp
 {
 
 namespace V1_0
@@ -148,7 +148,7 @@ void f()
 }
 }
 
-// The inline specifies that V2_0 is the default meaning of cpp4
+// The inline specifies that V2_0 is the default meaning of cpp
 inline namespace V2_0
 {
 void f()
@@ -157,16 +157,16 @@ void f()
 }
 }
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_inline_namespaces()
 {
-    cpp4::V1_0::f();
-    cpp4::V1_5::f();
-    cpp4::V2_0::f();
+    cpp::V1_0::f();
+    cpp::V1_5::f();
+    cpp::V2_0::f();
 
     // inline namespace works
-    cpp4::f();
+    cpp::f();
 }
 
 int main()

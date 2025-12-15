@@ -119,7 +119,7 @@ void initializer_list_example()
 }
 
 // Pass variadic template params to lambda
-namespace cpp4
+namespace cpp
 {
 
 void recursive_variadic_call() {}
@@ -203,7 +203,7 @@ void show_lambda()
     std::for_each(v.begin(), v.end(), l);
 
     // If you need to capture a variadic template (28.6) argument, use ...
-    cpp4::algo(1, 2, 3, 4, 5, 6);
+    cpp::algo(1, 2, 3, 4, 5, 6);
 
     // In the unlikely event that we want to modify the state, we can declare the lambda mutable
     size_t count = v.size();
@@ -226,7 +226,7 @@ void show_lambda()
     double (*p1)(double) = [] (double a) { return sqrt(a); };
 }
 
-namespace cpp4
+namespace cpp
 {
 
 // C++14 has generic lambda
@@ -258,7 +258,7 @@ private:
     int i_;
 };
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_emplace_copy()
 {
@@ -267,8 +267,8 @@ void show_emplace_copy()
     // In all other cases, it performs copy initialization (16.2.6)
     // In particular, the otherwise redundant = in an initializer restricts the set 
     // of initializations that can be performed with a given {}-list
-    cpp4::test_emplace_copy a1 { 1 };
-    cpp4::test_emplace_copy a2 = { 2 };
+    cpp::test_emplace_copy a1 { 1 };
+    cpp::test_emplace_copy a2 = { 2 };
 
     // me: it anyway calls direct initialization
 }

@@ -61,7 +61,7 @@ void show_unordered_emplace()
 //3. unordered_map constructors(31.4.3.3)
 //4. unordered_map own hash function(31.4.3.4)
 //5. unordered_map own hash function - lambda(31.4.3.4)
-namespace cpp4
+namespace cpp
 {
 
 struct record
@@ -96,37 +96,37 @@ bool rec_eq(const record& r1, const record& r2)
     return (r1.s == r2.s) && (r1.n == r2.n);
 }
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_custom_hash_func()
 {
 
     // hash and equal as template params
-    std::unordered_set<cpp4::record, cpp4::record_hash, cpp4::record_equal> s1;
+    std::unordered_set<cpp::record, cpp::record_hash, cpp::record_equal> s1;
 
     // hash and equal as constructor params
-    const cpp4::record_hash h;
-    const cpp4::record_equal e;
-    std::unordered_set<cpp4::record, cpp4::record_hash, cpp4::record_equal> s2 { 100, h , e };
+    const cpp::record_hash h;
+    const cpp::record_equal e;
+    std::unordered_set<cpp::record, cpp::record_hash, cpp::record_equal> s2 { 100, h , e };
 
     // hash and equal as functions
-    std::unordered_set<cpp4::record, decltype(&cpp4::rec_hash), decltype(&cpp4::rec_eq)> s3;
+    std::unordered_set<cpp::record, decltype(&cpp::rec_hash), decltype(&cpp::rec_eq)> s3;
 
     // hash and equal as lambda
-    unordered_set<cpp4::record,
-        std::function<size_t(const cpp4::record&)>,
-        std::function<bool(const cpp4::record&, const cpp4::record&)> > s4 { 10,
-        [] (const cpp4::record& r) { return std::hash<size_t>()(r.s) ^ std::hash<std::string>()(r.n); },
-        [] (const cpp4::record& r, const cpp4::record& r2) { return r.s == r2.s && r.n == r2.n; }
+    unordered_set<cpp::record,
+        std::function<size_t(const cpp::record&)>,
+        std::function<bool(const cpp::record&, const cpp::record&)> > s4 { 10,
+        [] (const cpp::record& r) { return std::hash<size_t>()(r.s) ^ std::hash<std::string>()(r.n); },
+        [] (const cpp::record& r, const cpp::record& r2) { return r.s == r2.s && r.n == r2.n; }
     };
 
     // ... or with naming
-    auto hash_me = [] (const cpp4::record& r) { return std::hash<size_t>()(r.s) ^ std::hash<std::string>()(r.n); };
-    auto equal_me = [] (const cpp4::record& r, const cpp4::record& r2) { return r.s == r2.s && r.n == r2.n; };
+    auto hash_me = [] (const cpp::record& r) { return std::hash<size_t>()(r.s) ^ std::hash<std::string>()(r.n); };
+    auto equal_me = [] (const cpp::record& r, const cpp::record& r2) { return r.s == r2.s && r.n == r2.n; };
 
-    unordered_set<cpp4::record,
-        std::function<size_t(const cpp4::record&)>,
-        std::function<bool(const cpp4::record&, const cpp4::record&)> > s5 { 10, hash_me, equal_me };
+    unordered_set<cpp::record,
+        std::function<size_t(const cpp::record&)>,
+        std::function<bool(const cpp::record&, const cpp::record&)> > s5 { 10, hash_me, equal_me };
 }
 
 //6. unordered_map own hash function - std namespace specialization(31.4.3.4)
@@ -134,19 +134,19 @@ namespace std
 {
 
 template<>
-struct hash<cpp4::record>
+struct hash<cpp::record>
 {
 
-    size_t operator()(const cpp4::record& r) const
+    size_t operator()(const cpp::record& r) const
     {
         return std::hash<size_t>()(r.s) ^ std::hash<std::string>()(r.n);
     }
 };
 
 template<>
-struct equal_to<cpp4::record>
+struct equal_to<cpp::record>
 {
-    bool operator()(const cpp4::record& r1, const cpp4::record& r2) const
+    bool operator()(const cpp::record& r1, const cpp::record& r2) const
     {
         return (r1.s == r2.s) && (r1.n == r2.n);
     }
@@ -157,7 +157,7 @@ struct equal_to<cpp4::record>
 void show_std_hash_specialization()
 {
     // use our specialization
-    std::unordered_set<cpp4::record> s1;
+    std::unordered_set<cpp::record> s1;
 }
 
 //7. unordered_map bucket count(31.4.3.5)
@@ -166,14 +166,14 @@ void show_load_bucket()
 
     // Note that setting the max_load_factor, calling rehash(), or calling reserve() can be very expensive operations 
     // (worst case O(n*n)) because they may cause rehashing of all elements
-    std::unordered_set<cpp4::record> s { 1000 };
+    std::unordered_set<cpp::record> s { 1000 };
 
     // get hash&equality func
     auto hash_func = s.hash_function();
     auto eq_func = s.key_eq();
 
-    s.emplace(cpp4::record { 1, std::string("one") });
-    s.emplace(cpp4::record { 2, std::string("two") });
+    s.emplace(cpp::record { 1, std::string("one") });
+    s.emplace(cpp::record { 2, std::string("two") });
 
     float lf = s.load_factor();
     float mlf = s.max_load_factor();

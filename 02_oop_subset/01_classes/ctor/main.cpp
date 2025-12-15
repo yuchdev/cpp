@@ -26,7 +26,7 @@ Examples:
 */
 
 //1. Memberwise init(struct and by friend) (17.2.3)
-namespace cpp4
+namespace cpp
 {
 
 // test memberwise init completely opened
@@ -48,16 +48,16 @@ class closed
 void show_memberwise_init()
 {
     // all members are opened, ok
-    cpp4::opened op = { 1, 1.0 };
+    cpp::opened op = { 1, 1.0 };
 
     // members are closed, does not work even for friend
-    //cpp4::closed cl { 1, 1.0 };
+    //cpp::closed cl { 1, 1.0 };
 }
 
-} // namespace cpp4 
+} // namespace cpp
 
 //2. Explicit destroy(17.2.4)
-namespace cpp4
+namespace cpp
 {
 
 // We can prevent destruction of an X by declaring its destructor =delete (17.6.4) or private
@@ -86,7 +86,7 @@ public:
     void destroy()
     {
         // we can't do the same as private: with = delete
-        // error C2280: 'void *cpp4::prevent_destruction_delete::__delDtor(unsigned int)': attempting to reference a deleted function
+        // error C2280: 'void *cpp::prevent_destruction_delete::__delDtor(unsigned int)': attempting to reference a deleted function
         // this->~prevent_destruction_delete();
 
         // do some manual removal stuff instead
@@ -97,24 +97,24 @@ private:
     int i = 0;
 };
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_explicit_destroy()
 {
     // we can't create automatic object as destructor is private
-    // error C2248: 'cpp4::prevent_destruction_private::~prevent_destruction_private': 
-    // cannot access private member declared in class 'cpp4::prevent_destruction_private'
-    // cpp4::prevent_destruction_private p1;
+    // error C2248: 'cpp::prevent_destruction_private::~prevent_destruction_private':
+    // cannot access private member declared in class 'cpp::prevent_destruction_private'
+    // cpp::prevent_destruction_private p1;
 
     // free object is ok
-    cpp4::prevent_destruction_private* p2 = new cpp4::prevent_destruction_private;
+    cpp::prevent_destruction_private* p2 = new cpp::prevent_destruction_private;
 
     // we can't create automatic object if destructor is deleted
-    // error C2280: 'cpp4::prevent_destruction_delete::~prevent_destruction_delete(void)': 
+    // error C2280: 'cpp::prevent_destruction_delete::~prevent_destruction_delete(void)':
     // attempting to reference a deleted function
-    // cpp4::prevent_destruction_delete p3;
+    // cpp::prevent_destruction_delete p3;
 
-    cpp4::prevent_destruction_delete* p4 = new cpp4::prevent_destruction_delete;
+    cpp::prevent_destruction_delete* p4 = new cpp::prevent_destruction_delete;
 
     // can't delete automatic object this way
     // p1.destroy();
@@ -128,7 +128,7 @@ void show_explicit_destroy()
 }
 
 //3. initializer_list Constructor Disambiguation(17.3.4.1)
-namespace cpp4
+namespace cpp
 {
 
 // For selecting a constructor, default and initializer lists take precedence
@@ -150,27 +150,27 @@ struct my_constructor
     }
 };
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_constructors_precedence()
 {
     // empty list or default?
-    cpp4::my_constructor m1 {};
+    cpp::my_constructor m1 {};
     // default have precedence
 
     // one-element list or int?
-    cpp4::my_constructor m2 { 1 };
+    cpp::my_constructor m2 { 1 };
     // initializer_list have precedence
 
     // two-element list
-    cpp4::my_constructor m3 { 1, 2 };
+    cpp::my_constructor m3 { 1, 2 };
     // initializer_list explicitly
 
     // {} is immutable, does not have move-ctor, does not have operator[]
 }
 
 //4. Delegating Constructors(17.4.3)
-namespace cpp4
+namespace cpp
 {
 
 // so that not to call some common init code in constructor 
@@ -189,16 +189,16 @@ private:
     int i_ = 0;
 };
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_delegate_constructor()
 {
-    cpp4::my_delegate d1;
-    cpp4::my_delegate d2 { 666 };
+    cpp::my_delegate d1;
+    cpp::my_delegate d2 { 666 };
 }
 
 //5. static member init(17.4.5)
-namespace cpp4
+namespace cpp
 {
 
 // It is possible to initialize a static member in the class declaration. 
@@ -219,10 +219,10 @@ struct my_statics
     static constexpr std::complex<int> c1 { 1,2 };
 };
 
-} // namespace cpp4 
+} // namespace cpp
 
 //6. Movable. operator= safety(17.5.1)
-namespace cpp4
+namespace cpp
 {
 // Typically, a move cannot throw, whereas a copy might (because it may need to acquire a resource), 
 // and a move is often more efficient than a copy. When you write a move operation,
@@ -300,20 +300,20 @@ private:
 };
 
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_movable()
 {
-    cpp4::my_movable m1(10);
-    cpp4::my_movable m2;
-    cpp4::my_movable m3(m1);
+    cpp::my_movable m1(10);
+    cpp::my_movable m2;
+    cpp::my_movable m3(m1);
 
     // copy-swap trick, based on std::move
     m2 = m1;
 }
 
 //7. Prevent slicing(17.5.1.4)
-namespace cpp4
+namespace cpp
 {
 
 class base_sliced
@@ -352,28 +352,28 @@ private:
     int d = 0;
 };
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_slicing_protection()
 {
     // create slicing
-    cpp4::base_sliced b1;
-    cpp4::derived_sliced d1;
+    cpp::base_sliced b1;
+    cpp::derived_sliced d1;
     b1 = d1;
 
     //
-    cpp4::base_private_protected b2;
-    cpp4::derived_private_protected d2;
-    cpp4::derived_private_protected d3;
+    cpp::base_private_protected b2;
+    cpp::derived_private_protected d2;
+    cpp::derived_private_protected d3;
 
     // preventing slicing
-    // error: cannot access protected member declared in class 'cpp4::base_private_protected'
+    // error: cannot access protected member declared in class 'cpp::base_private_protected'
     // b2 = d2;
     d2 = d3;
 }
 
 //8. Using Default Operations(17.6.3)
-namespace cpp4
+namespace cpp
 {
 
 class no_move
@@ -401,13 +401,13 @@ private:
     int i_ = 0;
 };
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_default()
 {
     // these 
-    cpp4::no_move m1;
-    cpp4::no_move m2;
+    cpp::no_move m1;
+    cpp::no_move m2;
 
     // explicitly called lvalue copy and assign
     // (move-operations don't generated)
@@ -415,7 +415,7 @@ void show_default()
 }
 
 // 9. Deleted functions (17.6.4)
-namespace cpp4
+namespace cpp
 {
 
 // delete template specialization
@@ -455,21 +455,21 @@ struct stack_allocated
     void* operator new(size_t) = delete;
 };
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_deleted()
 {
     int a = 0;
 
-    // error C2280: 'int *cpp4::clone(int *)': attempting to reference a deleted function
-    // cpp4::clone(&a);
+    // error C2280: 'int *cpp::clone(int *)': attempting to reference a deleted function
+    // cpp::clone(&a);
 }
 
 // See more examples with =delete in Ch18
 
 int main()
 {
-    cpp4::show_memberwise_init();
+    cpp::show_memberwise_init();
     show_explicit_destroy();
     show_constructors_precedence();
     show_delegate_constructor();

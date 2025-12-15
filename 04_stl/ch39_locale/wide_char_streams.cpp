@@ -6,7 +6,7 @@
 
 using namespace std;
 
-void cpp4::wide_symbols()
+void cpp::wide_symbols()
 {
 
     // wide symbols, literals or strings
@@ -31,7 +31,7 @@ void cpp4::wide_symbols()
     wcin.ignore(numeric_limits<std::streamsize>::max(), L'\n');
 }
 
-void cpp4::wide_locales()
+void cpp::wide_locales()
 {
 
     // It is required to set up a locale
@@ -84,7 +84,7 @@ void cpp4::wide_locales()
     wcout.imbue(current_loc_cout);
 }
 
-void cpp4::wide_strings()
+void cpp::wide_strings()
 {
 
     // wide string streams example

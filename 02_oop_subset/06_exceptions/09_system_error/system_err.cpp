@@ -31,7 +31,7 @@ Examples:
 */
 
 // 1. Error propagation basic
-namespace cpp4
+namespace cpp
 {
 
 
@@ -62,16 +62,16 @@ void wrap_exception()
         ex_ptr = std::current_exception();
     }
 
-    cpp4::propagate_exception(ex_ptr);
+    cpp::propagate_exception(ex_ptr);
 }
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_exception_propagation()
 {
 
     try {
-        cpp4::wrap_exception();
+        cpp::wrap_exception();
     }
     catch (const std::exception& e) {
         std::cout << e.what() << std::endl;
@@ -80,7 +80,7 @@ void show_exception_propagation()
 
 
 // 2. Error propagation in multithreading
-namespace cpp4
+namespace cpp
 {
 
 // bad example
@@ -111,17 +111,17 @@ int thread_throw_exception()
     return hhh;
 }
 
-} // namespace cpp4 
+} // namespace cpp
 
 
 void show_multithreading_propagation()
 {
 
-    std::thread t { cpp4::thread_propagate_exception };
+    std::thread t { cpp::thread_propagate_exception };
 
     // instead of future current exception is thrown
     try {
-        auto f = cpp4::global_promise.get_future();
+        auto f = cpp::global_promise.get_future();
         int result = f.get();
     }
     catch (const std::exception& e) {
@@ -140,7 +140,7 @@ void show_packaged_task_propagation()
 
     // This means that it is enough to throw an exception inside the function associated 
     // with the packaged task in order for that exception to be caught by the task's future
-    std::packaged_task<int()> task { cpp4::thread_throw_exception };
+    std::packaged_task<int()> task { cpp::thread_throw_exception };
 
     std::future<int> f = task.get_future();
 
@@ -158,7 +158,7 @@ void show_packaged_task_propagation()
 
 
 //4. system_error example with file
-namespace cpp4
+namespace cpp
 {
 
 void call_system_specific()
@@ -173,11 +173,11 @@ void call_system_specific()
     }
 }
 
-} // namespace cpp4
+} // namespace cpp
 void show_system_error()
 {
     try {
-        cpp4::call_system_specific();
+        cpp::call_system_specific();
     }
     catch (const std::system_error& e) {
         std::cout << "code(): " << e.code() << std::endl;
@@ -190,7 +190,7 @@ void show_system_error()
 
 //5. system_error + error_category
 // defining own error_category
-namespace cpp4
+namespace cpp
 {
 
 // let we have errors for HTTP protocol
@@ -223,9 +223,9 @@ public:
     // pretty-print message
     virtual std::string message(int err) const override
     {
-        cpp4::http_error ev { static_cast<cpp4::http_error>(err) };
+        cpp::http_error ev { static_cast<cpp::http_error>(err) };
         switch (ev) {
-        case cpp4::http_error::continue_request:
+        case cpp::http_error::continue_request:
             return "Continue";
         case http_error::switching_protocols:
             return "Switching protocols";
@@ -248,7 +248,7 @@ public:
     std::error_condition http_category_impl::default_error_condition(int err) const noexcept override
     {
 
-        cpp4::http_error ev { static_cast<cpp4::http_error>(err) };
+        cpp::http_error ev { static_cast<cpp::http_error>(err) };
         switch (ev) {
         case http_error::forbidden:
             return std::errc::permission_denied;
@@ -262,12 +262,12 @@ public:
 // This function must always return a reference to the same object
 const std::error_category& http_category()
 {
-    static cpp4::http_category_impl cat;
+    static cpp::http_category_impl cat;
     return cat;
 }
 
 // construct system-dependent an error_code from the enum
-std::error_code make_error_code(cpp4::http_error e)
+std::error_code make_error_code(cpp::http_error e)
 {
 
     // create from system-dependent int code + category 
@@ -276,7 +276,7 @@ std::error_code make_error_code(cpp4::http_error e)
 }
 
 // you should also provide the equivalent function for construction of an error_condition
-std::error_condition make_error_condition(cpp4::http_error e)
+std::error_condition make_error_condition(cpp::http_error e)
 {
     return std::error_condition { static_cast<int>(e), http_category() };
 }
@@ -289,7 +289,7 @@ void some_http_handler(std::error_code& ec)
     ec.assign(static_cast<int>(std::errc::permission_denied), std::system_category());
 }
 
-} // namespace cpp4 
+} // namespace cpp
 
 // For the http_error enumerators to be usable as error_code constants, 
 // enable the conversion constructor using the is_error_code_enum type trait
@@ -297,7 +297,7 @@ namespace std
 {
 
 template <>
-struct is_error_code_enum<cpp4::http_error> : public true_type {};
+struct is_error_code_enum<cpp::http_error> : public true_type {};
 
 }
 
@@ -305,7 +305,7 @@ void show_custom_error_condition()
 {
 
     std::error_code ec;
-    cpp4::some_http_handler(ec);
+    cpp::some_http_handler(ec);
     // TODO: does not work?
     if (ec == std::errc::permission_denied) {
         std::cout << "error code:" << ec.default_error_condition().message() << std::endl;
@@ -313,7 +313,7 @@ void show_custom_error_condition()
 }
 
 //6. system_error + error_condition
-namespace cpp4
+namespace cpp
 {
 
 // error_code object will contain the OS-specific error code
@@ -349,12 +349,12 @@ void create_directory(const std::string& path, std::error_code& ec)
 
 }
 
-} // namespace cpp4
+} // namespace cpp
 
 void show_error_condition()
 {
     std::error_code ec {};
-    cpp4::create_directory("/path/not_exists", ec);
+    cpp::create_directory("/path/not_exists", ec);
 
     // If you're calling error_code::value() then you're doing it wrong
     //if (ec.value() == EEXIST) // No! system-specific

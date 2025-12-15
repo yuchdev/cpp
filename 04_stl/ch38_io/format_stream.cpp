@@ -4,11 +4,11 @@
 #include <limits>
 
 using namespace std;
-using namespace cpp4;
+using namespace cpp;
 
 
 // Flags
-void cpp4::show_formattings_flags()
+void cpp::show_formattings_flags()
 {
 
     // Get current stream flags
@@ -126,7 +126,7 @@ void cpp4::show_formattings_flags()
 }
 
 // Methods
-void cpp4::show_formattings_methods()
+void cpp::show_formattings_methods()
 {
 
     // precision() method allows to set a number of digits after '.'
@@ -151,7 +151,7 @@ void cpp4::show_formattings_methods()
 }
 
 // Manipulators
-void cpp4::show_formattings_manipulators()
+void cpp::show_formattings_manipulators()
 {
     // Manipulators changes flags and methods as they are simplier in usage
     // and could be passed just to the stream
@@ -230,7 +230,7 @@ void cpp4::show_formattings_manipulators()
     cout << "Flush me" << flush << " yeah!" << endl;
 }
 
-void cpp4::show_formatted_input()
+void cpp::show_formatted_input()
 {
 
     // Manipulators could be used for input as well
@@ -257,23 +257,23 @@ void cpp4::show_formatted_input()
 }
 
 
-void cpp4::show_user_manip()
+void cpp::show_user_manip()
 {
-    cout << "Tab user" << cpp4::tab << " manip" << endl;
+    cout << "Tab user" << cpp::tab << " manip" << endl;
 
-    cout << "User manipilator with params: " << cpp4::binary<unsigned short>(16) << endl;
+    cout << "User manipilator with params: " << cpp::binary<unsigned short>(16) << endl;
     // effector class could be used for complicated user types output
     // dates, currencies etc.
 
 }
 
-std::ostream& cpp4::tab(std::ostream& os)
+std::ostream& cpp::tab(std::ostream& os)
 {
     return (os << '\t');
 }
 
 template <typename T>
-ostream& cpp4::operator<<(ostream& os, const binary<T>& t)
+ostream& cpp::operator<<(ostream& os, const binary<T>& t)
 {
     T MAX = numeric_limits<T>::max();
     T bit = ~(MAX >> 1);

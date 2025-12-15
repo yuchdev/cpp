@@ -23,7 +23,7 @@ Examples:
 //1. Delete standard operators(18.2.2)
 // The operators = (assignment), &(address - of), and, (sequencing) have predefined meanings
 // when applied to class objects. These predefined meanings can be eliminated(deleted)
-namespace cpp4
+namespace cpp
 {
 
 class some
@@ -35,12 +35,12 @@ public:
     void operator,(const some&) = delete;
 };
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_deleted_operations()
 {
-    cpp4::some a;
-    cpp4::some b;
+    cpp::some a;
+    cpp::some b;
 
     // all these operations not possible
     // a = b;
@@ -50,7 +50,7 @@ void show_deleted_operations()
 
 //2. Complex & literals(18.3.4)
 // It is possible to go further and introduce a user-defined literal in support of our type
-namespace cpp4
+namespace cpp
 {
 
 class complex
@@ -85,18 +85,18 @@ const char16_t*, std::size_t
 const char32_t*, std::size_t
 */
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_operator_suffix()
 {
-    using namespace cpp4;
+    using namespace cpp;
     complex c1 { 1.0, 2.0 };
     complex c2 = 1.0_i;
 }
 
 //3. Explicit conversion type(18.4.2)
 // It is possible to declare a conversion operator explicit and have it apply only for direct initialization
-namespace cpp4
+namespace cpp
 {
 
 template <typename T>
@@ -128,11 +128,11 @@ private:
     T* p_;
 };
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_explicit_convert_operator()
 {
-    cpp4::smart_ptr<int> p1(new int { 1 });
+    cpp::smart_ptr<int> p1(new int { 1 });
 
     // // OK: we want this use
     if (p1) {
@@ -155,7 +155,7 @@ void show_explicit_convert_operator()
 // The variadic template techniques can be disconcerting, but it is the only way 
 // of assigning nonstandard meanings to digits at compile time
 // Ex: ternary digits
-namespace cpp4
+namespace cpp
 {
 
 // x to the nth power for n>=0 
@@ -188,12 +188,12 @@ constexpr int operator""_b3()
     return b3_helper(chars...);
 }
 
-} // namespace cpp4
+} // namespace cpp
 
 
 void show_ternary_digits()
 {
-    using namespace cpp4;
+    using namespace cpp;
 
     // changing meaning
     constexpr int i1 = 201_b3;
@@ -201,7 +201,7 @@ void show_ternary_digits()
 #endif
 
 //6. Template friend (19.4)
-namespace cpp4
+namespace cpp
 {
 
 template<typename T>
@@ -222,12 +222,12 @@ public:
     }
 };
 
-} // namespace cpp4
+} // namespace cpp
 
 void show_template_friend()
 {
-    cpp4::X<cpp4::your_fiend> x;
-    cpp4::your_fiend f(x);
+    cpp::X<cpp::your_fiend> x;
+    cpp::your_fiend f(x);
 }
 
 //7. Friend lookup(19.4.1)
@@ -243,21 +243,21 @@ class c1 {};
 void f1()
 {
     // we are friend but the class defined below
-    // error C2039: 'find_friends': is not a member of 'cpp4'
-    //cpp4::find_friends f;
+    // error C2039: 'find_friends': is not a member of 'cpp'
+    //cpp::find_friends f;
     //f.x = 1;
 }
 
-namespace cpp4
+namespace cpp
 {
 
 class c2 {};
 void f2()
 {
     // we are friend but the class defined below
-    // error C2039: 'find_friends': is not a member of 'cpp4'
+    // error C2039: 'find_friends': is not a member of 'cpp'
 
-    //cpp4::find_friends f;
+    //cpp::find_friends f;
     //f.x = 1;
 }
 
@@ -291,27 +291,27 @@ class c3 {};
 void f3()
 {
     // ok
-    cpp4::find_friends f;
+    cpp::find_friends f;
     f.x = 1;
 }
 
-} // namespace cpp4 
+} // namespace cpp
 
 class c4 {};
 void f4()
 {
-    cpp4::find_friends f;
+    cpp::find_friends f;
 
     // not a friend as expected to be in the same namespace
-    // 'cpp4::find_friends::x': cannot access private member declared in class 'cpp4::find_friends'
+    // 'cpp::find_friends::x': cannot access private member declared in class 'cpp::find_friends'
     //f.x = 1;
 }
 
 void show_find_friends()
 {
     f1();
-    cpp4::f2();
-    cpp4::f3();
+    cpp::f2();
+    cpp::f3();
 }
 
 

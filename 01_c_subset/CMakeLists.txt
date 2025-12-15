@@ -1,5 +1,6 @@
-add_subdirectory(00_fundamental_types)
+add_subdirectory(01_fundamental)
 add_subdirectory(01_integer_types)
+add_subdirectory(02_constness)
 add_subdirectory(02_pointer_types)
 add_subdirectory(03_floating_point_types)
 add_subdirectory(04_arrays)

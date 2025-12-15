@@ -19,7 +19,7 @@ Examples:
 
 //1. Predicates(is_polymorphic, underlying).Type aliases, constexpr func wrapper(28.2)
 //2. Select(28.2)
-namespace cpp4
+namespace cpp
 {
 
 
@@ -44,10 +44,10 @@ template <size_t N>
 struct sized_integer
 {
     using error_t = void;
-    using type = cpp4::select<N, error_t, signed char, error_t, error_t, long, error_t, error_t, long long>;
+    using type = cpp::select<N, error_t, signed char, error_t, error_t, long, error_t, error_t, long long>;
 };
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_predicates()
 {
@@ -65,8 +65,8 @@ void show_predicates()
     }
 
     // show select and desired integer type
-    typename cpp4::sized_integer<1>::type x1 = 0;
-    typename cpp4::sized_integer<4>::type y1 = 0;
+    typename cpp::sized_integer<1>::type x1 = 0;
+    typename cpp::sized_integer<4>::type y1 = 0;
 
     std::cout << typeid(x1).name() << std::endl;
     std::cout << typeid(y1).name() << std::endl;
@@ -74,7 +74,7 @@ void show_predicates()
 
 
 //3. conditional and holder(28.2)
-namespace cpp4
+namespace cpp
 {
 
 // let this object placed on the heap
@@ -103,7 +103,7 @@ struct conditional_placement
 // Compile time selection (stack or heap?) example is not hypothetical. For example, the C++ standard contains 
 // the following comment in its definition of the function type
 
-} // namespace cpp4 
+} // namespace cpp
 
 //4. Traits and decltype (28.2.4)
 // http://en.cppreference.com/w/cpp/memory/allocator_traits
@@ -125,7 +125,7 @@ struct conditional_placement
 void show_traits() {}
 
 //5. enable_if declaration(28.4)
-namespace cpp4
+namespace cpp
 {
 
 template <typename T>
@@ -176,20 +176,20 @@ struct example_class
     int i = 0;
 };
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_enable_if()
 {
-    cpp4::simple_ptr<cpp4::example_class> p1 { new cpp4::example_class };
+    cpp::simple_ptr<cpp::example_class> p1 { new cpp::example_class };
     std::cout << p1->i << std::endl;
 
     // does not instantiated (?)
-    //cpp4::simple_ptr<int> p2{ new int{42} };
+    //cpp::simple_ptr<int> p2{ new int{42} };
     //p2->
 }
 #if 0
 //6. SFINAE and enable_if(28.4.4)
-namespace cpp4
+namespace cpp
 {
 
 // question 'Can we call f(x) if x is of type X?' 
@@ -239,13 +239,13 @@ class X
     // ... 
 };
 
-} // namespace cpp4 
+} // namespace cpp
 #endif
 
 //7. type - safe print(28.6.1)
-namespace cpp4
+namespace cpp
 {
-} // namespace cpp4 
+} // namespace cpp
 
 
 

@@ -40,7 +40,7 @@ New features:
 
 */
 
-namespace cpp4
+namespace cpp
 {
 
 // 1. unique_ptr is moved, shared_ptr is copied
@@ -70,7 +70,7 @@ struct functor
     void operator()() {}
 };
 
-} // namespace cpp4
+} // namespace cpp
 
 
 void show_threads()
@@ -78,25 +78,25 @@ void show_threads()
     int res {};
 
     // plain function used as a thread
-    std::thread t1 { cpp4::thread_func1 };
+    std::thread t1 { cpp::thread_func1 };
     t1.join();
 
     // We can easily pass data(or pointers or references to the data) as arguments
     // it uses a thread variadic template constructor 
-    std::thread t2 { cpp4::thread_func_param, 10000000 };
+    std::thread t2 { cpp::thread_func_param, 10000000 };
     t2.join();
 
     // if return results by reference, pass it explicitly
-    std::thread t3 { cpp4::thread_func_result, 10000000, std::ref(res) };
+    std::thread t3 { cpp::thread_func_result, 10000000, std::ref(res) };
     t3.join();
 
     // using functor as a thread
-    std::thread t4 { cpp4::functor() };
+    std::thread t4 { cpp::functor() };
     t4.join();
 }
 
 
-namespace cpp4
+namespace cpp
 {
 
 // 3. Sharing data, managing deadlocks, performance compare
@@ -138,15 +138,15 @@ void thread_func_share(share_data& d)
     d.multiple_lock();
 }
 
-} // namespace cpp4
+} // namespace cpp
 
 void show_shared_data()
 {
-    cpp4::share_data s;
+    cpp::share_data s;
 
     // using multiple mutexes
-    std::thread t1 { cpp4::thread_func_share, std::ref(s) };
-    std::thread t2 { cpp4::thread_func_share, std::ref(s) };
+    std::thread t1 { cpp::thread_func_share, std::ref(s) };
+    std::thread t2 { cpp::thread_func_share, std::ref(s) };
 
     t1.join();
     t2.join();
@@ -158,7 +158,7 @@ void show_shared_data()
 }
 
 
-namespace cpp4
+namespace cpp
 {
 
 // 4. Conditional variable
@@ -191,11 +191,11 @@ private:
     std::mutex mutex_;
 };
 
-} // namespace cpp4
+} // namespace cpp
 
 void show_condition_variable()
 {
-    cpp4::queue q;
+    cpp::queue q;
 
     std::thread producer { [&q]() {
          for (size_t i = 0; i < 1000; ++i) {
@@ -215,7 +215,7 @@ void show_condition_variable()
 
 
 
-namespace cpp4
+namespace cpp
 {
 
 // 5. future and promise
@@ -233,7 +233,7 @@ void async_accumulate(Iterator first, Iterator last, std::promise<int> accumulat
 }
 
 
-} // namespace cpp4
+} // namespace cpp
 
 void show_future_promise()
 {
@@ -247,7 +247,7 @@ void show_future_promise()
 
     // perform computation
     using Iter = std::vector<int>::const_iterator;
-    std::thread wrk { cpp4::async_accumulate<Iter>, v.begin(), v.end(), std::move(pr) };
+    std::thread wrk { cpp::async_accumulate<Iter>, v.begin(), v.end(), std::move(pr) };
 
     // wait until computation finish
     ft.wait();
@@ -318,7 +318,7 @@ void show_type_functions()
 }
 
 
-namespace cpp4
+namespace cpp
 {
 
 // 9. iterator_traits
@@ -351,7 +351,7 @@ void sort_helper(Container& c)
     sort_helper_(c.begin(), c.end(), t);
 }
 
-} // namespace cpp4
+} // namespace cpp
 
 
 void show_iterator_traits()
@@ -359,8 +359,8 @@ void show_iterator_traits()
     std::vector<int> v { 9,8,7,6,5,4,3,2,1 };
     std::forward_list<int> f { 9,8,7,6,5,4,3,2,1 };
 
-    cpp4::sort_helper(v);
-    cpp4::sort_helper(f);
+    cpp::sort_helper(v);
+    cpp::sort_helper(f);
 }
 
 
@@ -384,7 +384,7 @@ void show_regexp()
 }
 
 
-namespace cpp4
+namespace cpp
 {
 
 // 11. Math&Random
@@ -421,12 +421,12 @@ void print_distribution(Generator& g)
 void show_random()
 {
     std::cout << "Linear distribution" << std::endl;
-    cpp4::random_generator<int, std::uniform_int_distribution<int>> gen_uniform { 0, 5 };
-    cpp4::print_distribution(gen_uniform);
+    cpp::random_generator<int, std::uniform_int_distribution<int>> gen_uniform { 0, 5 };
+    cpp::print_distribution(gen_uniform);
 
     std::cout << "Normal distribution" << std::endl;
-    cpp4::random_generator<double, std::normal_distribution<double>> gen_normal { 0.0, 1.0 };
-    cpp4::print_distribution(gen_normal);
+    cpp::random_generator<double, std::normal_distribution<double>> gen_normal { 0.0, 1.0 };
+    cpp::print_distribution(gen_normal);
 }
 
 int main()

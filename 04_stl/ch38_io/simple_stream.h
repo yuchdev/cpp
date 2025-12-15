@@ -1,7 +1,7 @@
 #pragma once
 
 // 2. Standard output examples
-namespace cpp4
+namespace cpp
 {
 
 void simple_ostream();
@@ -35,4 +35,4 @@ void output_string_streams();
 
 void bidirect_string_streams();
 
-} // namespace cpp4 
+} // namespace cpp

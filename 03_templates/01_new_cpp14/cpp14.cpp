@@ -22,7 +22,7 @@ Examples:
 
 // 1. Local classes as template arguments
 // 2. Default template arguments for function templates
-namespace cpp4
+namespace cpp
 {
 
 template <typename T>
@@ -39,7 +39,7 @@ void container()
     std::cout << *v.begin() << std::endl;
 }
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_local_and_defaults()
 {
@@ -49,11 +49,11 @@ void show_local_and_defaults()
         int i = 0;
     };
 
-    cpp4::S<my_local> l;
+    cpp::S<my_local> l;
 
     // if all function tmpl args are defaulted
     // it is called like a plain function
-    cpp4::container();
+    cpp::container();
 }
 
 // 3. More explicit control of template instantiation: extern templates
@@ -77,7 +77,7 @@ Examples:
 */
 
 //1. Nested class in templates(23.4.6.3)
-namespace cpp4
+namespace cpp
 {
 
 template <typename T>
@@ -127,17 +127,17 @@ private:
 };
 
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_nested_class()
 {
-    cpp4::list<int> l1;
+    cpp::list<int> l1;
     l1.insert(1);
 }
 
 
 //2. Template friends(23.4.7)
-namespace cpp4
+namespace cpp
 {
 
 // Assume we have a vector and matrix that could be multiplied
@@ -158,11 +158,11 @@ public:
 };
 */
 
-} // namespace cpp4 
+} // namespace cpp
 
 
 //3. Reference deduction and forwarding(23.5.2.1)
-namespace cpp4
+namespace cpp
 {
 
 // Due to reference collapse lvalue reference & have precedence
@@ -193,7 +193,7 @@ T&& forward(typename std::remove_reference<T>::type& t) noexcept
 template<typename T, typename... Args>
 unique_ptr<T> make_unique(Args&&... args)
 {
-    return unique_ptr<T>(new T(cpp4::forward<Args>(args)...));
+    return unique_ptr<T>(new T(cpp::forward<Args>(args)...));
 }
 // Args&&... means here a number of universal references
 
@@ -204,7 +204,7 @@ struct example_class
     int b_ = 2;
 };
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_reference_forwarding()
 {
@@ -214,22 +214,22 @@ void show_reference_forwarding()
     const int& ri2 = i;
 
     // turns to int&
-    cpp4::func(i);
-    cpp4::func(ri1);
-    cpp4::func(ri2);
+    cpp::func(i);
+    cpp::func(ri1);
+    cpp::func(ri2);
 
     // rvalue
     // turns to int
-    cpp4::func(1U);
-    cpp4::func(1UL);
+    cpp::func(1U);
+    cpp::func(1UL);
 
     // usage forwarding and universal references
-    std::unique_ptr<cpp4::example_class> p = cpp4::make_unique<cpp4::example_class>(3, 4);
+    std::unique_ptr<cpp::example_class> p = cpp::make_unique<cpp::example_class>(3, 4);
 }
 
 
 //4. Argument Substitution Failure(23.5.3.2)
-namespace cpp4
+namespace cpp
 {
 
 // Let us have two template overloads
@@ -247,7 +247,7 @@ T mean(T* first, T* last)
     return *m;
 }
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_sfinae_functions()
 {
@@ -255,11 +255,11 @@ void show_sfinae_functions()
     int a[] = { 1,2,3,4,5 };
 
     // works 1-st overload
-    int m1 = cpp4::mean(v.begin(), v.end());
+    int m1 = cpp::mean(v.begin(), v.end());
 
     // int* does not have ::value_type, but we just skip 1-st defenition
     // works 2-nd overload, use SFINAE
-    int m2 = cpp4::mean(begin(a), end(a));
+    int m2 = cpp::mean(begin(a), end(a));
 }
 
 

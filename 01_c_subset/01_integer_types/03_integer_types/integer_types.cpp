@@ -16,7 +16,7 @@ using char8_t = unsigned char;
 
 void integer_types()
 {
-    //nullptr is a special value of type nullptr_t
+    // nullptr is a special value of type nullptr_t
     // It was introduces to avoid ambiguous NULL (void* or int)
 
     // int, short and pointer types are system dependent
@@ -117,50 +117,8 @@ void integer_types()
 }
 
 
-void brace_init()
-{
-    // Google's auto guidelines
-    // Use type deduction only if it makes the code clearer to readers
-    // who aren't familiar with the project, or if it makes the code safer.
-    // Do not use it merely to avoid the inconvenience of writing an explicit type.
-    // https://google.github.io/styleguide/cppguide.html#auto
-
-    // An initializer can use one of four syntactic styles:
-    int a1 { 1 };
-    int a2 = { 1 };
-    int a3 = 1;
-    int a4(1);
-
-    // In the cases above, the = is redundant
-
-    // {}-initialization, does not allow narrowing
-
-    // The trap is that if the initializer is a {}-list, we may not want its type deduced
-
-    // Important note: z1 is an `initializer_list<int>` in C++11 and `int` in C++17 and further
-    auto z1 { 99 };
-
-    // z2 is an int
-    auto z2 = 99;
-
-    //
-    auto z3{99}; // C++17 and later: z3 is an int
-
-    std::cout << std::dec << "z1 = " << z1 << "; z2 = " << z2 << "; z3 = " << z3 << '\n';
-
-    // The classical example is a vector of integers :
-    std::vector<int> v1 { 99 }; // v1 is a vector of 1 element with the value 99
-    std::vector<int> v2(99); // v2 is a vector of 99 elements each with the default value 0
-
-    // We can decorate a deduced type with specifiers and modifiers, such as const and &
-    for (const auto& x : v1) {
-        std::cout << x << std::endl;
-    }
-}
-
 int main()
 {
     integer_types();
-    brace_init();
     return 0;
 }

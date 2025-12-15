@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace cpp4
+namespace cpp
 {
 
 // demo of user-defined input and output
@@ -211,7 +211,7 @@ private:
 void show_formatted_overloads();
 
 
-} // namespace cpp4 
+} // namespace cpp
 
 
 

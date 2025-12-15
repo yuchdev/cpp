@@ -108,14 +108,14 @@ void show_new_algorithms()
 //2. Iterator tags(see ch.05 example)
 
 //3. Iterator traits(33.1.3)
-namespace cpp4
+namespace cpp
 {
 
 // TODO: wtf unable to compile
 //template <typename Iter>
 //using category<Iter> = typename std::iterator_traits<Iter>::iterator_category;
 
-} // namespace cpp4 
+} // namespace cpp
 
 void show_iterator_traits()
 {
@@ -127,7 +127,7 @@ void show_iterator_traits()
     //template <typename Iter>
     //using difference<Iter> = typename iterator_traits<Iter>::difference_type;
 
-    //using it1_category = typename cpp4::category<it1>;
+    //using it1_category = typename cpp::category<it1>;
     //using it1_diff = typename difference<it1>;
 
     std::cout << typeid(typename std::iterator_traits<decltype(v.begin())>::iterator_category).name() << std::endl;
@@ -176,7 +176,7 @@ void show_iterator_adapters()
     // to store results in uninitialized memory
 }
 
-namespace cpp4
+namespace cpp
 {
 
 // some free function
@@ -191,7 +191,7 @@ void out_two_params(int t1, const std::string& t2)
     std::cout << "T1 = " << t1 << " T2 = " << t2 << std::endl;
 }
 
-} // namespace cpp4 
+} // namespace cpp
 
 //5. bind&men_fn(33.5.1 - 2)
 void show_func_adapters()
@@ -199,16 +199,16 @@ void show_func_adapters()
     // bind
     // Given a function and a set of arguments, bind() produces a function object that can be called with
     // the remaining arguments, if any, of the function
-    auto cube2 = std::bind(&cpp4::cube, 2);
+    auto cube2 = std::bind(&cpp::cube, 2);
     double d = cube2();
 
     // The placeholders are found in the (sub)namespace std::placeholders that is part of <functional>
     // The placeholder mechanism is very flexible
     {
         using namespace placeholders;
-        cpp4::out_two_params(2, std::string("hello"));
-        auto bnd1 = std::bind(cpp4::out_two_params, _1, _2);
-        auto bnd_replace = std::bind(cpp4::out_two_params, _2, _1);
+        cpp::out_two_params(2, std::string("hello"));
+        auto bnd1 = std::bind(cpp::out_two_params, _1, _2);
+        auto bnd_replace = std::bind(cpp::out_two_params, _2, _1);
         bnd1(2, std::string("hello"));
         bnd_replace(std::string("bye"), 1);
     }

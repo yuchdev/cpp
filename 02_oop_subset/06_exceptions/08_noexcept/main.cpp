@@ -21,7 +21,7 @@ Examples:
 6. vector implementation
 */
 
-namespace cpp4
+namespace cpp
 {
 
 // 1. `finally` implementation
@@ -48,14 +48,14 @@ final_action<F> finally(F f)
     return final_action<F>(f);
 }
 
-} // namespace cpp4
+} // namespace cpp
 
 void show_finally()
 {
     // allocate some raw data
     int* i = new int[100];
 
-    auto finally1 = cpp4::finally([&] () {
+    auto finally1 = cpp::finally([&] () {
         delete[] i;
         std::cout << "Finally cation" << std::endl;
         });
@@ -67,7 +67,7 @@ void show_finally()
 
 // 3. Conditional noexcept, noexcept operator
 // 4. noexcept check
-namespace cpp4
+namespace cpp
 {
 
 // However, noexcept is not completely checked by the compiler and linker
@@ -82,7 +82,7 @@ void check_noexcept1() noexcept
 void check_noexcept2() noexcept
 {
     // explicitly throw an exception
-    // warning C4297: 'cpp4::check_noexcept2': function assumed not to throw an exception but does
+    // warning C4297: 'cpp::check_noexcept2': function assumed not to throw an exception but does
     throw std::runtime_error("boom");
 }
 
@@ -118,16 +118,16 @@ template<class T, size_t N>
 void swap(T (&a)[N], T (&b)[N]) noexcept(noexcept(swap(*a, *b)));
 */
 
-} // namespace cpp4
+} // namespace cpp
 
 void show_noexcept()
 {
     try {
-        cpp4::check_noexcept1();
+        cpp::check_noexcept1();
 
         // terminate() is called if noexcept throws
         // see our own terminate handler below
-        cpp4::check_noexcept2();
+        cpp::check_noexcept2();
     }
     catch (const std::exception& e) {
         std::cerr << e.what() << '\n';
@@ -135,10 +135,10 @@ void show_noexcept()
 
     struct S { int i {}; };
     S s;
-    cpp4::copy_function(s); // s is POD, should be noexcept
+    cpp::copy_function(s); // s is POD, should be noexcept
 
     std::vector<int> v { 1,2,3 };
-    cpp4::call_func(v); // POD = zero all values
+    cpp::call_func(v); // POD = zero all values
 }
 
 
