@@ -1,4 +1,4 @@
-### Reference Facts: C++ References (C++98 → C++17)
+## Reference Facts: C++ References (C++98 → C++17)
 
 This note is a "facts + pitfalls" companion to `reference_facts.cpp`.  
 Focus: lvalue references, rvalue references, how references are different from pointers, and obscure corner cases.
