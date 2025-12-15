@@ -1,10 +1,7 @@
+// ReSharper disable All
 #include <iostream>
-#include <vector>
-#include <algorithm>
-#include <stdexcept>
 #include <string>
-#include <cstdint>
-
+#include <cstdio>
 
 /*
 
@@ -68,6 +65,13 @@ namespace cpp4
 {
 
 //  The effect of initializing a local static recursively is undefined
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winfinite-recursion"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Winfinite-recursion"
+#endif
 int recursive_static(int i)
 {
     static int n1 = i;
@@ -76,6 +80,11 @@ int recursive_static(int i)
     static int n2 = recursive_static(i - 1) + 1;
     return n1 + n2;
 }
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 } // namespace cpp4
 
@@ -112,7 +121,7 @@ struct S
 void f2(S) {}
 
 template<class T, int N>
-void f3(T(&r)[N]) {}
+void f3(T(&)[N]) {}
 
 void f4(int) {}
 
@@ -130,8 +139,8 @@ void show_list_args()
     //cpp4::f3({ 1,2,3,4 }); 
     // cannot convert argument 1 from 'initializer list' to 'int (&)[4]'
 
-    //f4(int{1});
-    cpp4::f4({ 1 });
+    // Use direct-list-initialization of the scalar to avoid -Wbraced-scalar-init
+    cpp4::f4(int{1});
 
     // If there is a possible ambiguity, an initializer_list parameter takes priority
     // It can affect overloads
@@ -141,7 +150,7 @@ void show_list_args()
 /*
 To approximate our notions of what is reasonable, a series of criteria are tried in order:
 1. Exact match; that is, match using no or only trivial conversions (for example, array name
-to pointer, function name to pointer to function, and T to const T)
+to a pointer, function name to pointer to function, and T to const T)
 2. Match using promotions; that is, integral promotions (bool to int, char to int, short to int,
 and their unsigned counterparts; 10.5.1) and float to double
 3. Match using standard conversions and narrowing (e.g., int to double, double to int, double to long double,
@@ -211,7 +220,7 @@ void show_overload_resolution()
     // exact match: invoke print(const char*)
     cpp4::print("a");
 
-    // nullptr_t to const char* promotion: invoke print(cost char*)
+    // nullptr_t to const char* promotion: invoke print(const char*)
     cpp4::print(nullptr);
 }
 
@@ -221,6 +230,19 @@ void show_overload_resolution()
 // A pointer to function must reflect the linkage of a function(15.2.6)
 // Neither linkage specification nor noexcept may appear in type aliases
 
+// Portable calling-convention macros (no-ops on non-Windows targets)
+#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__) || defined(_WIN32)
+#  define CPP4_STDCALL __stdcall
+#  define CPP4_FASTCALL __fastcall
+#  define CPP4_CDECL __cdecl
+#  define CPP4_HAS_MS_CALLCONV 1
+#else
+#  define CPP4_STDCALL
+#  define CPP4_FASTCALL
+#  define CPP4_CDECL
+#  define CPP4_HAS_MS_CALLCONV 0
+#endif
+
 namespace cpp4
 {
 
@@ -228,10 +250,10 @@ namespace cpp4
 void noexcept_f(int) noexcept {}
 void plain_f(int) {}
 
-// calling convention specifiers
-void __stdcall std_call_func(int) {}
-void __fastcall fast_call_func(int) {}
-void __cdecl cdecl_call_func(int) {}
+// calling convention specifiers (expanded to no-ops on non-Windows targets)
+void CPP4_STDCALL std_call_func(int) {}
+void CPP4_FASTCALL fast_call_func(int) {}
+void CPP4_CDECL   cdecl_call_func(int) {}
 
 // Linking convention - the same
 }
@@ -239,19 +261,27 @@ void __cdecl cdecl_call_func(int) {}
 void show_function_ptrs_specifiers()
 {
     // OK: but we throw away useful information 
-    void(*p1)(int) = cpp4::noexcept_f;
+    void(*p1)(int) = cpp4::noexcept_f; (void)p1;
 
     // OK: we preserve the noexcept information 
-    void(*p2)(int) noexcept = cpp4::noexcept_f;
+    void(*p2)(int) noexcept = cpp4::noexcept_f; (void)p2;
 
     // error: we don't know that g doesn't throw
     //  error C2440: 'initializing': cannot convert from 'void (__cdecl *)(int)' to 'void (__cdecl *)(int) noexcept'
     //void(*p3)(int) noexcept = cpp4::plain_f;
 
+#if CPP4_HAS_MS_CALLCONV
     // A pointer to function must reflect the linkage of a function(15.2.6)
-    void(__cdecl * p3)(int) = &cpp4::cdecl_call_func;
-    void(__stdcall * p4)(int) = &cpp4::std_call_func;
-    void(__fastcall * p5)(int) = &cpp4::fast_call_func;
+    void(CPP4_CDECL   * p3)(int) = &cpp4::cdecl_call_func;
+    void(CPP4_STDCALL * p4)(int) = &cpp4::std_call_func;
+    void(CPP4_FASTCALL* p5)(int) = &cpp4::fast_call_func;
+    (void)p3; (void)p4; (void)p5;
+#else
+    // Not supported on this platform; demonstrate plain function pointer instead
+    void(*p3_fallback)(int) = &cpp4::cdecl_call_func;
+    (void)p3_fallback;
+    std::cout << "[info] MS-specific calling conventions are not supported on this platform; skipping demo" << std::endl;
+#endif
 
     // aliases
     //  error C2143: syntax error
@@ -261,7 +291,8 @@ void show_function_ptrs_specifiers()
     //using ptr_noexcept = void(int) noexcept;
 
     // OK
-    using ptr_stdcall = void __stdcall (int);
+    using ptr_stdcall_t = void (*)(int);
+    ptr_stdcall_t ptr_alias = &cpp4::plain_f; (void)ptr_alias;
 }
 
 // 7. Useful macros

@@ -1,6 +1,6 @@
-set(TARGET 07_overflow)
+set(TARGET 01_alignment)
 
-file(GLOB SOURCES *.cpp *.h *.txt)
+file(GLOB SOURCES *.cpp *.h)
 
 include_directories(
     ${CMAKE_SOURCE_DIR}
@@ -13,3 +13,5 @@ target_link_libraries(${TARGET}
 PRIVATE
     utilities
 )
+
+# TODO: split into separate chapter

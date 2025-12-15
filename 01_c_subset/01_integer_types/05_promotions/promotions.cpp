@@ -1,9 +1,6 @@
+// ReSharper disable All
 #include <utilities/defines.h>
 SUPPRESS_PRAGMA_WARNINGS()
-
-#include <utilities/bitwise.h>
-#include <utilities/defines.h>
-SUPPRESS_UNSIGNED_COUNTEREXAMPLE_WARNINGS()
 
 #include <iostream>
 #include <cstdint>
@@ -23,10 +20,9 @@ namespace cpp
 void numeric_promotions()
 {
     // https://en.cppreference.com/w/cpp/language/implicit_conversion
-    // Numeric types could be implicitly converted to larger type
-    // Such conversion called promotion
-    // Promotion never changes the value of converted number
-
+    // Numeric types could be implicitly converted to larger type.
+    // Such conversion called promotion.
+    // The promotion never changes the value of converted number.
     // Integer Promotion in C++ is pretty much a legacy of ANSI C
 
     // signed char or signed short can be converted to int;
@@ -61,7 +57,7 @@ void numeric_promotions()
     // type bool can be converted to int with the value false becoming 0 and true becoming 1
     int weird_promotion = true;
 
-    // all other conversions are not promotions, but rather conversions
+    // all other conversions are not promotions, but rather conversions,
     // for example, overload resolution chooses char -> int (promotion) over char -> short (conversion)
 }
 

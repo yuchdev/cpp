@@ -74,8 +74,10 @@ auto show_initializer_list()
     // error: not an operand of a non-assignment operator
     // v = 7 + {10};
 
-    // return value
-    return{ 11 };
+    // return value is error since C++17: cannot deduce return type from initializer list
+    //return {11};
+
+    return int{11};
 }
 
 /*
@@ -120,6 +122,8 @@ void initializer_list_example()
 namespace cpp4
 {
 
+void recursive_variadic_call() {}
+
 template<typename T, typename... Tail>
 void recursive_variadic_call(T s, Tail... v)
 {
@@ -127,7 +131,6 @@ void recursive_variadic_call(T s, Tail... v)
     recursive_variadic_call(v...);
 }
 
-void recursive_variadic_call() {}
 
 template<typename... Var>
 void algo(Var... args)
@@ -231,7 +234,7 @@ namespace cpp4
 template <typename T>
 size_t count_more_than(const T& container, typename T::value_type val)
 {
-    size_t count = std::count(v.begin(), v.end(), [val] (auto v) {
+    size_t count = std::count(container.begin(), container.end(), [val] (auto v) {
         return v > val;
         });
 }
@@ -272,7 +275,6 @@ void show_emplace_copy()
 
 int main()
 {
-    show_bitwise();
     show_initializer_list();
     show_initializer_auto();
     show_lambda();

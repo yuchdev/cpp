@@ -1,10 +1,8 @@
+// ReSharper disable All
 #include <utilities/defines.h>
 #include <utilities/functional.h>
 #include <utilities/bitwise.h>
 SUPPRESS_PRAGMA_WARNINGS()
-#pragma ide diagnostic ignored "UnusedValue"
-#pragma ide diagnostic ignored "UnusedLocalVariable"
-#pragma ide diagnostic ignored "modernize-use-auto"
 
 #include <iostream>
 #include <type_traits>
@@ -42,9 +40,9 @@ void boolean_type()
     if (pint) {/*never be there*/ }
 }
 
-/// Prior to C++11 standard null pointer was served by C-macro NULL
-/// C++11 standard null pointer is defined as nullptr
-/// The problem with NULL is that when we pass integer 0, we can't say if it's a pointer or integer
+/// Prior to C++11 a standard null pointer was served by C-macro `NULL`.
+/// C++11 standard null pointer is defined as `nullptr`.
+/// The problem with NULL is that when we pass integer 0, we can't say if it's a pointer or integer.
 /// It potentially could be a problem during function overloading over types void* and int,
 /// and template metaprogramming
 void accept_null(int)

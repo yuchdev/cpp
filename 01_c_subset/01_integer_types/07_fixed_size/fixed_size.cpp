@@ -1,20 +1,14 @@
 #include <utilities/defines.h>
-SUPPRESS_PRAGMA_WARNINGS()
-
 #include <utilities/bitwise.h>
-#include <utilities/defines.h>
-SUPPRESS_UNSIGNED_COUNTEREXAMPLE_WARNINGS()
+SUPPRESS_PRAGMA_WARNINGS()
 
 #include <iostream>
 #include <cstdint>
 
-// Fundamental C++ types
-// https://en.cppreference.com/w/cpp/language/types
-
 void fixed_size_types()
 {
     // Problem of C++ borrowed from C: we have lots of types
-    // whose sizes are all depend on system or architecture
+    // whose sizes all depend on system or architecture
     // That's why fixed-size (or guaranteed size) types are provided
 
     // signed integer type with width of exactly 8, 16, 32 and 64 bits respectively

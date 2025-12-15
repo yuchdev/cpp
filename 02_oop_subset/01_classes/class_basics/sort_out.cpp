@@ -1,6 +1,6 @@
 #include <iostream>
 
-construct g_construct;
+A g_construct;
 
 // It is allowed to define a structure and non-structure with the same name
 // (same for class, enum, union)

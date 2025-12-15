@@ -1,3 +1,4 @@
+// ReSharper disable All
 #include <utilities/defines.h>
 SUPPRESS_PRAGMA_WARNINGS()
 #pragma ide diagnostic ignored "UnusedValue"
@@ -68,7 +69,7 @@ constexpr const char* error_message(int i)
 // whereas const's primary role is to specify immutability in interfaces
 
 // A class with a constexpr constructor is called a literal type
-// To be simple enough to be constexpr, a constructor must have an empty body
+// To be simple enough to be constexpr, a constructor must have an empty body,
 // and all members must be initialized by potentially constant expressions. For example:
 struct point
 {

@@ -1,6 +1,6 @@
 set(TARGET member_pointer)
 
-file(GLOB SOURCES *.cpp *.h *.txt, *.md)
+file(GLOB SOURCES *.cpp *.h)
 
 include_directories(
     ${CMAKE_SOURCE_DIR}

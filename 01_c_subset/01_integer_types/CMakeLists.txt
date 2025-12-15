@@ -1,9 +1,8 @@
-add_subdirectory(01_new_cpp14)
+add_subdirectory(01_alignment)
 add_subdirectory(02_character_types)
 add_subdirectory(03_integer_types)
 add_subdirectory(04_unsigned)
 add_subdirectory(05_promotions)
 add_subdirectory(06_conversions)
-add_subdirectory(07_overflow)
-add_subdirectory(08_fixed_size)
+add_subdirectory(07_fixed_size)
 

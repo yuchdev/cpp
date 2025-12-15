@@ -29,6 +29,22 @@ inline const T& max(const T& a, const T& b)
     return (a > b) ? a : b;
 }
 
+// C++14 auto return type deduction (impossible in C++11)
+template <typename T>
+auto add_things(T a, T b) -> decltype(a + b)
+{
+    const auto ret = a + b;
+    return ret;
+}
+
+/*
+ * template<class T, class U>
+ * auto operator+(const Matrix<T>& a, const Matrix<U>& b) -> Matrix<decltype(T{}+U{})>;
+ * We use the suffix return type syntax to be able to express the return type in terms of the arguments
+ * Important note: decltype has new behavior in C++14
+*/
+
+
 // It's important to understand, template is not some kind of object that magically accept ant type
 // Instead a new class of function is created for every type (so called instantiation)
 

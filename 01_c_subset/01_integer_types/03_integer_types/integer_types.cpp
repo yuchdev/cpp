@@ -1,7 +1,7 @@
+// ReSharper disable All
 #include <utilities/defines.h>
 #include <utilities/bitwise.h>
 SUPPRESS_PRAGMA_WARNINGS()
-SUPPRESS_UNSIGNED_COUNTEREXAMPLE_WARNINGS()
 
 #include <iostream>
 
@@ -47,7 +47,7 @@ void integer_types()
     unsigned long long little_endian = 0x8899aabbccddeeff;
     unsigned char* p_byte = reinterpret_cast<unsigned char*>(&little_endian); // NOLINT(modernize-use-auto)
     for (size_t i = 0; i < sizeof(unsigned long long); ++i, ++p_byte) {
-        std::cout << "Byte " << i << " = " << std::hex << *p_byte << '\n';
+        std::cout << "Byte " << i << " = 0x" << std::hex << static_cast<unsigned int>(*p_byte) << '\n';
     }
 
     // Look once again on bitwise representation
@@ -65,12 +65,10 @@ void integer_types()
         uint64_t u64;
     } u = { .u64 = 0x4A };
 
-    std::cout
-        << "8-bit value = " << u.u8
-        << "16-bit value = " << u.u16
-        << "32-bit value = " << u.u32
-        << "64-bit value = " << u.u64
-        << '\n';
+    std::cout << "8-bit value = 0x" << unsigned{u.u8} << '\n';
+    std::cout << "16-bit value = 0x" << u.u16 << '\n';
+    std::cout << "32-bit value = 0x" << u.u32 << '\n';
+    std::cout << "64-bit value = 0x" << u.u64 << '\n';
 
     // Some big-endian architectures include the IBM z/Architecture, AVR32, SPARC, and OpenRISC
     // Most of ARM processors support switching endianness, being effectively double-endian
@@ -111,16 +109,58 @@ void integer_types()
 
     std::cout
         << "Size of short, int, long and pointer on the system: \n"
-        << "sizeof(short) = " << sizeof(short)
-        << "sizeof(int) = " << sizeof(int)
-        << "sizeof(long) = " << sizeof(long)
-        << "sizeof(void*) = " << sizeof(void*)
+        << "sizeof(short) = " << sizeof(short) << '\n'
+        << "sizeof(int) = " << sizeof(int) << '\n'
+        << "sizeof(long) = " << sizeof(long) << '\n'
+        << "sizeof(void*) = " << sizeof(void*) << '\n'
         << '\n';
 }
 
 
+void brace_init()
+{
+    // Google's auto guidelines
+    // Use type deduction only if it makes the code clearer to readers
+    // who aren't familiar with the project, or if it makes the code safer.
+    // Do not use it merely to avoid the inconvenience of writing an explicit type.
+    // https://google.github.io/styleguide/cppguide.html#auto
+
+    // An initializer can use one of four syntactic styles:
+    int a1 { 1 };
+    int a2 = { 1 };
+    int a3 = 1;
+    int a4(1);
+
+    // In the cases above, the = is redundant
+
+    // {}-initialization, does not allow narrowing
+
+    // The trap is that if the initializer is a {}-list, we may not want its type deduced
+
+    // Important note: z1 is an `initializer_list<int>` in C++11 and `int` in C++17 and further
+    auto z1 { 99 };
+
+    // z2 is an int
+    auto z2 = 99;
+
+    //
+    auto z3{99}; // C++17 and later: z3 is an int
+
+    std::cout << std::dec << "z1 = " << z1 << "; z2 = " << z2 << "; z3 = " << z3 << '\n';
+
+    // The classical example is a vector of integers :
+    std::vector<int> v1 { 99 }; // v1 is a vector of 1 element with the value 99
+    std::vector<int> v2(99); // v2 is a vector of 99 elements each with the default value 0
+
+    // We can decorate a deduced type with specifiers and modifiers, such as const and &
+    for (const auto& x : v1) {
+        std::cout << x << std::endl;
+    }
+}
+
 int main()
 {
     integer_types();
+    brace_init();
     return 0;
 }

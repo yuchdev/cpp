@@ -1,6 +1,6 @@
 set(TARGET class_basics)
 
-file(GLOB SOURCES *.cpp *.h *.txt, *.md)
+file(GLOB SOURCES construct.cpp class_static.cpp)
 
 include_directories(
     ${CMAKE_SOURCE_DIR}

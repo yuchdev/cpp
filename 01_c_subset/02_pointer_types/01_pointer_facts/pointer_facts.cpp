@@ -220,9 +220,10 @@ void show_ptrs_refs()
 
     void(cpp::test_me:: * method_ptr)() = &cpp::test_me::point_to_me;
 
-    // ? better not to do, ensure in Standard
-    void* v1 = static_func_ptr;
+    // Forbidden in C++17
+    //void* v1 = static_func_ptr;
 
+    // Forbidden since C++98
     //void* v2 = method_ptr;
 
     // assign nullptr - OK

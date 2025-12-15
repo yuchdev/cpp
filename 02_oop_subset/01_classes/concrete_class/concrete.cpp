@@ -94,7 +94,7 @@ public:
             try {
                 data = new T[rhs.size()];
                 std::copy(rhs.data_, rhs.data_ + rhs.size(), data);
-                delete data_;
+                delete[] data_;
                 data_ = data;
                 sz_ = rhs.size();
             }

@@ -1,11 +1,11 @@
+// ReSharper disable All
+#include <utilities/defines.h>
+#include <utilities/bitwise.h>
 #include <utilities/defines.h>
 SUPPRESS_PRAGMA_WARNINGS()
 
-#include <utilities/bitwise.h>
-#include <utilities/defines.h>
-SUPPRESS_UNSIGNED_COUNTEREXAMPLE_WARNINGS()
-
 #include <iostream>
+#include <cstddef> // for std::byte
 
 // If less than C++20
 #if (__cplusplus <= 201703L)
@@ -40,6 +40,9 @@ void character_types()
         << "; signed char c2 = " << c2
         << "; unsigned char c3 = " << c3
         << '\n';
+
+    // C++17 introduced `std::byte` to represent raw memory without arithmetic.
+    std::byte b1 = std::byte { 0b00001111 };
 
     // The functional cast notation int{c} gives the integer value for a character c
     std::cout << c1 << " == " << int { c1 } << '\n';
@@ -81,8 +84,10 @@ void character_types()
 
     // type for UTF-8 character representation; Same size as unsigned char
     char8_t c5 = 'c';
+
     // type for UTF-16 character representation; Same size as std::uint_least16_t
     char16_t c6 = u'\u00df';
+
     // type for UTF-32 character representation; Same size as std::uint_least32_t
     char32_t c7 = U'\U0001f34c';
 

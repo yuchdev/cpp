@@ -1,4 +1,4 @@
-set(TARGET 01_new_cpp14)
+set(TARGET 07_fixed_size)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 

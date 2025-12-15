@@ -1,84 +1,216 @@
-### Types and defenitions
+## Types and Definitions
 
-* Many important things are deemed implementation-defined by the standard
-* Other behaviors are unspecified. The exact value returned by new is unspecified
-* Undefined behavior is nastier. A construct is deemed undefined by the standard 
-  if no reasonable behavior is required by an implementation
-* A C++ implementation can be either hosted or freestanding
-	* A hosted implementation includes all the standard-library facilities as described in the standard
-	* Freestanding implementations are meant for code running with only minimal operating system support
-* The Boolean, character, and integer types are collectively called integral types
-* In arithmetic and logical expressions, bools are converted to ints
-* A pointer can be implicitly converted to a bool
-* There are many character sets and character set encodings in use. C++ provides a variety of character types
-  char, signed/unsigned char, whar_t, char16_t, char32_t
-* The notation int{c} gives the integer value for a character c 
-* The choice of signed or unsigned for a plain char is implementation-defined
-* A few characters have standard names that use the backslash, \ , as an escape character
-* Literals of such larger character preceded by a U or a u
-* If you need more detailed control over integer sizes, you can use aliases from <cstdint>
-* In general, the type of an integer literal depends on its form, value, and suffix
-* The reason for providing more than one integer type, more than one unsigned type, 
-  and more than one floating-point type is to allow the programmer 
-  to take advantage of hardware characteristics
-* This is what is guaranteed about sizes of fundamental types:
-    * 1 = sizeof(char) <= sizeof(short) <= sizeof(int) <= sizeof(long) <= sizeof(long long)
-    * 1 <= sizeof(bool) <= sizeof(long)
-    * sizeof(char) <= sizeof(wchar_t) <= sizeof(long)
-    * sizeof(float) <= sizeof(double) <= sizeof(long double)
-    * sizeof(N) == sizeof(signed N) == sizeof(unsigned N)
-* Some implementation-defined aspects of fundamental types can be found by a simple use of sizeof, 
-  and more can be found in <limits>
-* On some machine architectures, the bytes used to hold it must have proper alignment
-  for the hardware to access it efficiently
-* The alignof() operator returns the alignment of its argument expression
-* Sometimes, we have to use alignment in a declaration, such as alignof(x+y) is not allowed. 
-  Instead, we can use the type specifier alignas()
-* Some type names don't even look much like names, such as decltype(f(x)) - the return type of a call f(x)
-* An initializer can use one of four syntactic styles:
-X a1 {v}; 
-X a2 = {v}; 
-X a3 = v; 
-X a4(v);
-* Initialization using {}, list initialization, does not allow narrowing 
-* decltype(expr) for deducing the type of something that is not a simple initializer
-* We can decorate auto type with specifiers and modifiers (6.3.1), such as const and & 
-* Better to use the = syntax with auto, because the {}-list syntax might surprise someone:
-auto v1 {12345}; // v1 is a list of int
-* The 'using' keyword can also be used to introduce a template alias
-* We cannot apply type specifiers, such as unsigned, to an alias
-using Uchar = unsigned Char; // error 
-using Uchar = unsigned char; // OK
+---
 
-#### Scopes
-* Statement scope: A name is in a statement scope if it is defined within the  part of a for-, while-, if-, or switch-statement
-* Local scope: A name declared in a function  is called a local name
-* Class scope: A name is called a member name  if it is defined in a class outside any function
-* Namespace scope: A name is called a namespace member name if it is defined in a namespace  
-  outside any function, lambda , or other namespace
-* Global scope: A name is called a global name if it is defined outside any function, class , or namespace
+### Char types
 
-#### Using vs typedef
-* Using can be templated
-* using produces very clean function pointers
-* while using template alias does not need typename keyword
-* typedef allows redeclaration, which could be a source of errors
-* using is more strict in terms of place declaring new type (e.g. can't declare template inside the class)
+* `char`, `signed char`, and `unsigned char` are three distinct types
+  Even though `char` is often implemented as either signed or unsigned, it is a *separate type* in the language.
 
-### New C++14 features
-* Uniform and general initialization using {}-lists (2.2.2, 6.3.5)
-* Type deduction from initializer: auto (2.2.2, 6.3.6.1)
-* Prevention of narrowing (2.2.2, 6.3.5)
-* Type and template aliases (3.4.5, 6.5, 23.6)
-* Unicode characters (6.2.3.2, 7.3.2.2)
-* long long integer type (6.2.4)
-* Alignment controls: alignas and alignof(6.2.9)
-* The ability to use the type of an expression as a type in a declaration: decltype 
-* C99 features (long long)
-* Integer type names, such as int16_t, uint32_t, and int_fast64_t (6.2.8)
+* The signedness of plain `char` is implementation-defined.
+  On some platforms `char` behaves like `signed char`, on others like `unsigned char`. This affects comparisons, promotions, and overload resolution.
 
-#### TODOs
-* alisnof and alignas + pragma pack()
-* bitwise repr of cstdint types
-* relate to [alognof()](https://en.cppreference.com/w/c/language/object)
-* TODO: why fp multiplication faster than integer?
+* `CHAR_BIT` defines the number of bits in a byte.
+  Contrary to common assumptions, a byte is *not guaranteed to be 8 bits*.
+  Historical and embedded systems used many exotic sizes:
+
+  * CDC 6x00: `char == 6` bits
+  * PDP-8: `char == 12` bits
+  * PDP-11, Windows CE: `char == 16` bits
+  * Motorola DSP56k: `char == 24` bits
+    The exact number is exposed via the macro `CHAR_BIT`.
+
+* C++ supports multiple character types for different encodings
+
+  ```cpp
+  char, signed char, unsigned char,
+  wchar_t, char16_t, char32_t
+  ```
+
+  These represent *code units*, not characters or glyphs.
+
+* `wchar_t` is implementation-defined
+  Its size and encoding vary:
+
+  * Windows: UTF-16 (16-bit)
+  * Linux/Unix: UTF-32 (32-bit)
+
+* `char16_t` and `char32_t` were added in C++11.
+  They are intended for UTF-16 and UTF-32 code units respectively, and have fixed sizes.
+
+* Character literals can be prefixed
+
+  ```cpp
+  'a'    // char
+  L'a'   // wchar_t
+  u'a'   // char16_t
+  U'a'   // char32_t
+  ```
+
+  *(Unicode literal prefixes added in C++11)*
+
+* The notation `int{c}` yields the integer value of a character
+  This is a safe, explicit way to convert characters to integers without relying on promotions.
+
+* Some characters have standardized escape names.
+  For example: `\n`, `\t`, `\0`, `\\`, etc.
+  The actual numeric values of many control characters remain implementation-defined.
+
+* Only `char`, `unsigned char`, and `std::byte` may alias arbitrary memory
+  This is a special rule in the object model and is why serializers and memory inspectors rely on them.
+
+---
+
+### Integer types
+
+* C++ provides multiple integer types to match hardware capabilities.
+  The purpose is *not semantic clarity*, but efficient mapping to registers and instructions.
+
+* Guaranteed ordering of integer sizes
+
+  ```cpp
+  sizeof(char) <= sizeof(short) <= sizeof(int)
+               <= sizeof(long) <= sizeof(long long)
+  ```
+
+* Signedness does not affect size
+
+  ```cpp
+  sizeof(int) == sizeof(unsigned int)
+  sizeof(long) == sizeof(unsigned long)
+  ```
+
+* `long long` was *added in C++11, inherited from C99*.
+  It guarantees at least 64 bits.
+
+* Exact-width and fast integer types live in `<cstdint>`
+  *(added in C++11)*. Examples:
+
+  ```cpp
+  int16_t, uint32_t, int_fast64_t
+  ```
+
+  * Exact-width types may not exist on all platforms, but will be substituted with the next-larger type if needed.
+  * `*_fast*` types trade size for speed
+
+* The type of integer literal depends on form, value, and suffix
+
+  ```cpp
+  42        // int
+  42u       // unsigned int
+  42L       // long
+  42LL      // long long
+  0xFF      // could be int, unsigned, or long
+  ```
+
+* Unsigned integer overflow is well-defined.
+  It wraps modulo 2ⁿ.
+
+* Signed integer overflow is undefined behavior.
+  Compilers aggressively optimize assuming it *never happens*.
+
+* Integer alignment matters for performance.
+  Misaligned integer access may be slower or even illegal on some architectures.
+
+* `alignof(T)` yields alignment requirements.
+  Use `alignas()` when alignment must be enforced in declarations.
+
+* Floating-point multiplication can be faster than integer multiplication.
+  On many modern CPUs:
+
+  * FP units are deeply pipelined and always present
+  * Integer multiplication may have higher latency or contention
+  * FP units often handle more parallel operations
+    This reverses the intuition inherited from older hardware.
+
+---
+
+### Other fundamental & type-system facts
+
+* Many behaviors are implementation-defined or unspecified
+
+  * Implementation-defined: documented per compiler/ABI
+  * Unspecified: allowed to vary per evaluation
+  * Undefined behavior: *no guarantees at all*
+
+* The value returned by `operator new` is unspecified (but aligned).
+  Only alignment and non-nullness (unless throwing) are guaranteed.
+
+* C++ has hosted and freestanding implementations
+
+  * Hosted: full standard library
+  * Freestanding: minimal runtime for embedded, kernels, etc.
+
+* Guaranteed size relationships
+
+  ```cpp
+  1 <= sizeof(bool) <= sizeof(long)
+  sizeof(float) <= sizeof(double) <= sizeof(long double)
+  sizeof(char) <= sizeof(wchar_t) <= sizeof(long)
+  ```
+
+* `sizeof` and `<limits>` expose implementation-defined properties.
+  Many portability assumptions should be checked via `std::numeric_limits`.
+
+* Some types require specific alignment for efficient access.
+  Misaligned access can cause traps or slow paths on real hardware.
+
+* `decltype(expr)` names types derived from expressions.
+  It preserves reference-ness and value category, unlike `auto`.
+
+* Four initialization syntaxes exist
+
+  ```cpp
+  X a1{v};
+  X a2 = {v};
+  X a3 = v;
+  X a4(v);
+  ```
+
+* Brace-initialization prevents narrowing.
+  This is one of the most important safety improvements of modern C++.
+
+* `auto` with `{}` may deduce `std::initializer_list`
+
+  ```cpp
+  auto v{12345}; // NOT int -- initializer_list<int>
+  ```
+
+  Prefer `=` with `auto` unless list semantics are intended.
+
+* Type aliases (`using`) are superior to `typedef`
+
+  * Can be templated *(added in C++11)*
+  * Cleaner function pointer syntax
+  * No redeclaration ambiguities
+  * Works better with dependent types
+
+* Type specifiers cannot be applied to aliases
+
+  ```cpp
+  using Uchar = unsigned char; // OK
+  using Uchar = unsigned Char; // error
+  ```
+
+* `std::byte` is not an integer type *(added in C++17)*.
+  It exists to represent raw memory without arithmetic.
+
+* `sizeof(char)` is always `1` by definition, even if `CHAR_BIT != 8`.
+
+* Type names are part of the ABI.
+  Changing `int` to `long` in public interfaces can silently break binaries.
+
+* Alignment can affect object size
+  `sizeof(T)` may be larger than the sum of its fields due to padding.
+
+---
+
+### Scopes (quick facts)
+
+* Statement scope: limited to control statements
+* Local scope: function body
+* Class scope: member declarations
+* Namespace scope: namespace members
+* Global scope: outside all named scopes
+
+---

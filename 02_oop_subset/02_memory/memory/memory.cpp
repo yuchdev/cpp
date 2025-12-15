@@ -1,9 +1,8 @@
-#pragma once
-#include <new>
-#include <cstdio>
 #include <iostream>
+#include <new>
 
 #include "user_allooc.h"
+#include "new_handler_mixture.h"
 
 using std::new_handler;
 using std::bad_alloc;
@@ -17,7 +16,7 @@ The standard `set_new_handler()` is called until memory is released or the progr
 The user-defined new_handler can:
 * make the required amount of memory available
 * set another new_handler
-* set a nullprt handler (i.e. `bad_alloc` exception) or throw `bad_alloc` manually
+* set a `nullptr` handler (i.e. `bad_alloc` exception) or throw `bad_alloc` manually
 * terminate the program by `abort()` or `exit()`
 */
 
