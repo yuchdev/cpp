@@ -15,3 +15,9 @@
 * `volatile` is not "const but opposite": it's about observable side effects and preventing certain optimizations; it's not a concurrency primitive. `volatile const` exists and is occasionally meaningful for memory-mapped registers.
 
 If you want, I can turn these into "flashcards" with tiny runnable examples (each fact in ~10–20 lines) so you can drop them into your Study C++ notes or a quiz script.
+
+### `constexpr` objects and literal types
+
+* A class with a `constexpr` constructor is called a literal type.
+* To be simple enough to be `constexpr`, a constructor must have an empty body and all members must be initialized by potentially constant expressions.
+* Note that we can have `constexpr` arrays and also access array elements and object members.

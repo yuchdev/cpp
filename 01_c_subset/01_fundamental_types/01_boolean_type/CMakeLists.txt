@@ -1,4 +1,4 @@
-set(TARGET 00_fundamental_types)
+set(TARGET 01_boolean_type)
 
 file(GLOB SOURCES *.cpp *.h *.txt)
 
