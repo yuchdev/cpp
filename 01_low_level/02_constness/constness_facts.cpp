@@ -1,13 +1,10 @@
 // ReSharper disable All
 #include <utilities/defines.h>
+#include <utilities/bitwise.h>
 SUPPRESS_PRAGMA_WARNINGS()
-#pragma ide diagnostic ignored "UnusedValue"
-#pragma ide diagnostic ignored "UnusedLocalVariable"
-#pragma ide diagnostic ignored "modernize-use-auto"
 
 #include <iostream>
 
-#include <utilities/bitwise.h>
 
 namespace cpp
 {
