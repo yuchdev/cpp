@@ -20,7 +20,7 @@ void byte_type()
 #if __cplusplus < 201703L
     std::cout << "std::byte requires C++17 (compile with -std=c++17)\n";
     return;
-#endif
+#else
 
     static_assert(std::is_enum_v<std::byte>, "std::byte is an enum type");
     static_assert(!std::is_integral_v<std::byte>, "std::byte is NOT an integer type");
@@ -36,7 +36,7 @@ void byte_type()
     auto u = std::to_integer<unsigned>(b);
     std::cout << "std::byte b = 0x" << std::hex << u << std::dec << '\n';
 
-    // Obscure but important: safe object representation access via std::byte*
+    // Obscure but important: safe object representation access via std::byte* (std::byte array)
     std::uint32_t v = 0x12345678u;
     std::byte bytes[sizeof(v)]{};
     std::memcpy(bytes, &v, sizeof(v)); // portable copy of representation
@@ -54,16 +54,13 @@ void byte_type()
               << std::hex << std::to_integer<unsigned>(raw[0]) << std::dec << '\n';
 
     // NOTE: endianness will affect the observed order of bytes.
-    // std::byte does not “fix” endianness; it only fixes type intent.
+    // std::byte does not "fix" endianness; it only fixes type intent.
+
+#endif
 }
 
 int main(int argc, char* argv[])
 {
-    const FunctionMap<void> function_map({
-        {"byte_type", byte_type},
-    });
-
-    std::string function_name = (argc < 2) ? "byte_type" : argv[1];
-    function_map.get(function_name)();
+    byte_type();
     return 0;
 }

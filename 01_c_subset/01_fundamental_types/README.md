@@ -135,8 +135,8 @@
 
 ---
 
-You already covered **the two “weird” non-numeric fundamentals** very well.
-For a *“simplest C++ types that are not integer / FP”* reference, there are **only a few legitimate additions**, and they fall into two categories:
+You already covered **the two “weird" non-numeric fundamentals** very well.
+For a *“simplest C++ types that are not integer / FP"* reference, there are **only a few legitimate additions**, and they fall into two categories:
 
 1. **True fundamental language types** you can document alongside `bool` / `nullptr_t`
 2. **Frequently confused but *not* fundamental** types worth explicitly calling out so readers don’t expect them here
@@ -208,7 +208,7 @@ It represents *absence of a value*, not a zero, not null, not false.
   ```
 
 * `void` is not a placeholder type
-  If you want “unknown type”, you probably want:
+  If you want “unknown type", you probably want:
 
   * templates
   * `auto`
@@ -225,8 +225,8 @@ It represents *absence of a value*, not a zero, not null, not false.
 
 `std::byte` fills the conceptual gap between:
 
-* “integer”
-* “raw memory”
+* “integer"
+* “raw memory"
 
 and avoids the semantic abuse of `unsigned char`.
 

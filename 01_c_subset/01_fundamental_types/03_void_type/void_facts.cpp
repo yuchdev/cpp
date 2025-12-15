@@ -96,12 +96,7 @@ static void void_in_templates()
 
 int main(int argc, char* argv[])
 {
-    const FunctionMap<void> function_map({
-        {"void_type", void_type},
-        {"void_in_templates", void_in_templates},
-    });
-
-    std::string function_name = (argc < 2) ? "void_type" : argv[1];
-    function_map.get(function_name)();
+    void_type();
+    void_in_templates();
     return 0;
 }

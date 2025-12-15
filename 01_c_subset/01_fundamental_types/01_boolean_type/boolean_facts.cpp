@@ -31,7 +31,7 @@ void boolean_type()
 
     std::cout << "b1=" << b1 << " i1=" << i1 << " i2=" << i2 << " i3=" << i3 << '\n';
 
-    // Pointer -> bool conversion (common pitfall: “if(ptr)” checks non-null, not “validity”)
+    // Pointer -> bool conversion (common pitfall: "if(ptr)" checks non-null, not “validity")
     int* pint = nullptr;
     if (pint)
     {
@@ -44,11 +44,6 @@ void boolean_type()
 
 int main(int argc, char* argv[])
 {
-    const FunctionMap<void> function_map({
-        {"boolean_type", boolean_type},
-    });
-
-    std::string function_name = (argc < 2) ? "boolean_type" : argv[1];
-    function_map.get(function_name)();
+    boolean_type();
     return 0;
 }

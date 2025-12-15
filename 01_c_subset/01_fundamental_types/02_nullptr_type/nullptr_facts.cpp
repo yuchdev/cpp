@@ -58,11 +58,6 @@ void nullptr_type()
 
 int main(int argc, char* argv[])
 {
-    const FunctionMap<void> function_map({
-        {"nullptr_type", nullptr_type},
-    });
-
-    std::string function_name = (argc < 2) ? "nullptr_type" : argv[1];
-    function_map.get(function_name)();
+    nullptr_type();
     return 0;
 }
