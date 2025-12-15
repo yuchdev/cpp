@@ -135,16 +135,6 @@
 
 ---
 
-You already covered **the two “weird" non-numeric fundamentals** very well.
-For a *“simplest C++ types that are not integer / FP"* reference, there are **only a few legitimate additions**, and they fall into two categories:
-
-1. **True fundamental language types** you can document alongside `bool` / `nullptr_t`
-2. **Frequently confused but *not* fundamental** types worth explicitly calling out so readers don’t expect them here
-
-Below is a **clean, minimal extension** that fits your README style and doesn’t dilute the focus.
-
----
-
 ### 3. `void`
 
 `void` is a **fundamental type with no values**.
