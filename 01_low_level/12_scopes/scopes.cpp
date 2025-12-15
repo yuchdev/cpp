@@ -6,7 +6,7 @@
 // Got it?
 // Answer: The else actually matches with the second if (C++ Standard 6.4.1/1)
 // Tabs arranged to make the answer not that obvious
-// (especially for Python programmers)
+// (especially to Python programmers)
 // Clang even shows warning on this situation, which gives this compiler additional points
 int boo(int x){
     if (x > 0)

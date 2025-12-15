@@ -1,12 +1,9 @@
 // ReSharper disable All
-#include <utilities/defines.h>
-#include <utilities/functional.h>
-#include <utilities/bitwise.h>
-SUPPRESS_PRAGMA_WARNINGS()
-
 #include <iostream>
 #include <type_traits>
 #include <cassert>
+
+#include <utilities/bitwise.h>
 
 /// Fundamental C++ type: bool
 /// https://en.cppreference.com/w/cpp/language/types
@@ -31,7 +28,7 @@ void boolean_type()
 
     std::cout << "b1=" << b1 << " i1=" << i1 << " i2=" << i2 << " i3=" << i3 << '\n';
 
-    // Pointer -> bool conversion (common pitfall: "if(ptr)" checks non-null, not “validity")
+    // Pointer -> bool conversion (common pitfall: "if(ptr)" checks non-null, not "validity")
     int* pint = nullptr;
     if (pint)
     {

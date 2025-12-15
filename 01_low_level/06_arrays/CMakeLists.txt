@@ -1,0 +1,6 @@
+add_subdirectory(01_arrays_decay_and_overloads)
+add_subdirectory(02_arrays_templates_and_traits)
+add_subdirectory(03_arrays_initialization_and_literals)
+add_subdirectory(04_arrays_multidim_and_pointers)
+add_subdirectory(05_arrays_memory_and_pitfalls)
+add_subdirectory(06_modern_arrays)

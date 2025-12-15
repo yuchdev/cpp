@@ -80,7 +80,7 @@
   ```
 
 * There is exactly one value of `std::nullptr_t`
-  You can copy it, pass it, and store it—but there is no "other" null pointer value.
+  You can copy it, pass it, and store it - but there is no "other" null pointer value.
 
 * `decltype(nullptr)` is useful in templates
 
@@ -194,11 +194,11 @@ It represents *absence of a value*, not a zero, not null, not false.
 
   ```cpp
   void* p;
-  // ++p; // ill-formed (GNU extension allows this — non-portable)
+  // ++p; // ill-formed (GNU extension allows this  -  non-portable)
   ```
 
 * `void` is not a placeholder type
-  If you want “unknown type", you probably want:
+  If you want "unknown type", you probably want:
 
   * templates
   * `auto`
@@ -215,8 +215,8 @@ It represents *absence of a value*, not a zero, not null, not false.
 
 `std::byte` fills the conceptual gap between:
 
-* “integer"
-* “raw memory"
+* "integer"
+* "raw memory"
 
 and avoids the semantic abuse of `unsigned char`.
 

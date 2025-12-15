@@ -1,5 +1,3 @@
-#include <utilities/defines.h>
-SUPPRESS_PRAGMA_WARNINGS()
 #pragma ide diagnostic ignored "cppcoreguidelines-narrowing-conversions"
 
 #include <string>

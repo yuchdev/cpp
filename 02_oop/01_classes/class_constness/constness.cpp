@@ -1,11 +1,6 @@
-#include <iostream>
-#include <utilities/bitwise.h>
-#include <utilities/defines.h>
-SUPPRESS_PRAGMA_WARNINGS()
 #pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
 #include <type_traits>
-#include <cassert>
-
+#include <iostream>
 
 // Arguments for using data accessors and mutators
 // * distinctive read-write access

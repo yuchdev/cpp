@@ -1,8 +1,4 @@
 // ReSharper disable All
-#include <utilities/defines.h>
-#include <utilities/functional.h>
-SUPPRESS_PRAGMA_WARNINGS()
-
 #include <iostream>
 #include <type_traits>
 #include <utility>

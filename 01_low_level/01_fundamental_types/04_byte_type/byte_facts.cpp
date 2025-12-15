@@ -1,9 +1,4 @@
 // ReSharper disable All
-#include <utilities/defines.h>
-#include <utilities/functional.h>
-#include <utilities/bitwise.h>
-SUPPRESS_PRAGMA_WARNINGS()
-
 #include <cassert>
 #include <cstddef>   // std::byte, std::to_integer
 #include <cstdint>

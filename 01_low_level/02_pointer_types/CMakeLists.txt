@@ -1,3 +1,0 @@
-add_subdirectory(00_compare_pointers)
-add_subdirectory(01_pointer_facts)
-add_subdirectory(05_references)
