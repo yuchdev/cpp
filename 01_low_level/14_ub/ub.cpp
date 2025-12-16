@@ -1,5 +1,4 @@
 #include <iostream>
-
 #pragma clang diagnostic ignored "-Wuninitialized"
 
 void dereference_null()

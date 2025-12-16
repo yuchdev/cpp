@@ -1,150 +1,453 @@
-## Functions
+# Functions in C++
 
-* The C++ standard algorithms (e.g., find, sort, and iota) provide a good start for functions design
-* The most basic advice is to keep a function of a size so that you can look at it in total on a screen
-* The cost of a function call is not a significant factor
-* To preserve C compatibility, a const is ignored at the highest level of an argument type
-* For example, this is two declarations of the same function
-```
-void f(int); // type is void(int) 
-void f(const int); // type is void(int)
-```
-* we can indicate that an argument is unused in a function definition by not naming it
-* Constructors are technicallly not functions
-* The following two declarations are equivalent
-string to_string(int a); // prefix return type 
-auto to_string(int a) -> string; // suffix return type
-* Prefix auto indicates that the return type is placed after the argument list
-* Use for a suffix return type comes in function template declarations in which the return type depends on the arguments
-* A call of a void function may be used as the return value of a void function
-return g(p); // OK: equivalent to g(p); return;
-* A `constexpr` function cannot have side effects, so writing to nonlocal objects is not possible
-* A construct `[[...]]` is called an attribute and can be placed just about anywhere in the C++ syntax
-* Placing `[[noreturn]]` at the start of a function declaration indicates that the function is not expected to return
-* The effect of initializing a local static recursively is undefined
-* If an array is used as a function argument, a pointer to its initial element is passed
-* These three declarations are equivalent and declare the same function:
-```
-void odd(int* p);
-void odd(int a[]);
-void odd(int buf[1020]);
-```
-* The size of an array is not available to the called function
-* For some functions, it is not possible to specify the number and type of all arguments expected in a call. 
-  To implement such interfaces, we have three choices:
-    * Use a variadic template (28.6)
-    * Use an initializer_list as the argument type (12.2.3)
-    * Terminate the argument list with the ellipsis (...), which means 'and maybe some more arguments'
-* If I didn�t have to mimic C style, I would further simplify the code by passing a container as a single argument
-* A {}-delimited list can be used as an argument to a parameter of:
-    * Type std::initializer_list<T>, where the values of the list can be implicitly converted to T
-    * A type that can be initialized with the values provided in the list
-    * A reference to an array of T, where the values of the list can be implicitly converted to T
-* If there is a possible ambiguity, an initializer_list parameter takes priority
-* Default arguments may be provided for trailing arguments only
-* Function pointer types could be defined with typedef or using
-* Explicit inline makes sense if
-   - its definition is in *.cpp file
-   - in template functions (std::max)
-* inline could be cancelled by the recursion, cycle, virtual methos or taking function address
-* std lib has function pointers callback: new_handler
-* If you put the inline function's definition into a .cpp file, and if it is called from some other .cpp file, 
-  you'll get an "unresolved external" error from the linker
-* Function default argument value may be function call 
+## Advanced Facts, Pitfalls, and Evolution (C++98 → C++20)
 
-## Automatic Overload Resolution
+Functions are the fundamental abstraction boundary in C++.
 
-To approximate our notions of what is reasonable, a series of criteria are tried in order:
-* Exact match; that is, match using no or only trivial conversions (for example, array name
-to pointer, function name to pointer to function, and T to const T)
-* Match using promotions; that is, integral promotions (bool to int, char to int, short to int,
-and their unsigned counterparts; 10.5.1) and float to double
-* Match using standard conversions (e.g., int to double, double to int, double to long double,
-Derived* to Base* (20.2), T* to void* (7.2.1), int to unsigned int (10.5))
-* Match using user-defined conversions (e.g., double to complex<double>; 18.4)
-* Match using the ellipsis ... in a function declaration (12.2.4)
-* Return types are not considered in overload resolution
-  The reason is to keep resolution for an individual operator or function call context-independent
-* A pointer to function does not allow the code to be modified
-* A pointer to a noexcept function can be declared noexcept
-* A pointer to function must reflect the linkage of a function (15.2.6) and calling convention
-* Neither linkage specification nor noexcept may appear in type aliases:
-using Pc = extern "C" void(int); // error: linkage specification in alias 
-using Pn = void(int) noexcept; // error: noexcept in alias
+They combine language rules, ABI conventions, optimizer behavior, and C legacy.
 
-* A string can be created by concatenating two strings using the ## macro operator
-* A single # before a parameter name in a replacement string means a string containing the macro argument
+---
 
-## Macros
+## 1. What a function is (and is not)
 
-* Macros can even be variadic. For example:
-#define err_print(...) fprintf(stderr,"error: %s %d\n", __VA_ARGS__) 
-err_print("The answer",54);
+* A function is a named callable entity with:
 
-* A few macros are predefined by the compiler 
-  * __cplusplus: defined in a C++ compilation (and not in a C compilation). Its value is 201103L in a C++11 program; previous C++ standards have lower values
-  * __DATE__: date in YYYYMMDD format.
-  * __TIME__: time in HHMMSS format.
-  * __FILE__: name of current source file.
-  * __LINE__: source line number within the current source file.
-  * __FUNC__: an implementation-defined C-style string naming the current function.
-  * __STDC_HOSTED__: 1 if the implementation is hosted (6.1.1); otherwise 0. In addition, a few macros are conditionally defined by the implementation.
-    * __STDC__: defined in a C compilation (and not in a C++ compilation)
-    * __STDC_MB_MIGHT_NEQ_WC__: 1 if, in the encoding for wchar_t, a member of the basic character set (6.1) might have a code value that differs from its value as an ordinary character literal
-    * __STDCPP_STRICT_POINTER_SAFETY__: 1 if the implementation has strict pointer safety (34.5); otherwise undefined.
-    * __STDCPP_THREADS__: 1 if a program can have more than one thread of execution; otherwise undefined
-    * __cplusplus macro should expand to:
-```
-199711L (until C++11),
-201103L (C++11),
-201402L (C++14),
-201703L (C++17)
-```
-* The difference between `#if` and `#ifdef` directives is that `#ifdef` should be used to check whether given macro has been defined to allow a section of code to be compiled.
-* On the other hand `#if` (`#else`, `#elif`) directives can be used to check whether specified condition is met (just like typical if-condition)
+  * a type (`R(Args...)`)
+  * linkage
+  * calling convention
+* A function is not:
 
-## Initializer List
+  * an object
+  * a closure (unless wrapped)
+  * a constructor
 
-* The type of a {}-list can be deduced (only) if all elements are of the same type
-* Unfortunately, we do not deduce the type of an unqualified list for a plain template argument
-```
-template<typename T> void f(T);
-f({}); // error: type of initializer is unknown
-f({1}); // error: an unqualified list does not match 'plain T'
+> Constructors are not functions - they have no return type and special lookup/dispatch rules.
+
+---
+
+## 2. C inheritance: the foundation
+
+C++ function rules are built on C:
+
+* Call by value
+* Pointer decay
+* No runtime type information for parameters
+* ABI compatibility with C when `extern "C"` is used
+
+```cpp
+extern "C" void c_api(int);
 ```
 
-The implementation model for {}-lists comes in three parts:
+### Key C-inherited facts
 
-* If the {}-list is used as constructor arguments, the implementation is just as if you had used a ()-list. List elements are not copied except as by-value constructor arguments.
-* If the {}-list is used to initialize the elements of an aggregate (an array or a class without a constructor), each list element initializes an element of the aggregate. List elements are not copied except as by-value arguments to aggregate element constructors.
-* If the {}-list is used to construct an initializer_list object each list element is used to initialize an element of the underlying array of the initializer_list. Elements are typically copied from the initializer_list to wherever we use them
+* Top-level `const` on parameters is ignored
+* Arrays decay to pointers
+* Function names decay to function pointers
 
-A unqualified list is used where an expected type is unambiguously known. It can be used as an expression only as:
+```cpp
+void f(int);
+void f(const int);   // same function type
+```
 
-* A function argument `f({0})`
-* A return value `return {0};`
-* The right-hand operand of an assignment `operator (=, but not +=, *=, etc.) v = {0};`
-* An array subscript `[{0}]`
+---
 
+## 3. Function size and performance myths
 
-## Lambda
+* Function call cost is negligible compared to:
 
-* The body of the lambda simply becomes the body of the operator()()
-* lambda is called a closure object (or simply a closure)
-* If a lambda potentially captures every local variable by reference (using the capture list [&]), the
-  closure may be optimized to simply contain a pointer to the enclosing stack frame
-* Naming the lambda is often a good idea
-* If you need to capture a variadic template (28.6) argument, use ...
-* A lambda might outlive its caller. Use copy capture then [=]
-* We don't need to 'capture' namespace variables (including global variables) because they are always accessible
-* We can include class members in the set of names potentially captured by adding [this]
-* Members are always captured by reference
-* In the unlikely event that we want to modify the state, we can declare the lambda mutable
-* If a lambda body does not have a return-statement, the lambda's return type is void
-* To allow for optimized versions of lambda expressions, the type of a lambda expression is not defined
-* so no two lambdas have the same type
-* we can use it to initialize a variable declared auto or std::function<R(AL)> where R is the lambda's return type and AL is its argument list
-* Truncation of floating-point numbers is not 'well behaved'
-* If rounding is desirable, we can use the standard-library function round()
-* make type conversion more visible and to allow the programmer to express the intent of a cast
+  * cache misses
+  * branches
+  * memory access
+* Inlining is an optimization hint, not a command
+* Readability beats micro-optimization
+
+> Modern compilers inline aggressively - *even without `inline`*.
+
+---
+
+## 4. Function types and declarations
+
+### Prefix vs suffix return type
+
+```cpp
+std::string to_string(int);
+auto to_string(int) -> std::string;
+```
+
+Equivalent, but:
+
+* Suffix return type is essential when:
+
+  * return type depends on template parameters
+  * using `decltype`
+
+```cpp
+template<class T, class U>
+auto add(T t, U u) -> decltype(t + u);
+```
+
+---
+
+## 5. `auto` and return type deduction
+
+### Evolution
+
+| Standard | Feature               |
+| -------- | --------------------- |
+| C++11    | trailing return types |
+| C++14    | return type deduction |
+| C++20    | constrained auto      |
+
+```cpp
+auto f() { return 42; }        // int
+auto g() { return 3.14; }      // double
+```
+
+❌ Mixing return types is ill-formed.
+
+---
+
+## 6. `constexpr`, `consteval`, `constinit`
+
+### `constexpr` functions
+
+* Can run at compile-time or runtime
+* Cannot have observable side effects
+* May contain loops (since C++14)
+
+```cpp
+constexpr int square(int x) { return x*x; }
+```
+
+### `consteval` (C++20)
+
+* Must be evaluated at compile time
+* Runtime call is ill-formed
+
+```cpp
+consteval int id(int x) { return x; }
+```
+
+---
+
+## 7. Attributes (`[[...]]`)
+
+Attributes annotate functions for tools and optimizers.
+
+### Common attributes
+
+* `[[nodiscard]]` (C++17)
+* `[[noreturn]]`
+* `[[deprecated]]`
+* `[[likely]]`, `[[unlikely]]` (C++20)
+
+```cpp
+[[noreturn]] void fatal();
+```
+
+> Attributes do not change semantics - they convey intent.
+
+---
+
+## 8. Static local variables
+
+```cpp
+void f() {
+    static int x = init();
+}
+```
+
+Facts:
+
+* Initialized once
+* Thread-safe since C++11
+* Recursive initialization is undefined behavior
+
+---
+
+## 9. Parameter passing and decay
+
+### Arrays decay to pointers
+
+```cpp
+void f(int*);
+void f(int[]);
+void f(int[1024]);   // all identical
+```
+
+* Array size is lost
+* Use `std::span<T>` (C++20) or containers instead
+
+---
+
+## 10. Variadic interfaces
+
+### Three approaches
+
+1. Variadic templates (type-safe)
+2. `std::initializer_list<T>`
+3. C-style `...` (unsafe)
+
+```cpp
+void f(std::initializer_list<int>);
+```
+
+### Priority rule
+
+> If overload ambiguity exists, `initializer_list` wins.
+
+---
+
+## 11. Default arguments
+
+* Only for trailing parameters
+* Bound at call site
+* Can be function calls
+
+```cpp
+void log(int level = get_default());
+```
+
+---
+
+## 12. Function pointers
+
+```cpp
+using Fn = int(*)(double);
+```
+
+Facts:
+
+* Carry no state
+* Cannot capture
+* Reflect linkage and calling convention
+* Can be `noexcept`
+
+```cpp
+void f() noexcept;
+void (*p)() noexcept = f;
+```
+
+❌ `noexcept` and linkage cannot appear in type aliases.
+
+---
+
+## 13. Inline functions
+
+### Meaning of `inline`
+
+* Allows multiple definitions (ODR)
+* Suggests inlining (not guaranteed)
+
+### When `inline` matters
+
+* Header-defined functions
+* Template definitions
+
+### When inlining is impossible
+
+* Recursion
+* Virtual dispatch
+* Taking function address
+
+---
+
+## 14. Overload resolution (deep dive)
+
+Resolution order:
+
+1. Exact match
+2. Promotions
+3. Standard conversions
+4. User-defined conversions
+5. Ellipsis `...`
+
+### Important facts
+
+* Return type is ignored
+* Overload resolution is context-independent
+* `const` on parameters affects resolution
+
+---
+
+## 15. Initializer lists `{}`
+
+### Deduction rules
+
+```cpp
+f({1,2,3});   // OK if f(initializer_list<int>)
+f({});        // error: type unknown
+```
+
+### Three models
+
+1. Constructor arguments
+2. Aggregate initialization
+3. `std::initializer_list`
+
+### Priority
+
+> `initializer_list` overloads are preferred.
+
+---
+
+## 16. Lambdas (anonymous function objects)
+
+### Mental model
+
+> A lambda is syntax sugar for an unnamed class with `operator()`.
+
+```cpp
+auto l = [](int x) { return x*x; };
+```
+
+Becomes (conceptually):
+
+```cpp
+struct __lambda {
+    int operator()(int x) const { return x*x; }
+};
+```
+
+---
+
+## 17. Lambda captures
+
+| Capture      | Meaning              |
+| ------------ | -------------------- |
+| `[=]`        | copy                 |
+| `[&]`        | reference            |
+| `[this]`     | current object       |
+| `[x = expr]` | init-capture (C++14) |
+
+### Important rules
+
+* Namespace variables don't need capture
+* Members captured via `this` are references
+* Lambdas may outlive scope → prefer copy capture
+
+---
+
+## 18. Mutable lambdas
+
+```cpp
+auto f = [x]() mutable { x++; };
+```
+
+Allows modification of captured copies.
+
+---
+
+## 19. Lambda types and storage
+
+* Every lambda has a unique, unnamed type
+* No two lambdas share a type
+* Store using:
+
+  * `auto`
+  * `std::function<R(Args...)>`
+
+### `std::function`
+
+* Type-erased
+* Allocates
+* Slower than direct calls
+
+---
+
+## 20. `operator()` and callable objects
+
+Any type with `operator()` is a callable.
+
+```cpp
+struct Adder {
+    int operator()(int a, int b) const { return a+b; }
+};
+```
+
+Used by:
+
+* algorithms
+* policies
+* function objects
+
+---
+
+## 21. Macros vs functions
+
+### Macros
+
+* No types
+* No scope
+* No debugging
+* No overloads
+
+```cpp
+#define SQR(x) ((x)*(x))
+```
+
+### Predefined macros
+
+* `__cplusplus`
+* `__FILE__`, `__LINE__`
+* `__DATE__`, `__TIME__`
+* `__func__`
+
+### Prefer functions unless:
+
+* Conditional compilation
+* Compile-time code generation
+* Platform detection
+
+---
+
+## 22. Function evolution timeline
+
+| Standard | Features                                         |
+| -------- | ------------------------------------------------ |
+| C++98    | Basic functions, pointers                        |
+| C++11    | `auto`, lambdas, `constexpr`, variadics          |
+| C++14    | return type deduction, init-capture              |
+| C++17    | attributes, `constexpr` expanded                 |
+| C++20    | `consteval`, concepts, `std::span`, `[[likely]]` |
+
+---
+
+## 23. Migration note for Java / Python / C# developers
+
+In Java, Python, and similar languages, functions are:
+
+* objects
+* heap-allocated
+* runtime entities
+* reflection-friendly
+* garbage-collected
+
+In C++, functions are:
+
+* compile-time entities
+* ABI-bound
+* optimized aggressively
+* invisible at runtime
+* governed by the abstract machine
+
+Key differences:
+
+* No runtime safety net
+* No universal callable object
+* No guaranteed type erasure
+* No default closures with lifetime tracking
+
+> C++ functions trade safety for absolute control and zero-cost abstraction.
+
+---
+
+## Final guidance
+
+* Prefer clear function signatures
+* Minimize overload ambiguity
+* Avoid C-style variadics
+* Use lambdas for local behavior
+* Use `constexpr` and attributes to express intent
+* Treat macros as a last resort
 

@@ -12,5 +12,4 @@ add_subdirectory(10_linking)
 add_subdirectory(11_namespaces)
 add_subdirectory(12_scopes)
 add_subdirectory(13_c_cpp)
-
 # The subdirectory '14_ub' intentionally left out as it covers UB cases
