@@ -1,5 +1,24 @@
-
 #include <iostream>
+
+/*
+## Example 1 — Basic Namespaces, Merging, Aliases, Unnamed Namespace
+
+**File:** `01_basic_namespaces.cpp`
+
+### Covers
+
+* Named namespaces
+* Namespace merging (same namespace opened multiple times)
+* Namespace aliases
+* Unnamed (anonymous) namespaces
+* Internal linkage via unnamed namespaces
+
+### Key ideas
+
+* Namespaces can be reopened anywhere — even across libraries
+* Anonymous namespaces replace `static` globals
+* Namespace aliases are essential for versioning and long names
+*/
 
 namespace my {
     int a = 1;

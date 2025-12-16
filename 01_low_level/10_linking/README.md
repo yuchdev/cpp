@@ -376,6 +376,35 @@ Requires:
 
 ---
 
+## Facts about Linking
+
+```
+extern "C" {
+// ...
+}
+```
+
+* This technique is commonly used to produce a C++ header from a C header
+* Alternatively, conditional compilation (12.6.1) can be used to create a common C and C++ header:
+
+```
+#ifdef __cplusplus
+extern "C" {...}
+```
+
+* A name with C linkage can be declared in a namespace (std::printf)
+* A variable defined outside any function (that is, global, namespace, and class static variables) is initialized before main() is invoked
+* Often, a function returning a reference to static is a good alternative to a global variable
+* The initialization of a local static is thread-safe (42.3.3)
+* The quick_exit() function is like exit() except that it does not invoke any destructors
+* Register functions to be invoked by quick_exit() using at_quick_exit()
+* Exit possibilities
+  * std::_Exit (abort): doesn't execute static destructors or flush critical IO and soes not call handler
+  * std::exit: executes static destructors and flushes critical IO and call handler if exists
+  * std::quick_exit: doesn't execute static destructors, but does flush critical IO and call handler if exists
+
+---
+
 ## How Linking Differs from "Imports" in Other Languages
 
 Developers coming from **Java, Python, C#, JavaScript, Go**, or similar languages often expect linking to behave like importing a package or module.

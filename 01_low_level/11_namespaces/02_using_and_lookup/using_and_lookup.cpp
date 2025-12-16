@@ -1,5 +1,23 @@
-
 #include <iostream>
+
+/*
+## Example 2 — `using` Declarations vs `using` Directives
+
+**File:** `02_using_and_lookup.cpp`
+
+### Covers
+
+* `using namespace X;` (directive)
+* `using X::name;` (declaration)
+* Name hiding vs ambiguity
+* Why `using` directives are dangerous in headers
+
+### Key ideas
+
+* Prefer **using-declaration** over **using-directive**
+* `using namespace` is acceptable only in *local scopes*
+* Headers must never contain `using namespace`
+*/
 
 namespace A {
     int x = 1;
