@@ -26,6 +26,7 @@ void my_cleanup()
     std::cout << "cleanup handler" << std::endl;
 }
 
+
 int main()
 {
     // Change the way of exiting the abblication

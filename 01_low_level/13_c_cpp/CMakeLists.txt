@@ -1,15 +1,6 @@
-set(TARGET 13_c_cpp)
-
-file(GLOB SOURCES *.cpp *.h *.txt)
-
-include_directories(
-    ${CMAKE_SOURCE_DIR}
-)
-
-add_executable(${TARGET} ${SOURCES})
-set_property(TARGET ${TARGET} PROPERTY FOLDER "03_Functions")
-
-target_link_libraries(${TARGET}    
-PRIVATE
-    utilities
-)
+add_subdirectory(01_name_mangling_and_overload)
+add_subdirectory(02_extern_c_callbacks)
+add_subdirectory(03_static_init_and_main)
+add_subdirectory(04_headers_and_types)
+add_subdirectory(05_c_things_not_in_cpp)
+add_subdirectory(06_cpp_things_not_in_c)
