@@ -1,4 +1,4 @@
 add_subdirectory(01_enums_core)
-add_subdirectory(02_enums_scoped_and_forward)
-add_subdirectory(03_enums_flags_and_operators)
+add_subdirectory(02_enums_scoped)
+add_subdirectory(03_enums_operations)
 add_subdirectory(04_modern_enums)

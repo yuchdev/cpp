@@ -1,4 +1,4 @@
-set(TARGET 04_modern_enums)
+set(TARGET 02_enums_scoped)
 
 file(GLOB SOURCES *.cpp *.h)
 
