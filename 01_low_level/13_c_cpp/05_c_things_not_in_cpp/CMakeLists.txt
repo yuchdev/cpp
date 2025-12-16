@@ -1,6 +1,6 @@
 set(TARGET 05_c_things_not_in_cpp)
 
-file(GLOB SOURCES *.cpp *.h)
+file(GLOB SOURCES *.c)
 
 include_directories(
     ${CMAKE_SOURCE_DIR}
@@ -8,8 +8,3 @@ include_directories(
 
 add_executable(${TARGET} ${SOURCES})
 set_property(TARGET ${TARGET} PROPERTY FOLDER "13CCpp")
-
-target_link_libraries(${TARGET}
-PRIVATE
-    utilities
-)
