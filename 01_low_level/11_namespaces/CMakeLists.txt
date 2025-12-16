@@ -1,15 +1,7 @@
-set(TARGET 11_namespaces)
-
-file(GLOB SOURCES *.cpp *.h *.txt)
-
-include_directories(
-    ${CMAKE_SOURCE_DIR}
-)
-
-add_executable(${TARGET} ${SOURCES})
-set_property(TARGET ${TARGET} PROPERTY FOLDER "03_Functions")
-
-target_link_libraries(${TARGET}    
-PRIVATE
-    utilities
-)
+add_subdirectory(01_basic_namespaces)
+add_subdirectory(02_using_and_lookup)
+add_subdirectory(03_adl)
+add_subdirectory(04_namespaces_and_operators)
+add_subdirectory(05_wrapping_c)
+add_subdirectory(06_inline_namespaces)
+add_subdirectory(07_namespaces_vs_modules)
