@@ -84,10 +84,12 @@ def ensure_cmake_files(target_dir: str, subdirs: list[str]) -> None:
     write_root_cmake(target_dir, subdirs)
 
 
-def git_add_and_commit(target_dir: str) -> None:
+def git_commit(target_dir: str) -> None:
     # Add entire directory and commit (no push)
     subprocess.run(["git", "add", target_dir], check=False)
-    subprocess.run(["git", "commit", "-m", f"Generate CMake files for {os.path.basename(target_dir)}"], check=False)
+    subprocess.run([
+        "git", "commit", "--all", "--message", f"Generate CMake files for {os.path.basename(target_dir)}"
+    ], check=False)
 
 
 def main() -> int:
@@ -123,7 +125,7 @@ def main() -> int:
     ensure_cmake_files(target_dir, subdirs)
 
     # Add and commit entire directory (no push)
-    git_add_and_commit(target_dir)
+    git_commit(target_dir)
 
     print(f"Done for `{target_dir}`")
     return 0
