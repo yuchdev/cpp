@@ -1,15 +1,15 @@
 set(TARGET 03_integer_types)
 
-file(GLOB SOURCES *.cpp *.h *.txt)
+file(GLOB SOURCES *.cpp *.h)
 
 include_directories(
     ${CMAKE_SOURCE_DIR}
 )
 
 add_executable(${TARGET} ${SOURCES})
-set_property(TARGET ${TARGET} PROPERTY FOLDER "00_FundamentalTypes\\01_IntegerTypes")
+set_property(TARGET ${TARGET} PROPERTY FOLDER "03IntegerTypes")
 
-target_link_libraries(${TARGET}    
+target_link_libraries(${TARGET}
 PRIVATE
     utilities
 )

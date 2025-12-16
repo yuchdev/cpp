@@ -1,4 +1,3 @@
-add_subdirectory(01_alignment)
 add_subdirectory(02_character_types)
 add_subdirectory(03_integer_types)
 add_subdirectory(03_universal_init)
