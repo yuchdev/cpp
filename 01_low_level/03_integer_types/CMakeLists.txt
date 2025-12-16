@@ -1,5 +1,5 @@
-add_subdirectory(02_character_types)
-add_subdirectory(03_integer_types)
+add_subdirectory(01_character_types)
+add_subdirectory(02_integer_types)
 add_subdirectory(03_universal_init)
 add_subdirectory(04_unsigned)
 add_subdirectory(05_promotions)

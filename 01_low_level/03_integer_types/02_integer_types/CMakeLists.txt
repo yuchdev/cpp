@@ -1,4 +1,4 @@
-set(TARGET 03_integer_types)
+set(TARGET 02_integer_types)
 
 file(GLOB SOURCES *.cpp *.h)
 

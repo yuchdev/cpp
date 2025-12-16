@@ -1,4 +1,4 @@
-set(TARGET 02_character_types)
+set(TARGET 01_character_types)
 
 file(GLOB SOURCES *.cpp *.h)
 
