@@ -7,7 +7,6 @@
 //   * prevent naming conflicts
 //   * wrap plain C code 
 
-
 // Simple names namespace
 namespace my
 {
