@@ -65,7 +65,7 @@ static void casting_outside_enumerators()
     PlainSmall weird = static_cast<PlainSmall>(20);
 
     // IMPORTANT:
-    // - It's not “automatically UB” just to have this value.
+    // - It's not "automatically UB" just to have this value.
     // - But any code that assumes only ps0/ps1 exist is now broken.
     // - In practice: validate when converting from external input.
     (void)weird;

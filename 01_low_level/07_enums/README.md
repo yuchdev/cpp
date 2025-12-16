@@ -76,7 +76,7 @@ enum ErrorCode : unsigned short { A = 1, B = 2 };
 * Casting an integer to an enum is allowed
 * Resulting value may not correspond to any enumerator
 * Merely *holding* such a value is not automatically UB
-* Logic assuming “only valid enumerators exist” becomes broken
+* Logic assuming "only valid enumerators exist" becomes broken
 
 ```cpp
 enum Mode { Idle, Run, Stop };
@@ -321,7 +321,7 @@ default: return "<unknown>";
 * Unscoped enums favor convenience over safety
 * Scoped enums favor correctness over convenience
 * Enum values can exist outside the listed enumerators
-* The language does not enforce “valid enum state”
+* The language does not enforce "valid enum state"
 * `enum class` is the default choice in modern C++
 
 ---
@@ -332,7 +332,7 @@ If you come from Java or Python, it's important to reset some expectations about
 
 In Java, an `enum` is a full-fledged class: each value is a singleton object, can have fields, methods, constructors, inheritance-like behavior, identity (`==`), guaranteed exhaustiveness in `switch`, and runtime reflection support. In Python, enums are also objects, dynamically created, introspectable, iterable, and fundamentally runtime constructs with no concern for storage layout or ABI.
 
-In C++, an enum is not an object hierarchy and not a runtime abstraction. It is a compile-time type with an integer representation, designed primarily for efficiency, ABI stability, and low-level control. Even `enum class`—the “safe” modern form—does not create objects with identity or behavior; it creates a *strongly typed integer domain*. C++ enums can hold values that are *not* listed among their enumerators, can be cast from raw integers, and are not inherently range-checked or exhaustive. The compiler does not enforce “only valid enum states exist.”
+In C++, an enum is not an object hierarchy and not a runtime abstraction. It is a compile-time type with an integer representation, designed primarily for efficiency, ABI stability, and low-level control. Even `enum class`—the "safe" modern form—does not create objects with identity or behavior; it creates a *strongly typed integer domain*. C++ enums can hold values that are *not* listed among their enumerators, can be cast from raw integers, and are not inherently range-checked or exhaustive. The compiler does not enforce "only valid enum states exist."
 
 This means:
 
@@ -341,7 +341,7 @@ This means:
 * Enum size, signedness, and layout matter for ABI, serialization, and performance.
 * Validation is the developer's responsibility, especially at system boundaries.
 
-The payoff is that C++ enums integrate cleanly with memory, bitwise operations, hardware interfaces, and wire formats—things Java and Python deliberately abstract away. Think of C++ enums not as “objects with names”, but as type-safe symbolic integers whose power (and danger) comes from how close they are to the machine.
+The payoff is that C++ enums integrate cleanly with memory, bitwise operations, hardware interfaces, and wire formats—things Java and Python deliberately abstract away. Think of C++ enums not as "objects with names", but as type-safe symbolic integers whose power (and danger) comes from how close they are to the machine.
 
 ---
 

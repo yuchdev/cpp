@@ -1,15 +1,7 @@
-set(TARGET 10_linkage)
-
-file(GLOB SOURCES *.cpp *.h *.txt)
-
-include_directories(
-    ${CMAKE_SOURCE_DIR}
-)
-
-add_executable(${TARGET} ${SOURCES})
-set_property(TARGET ${TARGET} PROPERTY FOLDER "03_Functions")
-
-target_link_libraries(${TARGET}    
-PRIVATE
-    utilities
-)
+add_subdirectory(01_basics)
+add_subdirectory(02_odr_inline)
+add_subdirectory(03_templates)
+add_subdirectory(04_init_order)
+add_subdirectory(05_visibility)
+add_subdirectory(06_windows_dll)
+add_subdirectory(07_dlopen)

@@ -20,7 +20,7 @@ constexpr auto to_underlying(E e) noexcept -> typename std::underlying_type<E>::
     return static_cast<typename std::underlying_type<E>::type>(e);
 }
 
-// Switch “exhaustiveness” in C++ is not enforced by the language.
+// Switch "exhaustiveness" in C++ is not enforced by the language.
 // Compilers can warn, but correctness requires an explicit policy.
 static const char* to_string(Mode m)
 {
