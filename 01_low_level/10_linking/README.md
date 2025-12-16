@@ -439,7 +439,7 @@ That mental model does **not** apply to C++.
   * The programmer's responsibility
 
 > In C++, there is no package loader, no module registry, and no runtime safety net.
-> Linking is **mechanical**, **static**, and **unforgiving** — by design.
+> Linking is **mechanical**, **static**, and **unforgiving** - by design.
 
 ---
 

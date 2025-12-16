@@ -9,6 +9,5 @@ add_subdirectory(08_bitwise_ops)
 add_subdirectory(09_functions)
 add_subdirectory(10_linking)
 add_subdirectory(11_namespaces)
-add_subdirectory(12_scopes)
-add_subdirectory(13_c_cpp)
-# The subdirectory '14_ub' intentionally left out as it covers UB cases
+add_subdirectory(12_c_cpp)
+# The subdirectory '13_ub' intentionally left out as it covers UB cases
