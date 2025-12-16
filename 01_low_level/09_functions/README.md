@@ -1,12 +1,9 @@
 # Functions in C++
 
+> Functions are the fundamental abstraction boundary in C++.
+> They combine language rules, ABI conventions, optimizer behavior, and C legacy.
+
 ## Advanced Facts, Pitfalls, and Evolution (C++98 → C++20)
-
-Functions are the fundamental abstraction boundary in C++.
-
-They combine language rules, ABI conventions, optimizer behavior, and C legacy.
-
----
 
 ## 1. What a function is (and is not)
 

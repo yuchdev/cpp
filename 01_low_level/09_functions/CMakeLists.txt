@@ -1,3 +1,5 @@
-add_subdirectory(01_conventions)
-add_subdirectory(02_lambda)
-add_subdirectory(03_suffix)
+add_subdirectory(01_functions_core)
+add_subdirectory(02_overload_and_initializer_list)
+add_subdirectory(03_function_pointers)
+add_subdirectory(04_attributes_and_preprocessor)
+add_subdirectory(05_lambdas_and_callables)
