@@ -1,7 +1,6 @@
-/*
-================================================================================
-01_function_identity_abi_callconv.cpp
+#include <iostream>
 
+/*
 Advanced topic: function identity at the ABI level.
 
 A function is not only "R(Args...)" — ABI properties are part of its *call contract*:
@@ -11,11 +10,39 @@ A function is not only "R(Args...)" — ABI properties are part of its *call con
   - platform ABI (SysV AMD64 vs Windows x64 vs AArch64, etc.)
 
 This example focuses on *preventing ABI UB* by encoding ABI intent in types.
+---
+ABI cheat-sheet: __cdecl vs __stdcall (x86 / 32-bit Windows)
 
-================================================================================
+What changes in assembly is mostly: *who cleans the stack*.
+
+```
+__cdecl  (caller cleans):
+  caller:
+    push 1
+    call _cdecl_func
+    add  esp, 4         ; caller removes args
+  callee:
+    ret                  ; does NOT pop args
+```
+
+```
+__stdcall (callee cleans):
+  caller:
+    push 2
+    call _stdcall_func@4  ; symbol often decorated with @bytes
+  callee:
+    ret 4                 ; pops args itself
+```
+
+Mismatch => UB:
+  - if caller also does `add esp,4` and callee does `ret 4` -> stack moves 8 bytes
+  - corrupted return address / saved regs -> crash after return
+
+Note on Windows x64:
+  - user code effectively has ONE calling convention (args in RCX,RDX,R8,R9)
+  - __cdecl/__stdcall annotations usually compile to identical code
+  - but ABI intent still matters for interop (asm/JIT/FFI), and varargs rules still differ.
 */
-
-#include <iostream>
 
 template <class... Ts>
 void println(Ts&&... xs) { ((std::cout << xs), ...) << "\n"; }
