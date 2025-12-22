@@ -1,4 +1,4 @@
-set(TARGET 01_functions_core)
+set(TARGET 07_constexpr_consteval_odr)
 
 file(GLOB SOURCES *.cpp *.h)
 

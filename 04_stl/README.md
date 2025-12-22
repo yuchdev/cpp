@@ -12,4 +12,7 @@ Questions:
 
 * A singly-linked list: forward_list (4.4.5, 31.4.2)
 * Hash containers: unordered_map, unordered_multimap, unordered_set, and unordered_multiset (4.4.5, 31.4.3)
- 
+
+* Why `rand()` is very slow
+* The standard C library is significantly faster than C++ in I/O operations
+* 

@@ -30,6 +30,9 @@ void void_type()
 
     std::cout << "*p_int2 = " << *p_int2 << '\n';
 
+    // void* normally used at the lowerer levels of abstraction (C APIs, memory management).
+    // In the upper levels, its use is most likely a design error.
+
     // Standard C++ forbids pointer arithmetic on void*
     // ++p_void; // ill-formed (GNU extension allows this; non-portable)
 

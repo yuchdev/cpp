@@ -203,6 +203,13 @@
 * Alignment can affect object size
   `sizeof(T)` may be larger than the sum of its fields due to padding.
 
+* The order of calculations inside subexpressions is not defined 
+
+```cpp
+int x = f() + g() * h(); // f(), g(), h() can be called in any order
+v[i] = i++ // UB
+```
+ 
 ---
 
 ### Scopes (quick facts)

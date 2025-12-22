@@ -162,6 +162,14 @@ It represents *absence of a value*, not a zero, not null, not false.
   int* ip = static_cast<int*>(p); // required cast
   ```
 
+* void* normally used at the lowerer levels of abstraction (C APIs, memory management). In the upper levels, its use is most likely a design error.
+* Standard C++ forbids pointer arithmetic on `void*`
+
+```cpp
+void* p;
+// p++; // ill-formed
+```
+
 * `void*` can point to **any object type**, but **not** to:
 
   * function pointers

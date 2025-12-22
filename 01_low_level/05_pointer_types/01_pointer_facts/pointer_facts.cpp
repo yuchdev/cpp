@@ -314,23 +314,6 @@ static void pointer_provenance_note()
     std::puts("Practical: avoid constructing pointers from integers except in low-level OS/hardware code.");
 }
 
-// Facts about pointers
-void pointers_facts()
-{
-    show_bytes_of_object();
-    pointer_sizes_and_alignment();
-    address_and_addressof();
-    constness_on_pointer_vs_pointee();
-    pointer_arithmetic_rules();
-    void_pointer_facts();
-    strict_aliasing_escape_hatches();
-    pointer_comparisons();
-    pointer_integer_roundtrip();
-    new_delete_and_zero_length_arrays();
-    pointer_to_member_obscurity();
-    pointer_provenance_note();
-}
-
 void nullptr_type()
 {
     std::puts("\n== nullptr examples (object/function/member pointers) ==");

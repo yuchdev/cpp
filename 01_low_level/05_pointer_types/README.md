@@ -18,9 +18,16 @@
 * A pointer to any type of object can be assigned to a variable of type `void*`, but a pointer to member cannot.
 * On some machines, an `int` and an `int*` do not occupy the same amount of space.
 * Obscure but important: object pointers, function pointers, and pointer-to-member are distinct categories; they're not required to have the same size/representation, and they are not freely interconvertible.
+* Aliasing is when more than one lvalue refers to the same memory location (when you hear lvalue, think of things (variables) that can be on the left-hand side of assignments), for example, that are modifiable:
+
+```cpp
+int anint = 0;
+int *intptr=&anint; 
+```
 
 ### 4. Pointer arithmetic and address differences
 
+* Remember: `pointer++` moves to the pointee size!
 * `size_t` holds sizes of objects, whereas `ptrdiff_t` holds differences of addresses within objects. (Pointer subtraction yields `ptrdiff_t`).
 * Pointer subtraction is only defined within the same array object (including one-past-the-end.. Subtracting unrelated pointers is undefined behavior).
 * One-past-the-end pointer values are valid to form and compare/subtract within the same array, but dereferencing one-past is undefined behavior.
@@ -96,7 +103,19 @@
 * Union that holds current type info is often called a tagged union or a discriminated union.
 * An anonymous union is an object, not a type, and its members can be accessed without mentioning an object name.
 
-### 13. Other Pointer Facts
+### 13. Alignment and `alignas`/`alignof`
+
+* The size and content of a structure or class may be affected by alignment requirements.
+* The `alignas` specifier can be used to set a specific alignment for a type or an object.
+* The `alignof` operator yields the alignment requirement of its operand type.
+* Such comparison is wrong precisely because of possible padding bytes:
+
+```cpp
+struct S { char c; int i; };
+bool is_equal(S a, S b) { return 0 == memcmp(&a, &b, sizeof(S)); })
+```
+
+### 14. Other Pointer Facts
 
 * Legit use of `intmax_t` is for formatting, and probably serialization.
 * Obscure pitfall `std::addressof` vs overloaded `operator&`: `operator&` can be overloaded. If you need the real address of an object, use `std::addressof()`

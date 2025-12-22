@@ -1,4 +1,4 @@
-set(TARGET 02_overload_and_initializer_list)
+set(TARGET 06_return_type_deduction_auto_decltype_auto)
 
 file(GLOB SOURCES *.cpp *.h)
 

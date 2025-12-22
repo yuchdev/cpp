@@ -1,4 +1,4 @@
-set(TARGET 03_function_pointers)
+set(TARGET 05_conditional_noexcept_and_vector_moves)
 
 file(GLOB SOURCES *.cpp *.h)
 

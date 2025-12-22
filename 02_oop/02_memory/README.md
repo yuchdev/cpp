@@ -1,4 +1,4 @@
-### New handler
+## New handler
 
 * It is possible to replace the standard `new_handler`, which is called on the situation of lack of memory.
   The standard `set_new_handler()` is called until memory is released or the program is finished
@@ -7,7 +7,7 @@
   or parameterize the themplate class with it.
   Using templates and CRTP to make sure that each base class is unique
 
-### Overloading `new` and `delete`
+## Overloading `new` and `delete`
 
 * Know the difefrence between the `new` operation - it allocates memory and calls the constructor. It cannot be redefined.
   and `operator new()` function - it changes the way of memory allocation, and you can redefine it.
@@ -33,13 +33,14 @@
 * `operator delete` is unique in being a non-member or static member function that is dynamically dispatched.
   A type with a virtual destructor performs the call to its own delete from the most derived destructor
 
-#### Sort it out later
+### Sort it out later
+
 * `delete[]` usually includes object counter by offset 0
 * `new`/`delete` pointer should be compared to zero
 * `new_handler` function is a function which is called by the default allocation functions when they fail to allocate
 * every class may have its own new handler, set by `set_new_handler()`
 * Mixture pattern could be used to apply some particular allocation algorithm towards the class
-
+* Standard LLibrary has function pointers callback: `new_handler`
 
 http://en.cppreference.com/w/cpp/memory/new/operator_new
 http://en.cppreference.com/w/cpp/language/delete
@@ -59,7 +60,7 @@ Normally on the compiler-level every generated class has "heap flag"
 if it is == true, it means that objects is created on the heap, 
 and operator delete() would be called after destructor
 
-### Memory Pool
+## Memory Pool
 
 Production implementation of memory pool
 http://www.pjsip.org/pjlib/docs/html/files.htm
@@ -84,7 +85,7 @@ When region A was full, all memory would be allocated from region B.
 By the time region B was full, region A was completely empty again. 
 This solved their fragmentation problem.
 
-### Memory
+## Memory
 
 Memory management.
 According to the Standard, there are 3 types of memory - static, dynamic and automatic.
@@ -109,3 +110,65 @@ POD/non-POD types.
   and then, depending on the type allocated and the syntax used, initializes or calls a constructor
 * Destructor of the class could be called explicitly, for example with placement new
 * Class size not always equal the sum of all its members, because of the alignment
+
+## Alignment
+
+### Q: What subtle problem may contain following cross-platform cross-architecture C++ example?
+
+```
+std::uint32_t decode(const void * p)
+{
+    const auto pv = static_cast<const std::uint32_t *>(p);
+    std::uint32_t v = 0;
+    std: :memcpy(&v, p, sizeof(v));
+    boost::endian: :little_to_native_inplace(v);
+    return v;
+}
+```
+
+A nasty one: **alignment** (and a related "it might work on x86, crash on ARM/SPARC" trap).
+
+### A: What's subtly wrong here
+
+* You do this cast:
+
+```cpp
+const auto pv = static_cast<const std::uint32_t*>(p);
+```
+
+Even if you *don't dereference* `pv` in the snippet, this is a giant foot-gun in real code because it invites dereferencing later (or gets "optimized back in" during refactors). On many architectures, a `std::uint32_t*` **must be 4-byte aligned**. If `p` points to packed/network data (e.g., `buf + 1`), then `pv` would be misaligned.
+
+* On **x86/x64**, misaligned loads usually "work" (often slower).
+* On **ARM (some modes), SPARC, older MIPS/PowerPC**, misaligned access can raise **SIGBUS** (exactly what your comment hints).
+
+Your code uses `memcpy` (good!) which is the *portable* way to read unaligned bytes. But the presence of the typed pointer `pv` is a subtle cross-platform hazard.
+
+### Additional cross-platform gotchas in this exact snippet
+
+1. **Typos that often slip past review**
+
+   * `std: :memcpy` and `boost::endian: :little_to_native_inplace` have spaces → won't compile. If the "real" code doesn't, ignore this; if it does, that's the immediate issue.
+
+2. **Endianness vs intent**
+
+   * You force `little_to_native_inplace(v)`. That's correct only if the byte stream is defined as *little-endian*. If the encoded data is "network order" (big-endian), you want `big_to_native_inplace`.
+
+3. **Strict aliasing (what you did right)**
+
+   * If you had used `*pv` to read, you'd also risk strict-aliasing / effective type issues in some cases. Using `memcpy` avoids that.
+
+### Safer version (and remove the trap)
+
+```cpp
+std::uint32_t decode(const void* p)
+{
+    std::uint32_t v;
+    std::memcpy(&v, p, sizeof(v));        // safe for unaligned
+    boost::endian::little_to_native_inplace(v);
+    return v;
+}
+```
+
+If you *really* need a typed view, use `std::byte`/`unsigned char` for raw buffers, and only form a `std::uint32_t` value via `memcpy` (or `std::bit_cast` with the same constraints).
+
+So the subtle cross-platform problem: **forming/using a `uint32_t*` from an arbitrary `void*` can lead to misaligned access and SIGBUS on stricter architectures** - and the cast itself is a "future bug magnet" even if today you only `memcpy`.

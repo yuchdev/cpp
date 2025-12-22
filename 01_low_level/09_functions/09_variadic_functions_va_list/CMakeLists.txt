@@ -1,4 +1,4 @@
-set(TARGET 05_lambdas_and_callables)
+set(TARGET 09_variadic_functions_va_list)
 
 file(GLOB SOURCES *.cpp *.h)
 

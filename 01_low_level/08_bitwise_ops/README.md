@@ -53,14 +53,14 @@ Perform all bitwise logic on `u`.
 
 ### Operators
 
-| Operator | Meaning     |
-| -------- | ----------- |
-| `&`      | bitwise AND |
-| `|`      | bitwise OR  |
-| `^`      | bitwise XOR |
-| `~`      | bitwise NOT |
-| `<<`     | left shift  |
-| `>>`     | right shift |
+- `&` - bitwise AND
+- `|` - bitwise OR
+- `^` - bitwise XOR
+- `~` - bitwise NOT
+- `<<` - left shift
+- `>>` - right shift
+
+* Bitwise operators are applied to integral types only
 
 ### Precedence pitfalls
 
@@ -80,9 +80,9 @@ a & b == c      // parsed as: a & (b == c)
 
 ### Undefined behavior
 
-* Shift count ≥ bit width
-* Left shift of signed integer that overflows
-* Negative shift count
+* If the shift count ≥ bit width
+* If the left shift of signed integer that overflows
+* If the shift count is negative
 
 ```cpp
 uint32_t x = 1;
@@ -186,7 +186,7 @@ x & -x    // lowest set bit
 ### Algorithms
 
 | Method        | Characteristics       |
-| ------------- | --------------------- |
+|---------------|-----------------------|
 | SWAR          | fixed ops, branchless |
 | Kernighan     | fast for sparse bits  |
 | Lookup tables | memory tradeoff       |
