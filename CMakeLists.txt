@@ -10,7 +10,7 @@ set(PROJECT_NAME cpp)
 project(
   ${PROJECT_NAME}
   VERSION 0.1
-  LANGUAGES CXX
+  LANGUAGES CXX C
 )
 
 

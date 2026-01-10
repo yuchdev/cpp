@@ -22,7 +22,12 @@ template <class... Ts>
 void println(Ts&&... xs) { ((std::cout << xs), ...) << "\n"; }
 
 constexpr int square(int x) { return x * x; }
+
+#if __cplusplus >= 202002L
 consteval int id(int x) { return x; }
+#else
+constexpr int id(int x) { return x; }
+#endif
 
 int runtime_square(int x) { return x * x; }
 
@@ -42,6 +47,10 @@ int main() {
 
     println("\nNotes:");
     println("* constexpr implies inline -> okay in headers.");
-    println("* consteval forces compile-time evaluation.");
+#if __cplusplus >= 202002L
+    println("* consteval forces compile-time evaluation (C++20).");
+#else
+    println("* consteval requires C++20 (using constexpr fallback).");
+#endif
     return 0;
 }

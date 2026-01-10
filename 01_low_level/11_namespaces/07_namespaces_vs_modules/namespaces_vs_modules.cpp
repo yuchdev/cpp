@@ -24,6 +24,8 @@ namespace demo { int value = 1; }
 
 int main()
 {
+#if 0 // error: expected unqualified, expanded from macro 'value'; change to 1 to see the issue
     std::cout << demo::value << "\n";
+#endif
     return 0;
 }

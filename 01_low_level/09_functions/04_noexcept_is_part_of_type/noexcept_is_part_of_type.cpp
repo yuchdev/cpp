@@ -29,8 +29,15 @@ void println(Ts&&... xs) { ((std::cout << xs), ...) << "\n"; }
 void may_throw() { println("may_throw()"); }
 void no_throw() noexcept { println("no_throw() noexcept"); }
 
-void pick() { println("pick()"); }
-void pick() noexcept { println("pick() noexcept"); }
+// Overload based on noexcept function pointer type
+void invoke_fn(void(*fn)()) {
+    println("invoke_fn(void(*)()) - may throw version");
+    fn();
+}
+void invoke_fn(void(*fn)() noexcept) {
+    println("invoke_fn(void(*)() noexcept) - noexcept version");
+    fn();
+}
 
 template <class F, class... Args>
 constexpr bool is_noexcept_invoke_v =
@@ -57,8 +64,9 @@ static void demo_pointer_types() {
 }
 
 static void demo_overload_resolution() {
-    println("\n== overload resolution prefers noexcept ==");
-    pick();
+    println("\n== overload resolution with noexcept function pointers ==");
+    invoke_fn(&may_throw);  // Calls void(*fn)() overload
+    invoke_fn(&no_throw);   // Calls void(*fn)() noexcept overload
 }
 
 static void demo_noexcept_queries() {

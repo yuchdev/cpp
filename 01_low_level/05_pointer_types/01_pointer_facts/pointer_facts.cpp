@@ -2,11 +2,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <iomanip>
 #include <iostream>
-#include <limits>
 #include <memory>
 #include <type_traits>
 #include <utility>
@@ -16,7 +14,7 @@ namespace cpp
 {
 class test_me
 {
-  public:
+public:
     void point_to_me() {}
 };
 
@@ -173,7 +171,8 @@ static void nullptr_and_nullptr_t()
     // nullptr converts to any object pointer and any function pointer, and any pointer-to-member.
     int* ip = nullptr;
     void* vp = nullptr;
-    (void)ip; (void)vp;
+    (void)ip;
+    (void)vp;
 
     void (*fp)() = nullptr;
     void (cpp::test_me::*mp)() = nullptr;
@@ -191,6 +190,20 @@ static void nullptr_and_nullptr_t()
     // auto pnull = &nullptr; // ill-formed
 
     std::puts("Practical fact: prefer nullptr over 0/NULL to avoid overload ambiguity.");
+
+    int* inull{nullptr};
+    void* vnull{nullptr};
+    (void)inull;
+    (void)vnull;
+
+    void (*static_func_ptr)() = &cpp::point_to_me_static;
+    void (cpp::test_me::*method_ptr)() = &cpp::test_me::point_to_me;
+
+    std::cout << "Function pointer static_func_ptr = " << reinterpret_cast<void*>(static_func_ptr) << "\n";
+    std::puts("Member function pointer printing is not portable; skipping direct print.");
+
+    static_func_ptr = nullptr;
+    method_ptr = nullptr;
 }
 
 static void function_pointer_vs_object_pointer()
@@ -301,65 +314,6 @@ static void pointer_to_member_obscurity()
     std::puts("It may not fit into void* and often cannot be meaningfully printed.");
 }
 
-static void pointer_provenance_note()
-{
-    std::puts("\n== Pointer provenance (advanced / optimizer-facing) ==");
-
-    // This is mostly a *theory* / optimizer rule: compilers track which allocation an address came from.
-    // Even if you manufacture an integer equal to some address and cast it to a pointer,
-    // the optimizer may assume it's not a valid pointer to a live object (depending on model).
-    //
-    // In practice: avoid "inventing" pointers from integers unless you truly interact with OS/hardware.
-    std::puts("Obscure fact: compilers may assume pointers originate from valid objects (provenance model).");
-    std::puts("Practical: avoid constructing pointers from integers except in low-level OS/hardware code.");
-}
-
-void nullptr_type()
-{
-    std::puts("\n== nullptr examples (object/function/member pointers) ==");
-
-    int* inull{nullptr};
-    void* vnull{nullptr};
-    (void)inull;
-    (void)vnull;
-
-    void (*static_func_ptr)() = &cpp::point_to_me_static;
-    void (cpp::test_me::*method_ptr)() = &cpp::test_me::point_to_me;
-
-    std::cout << "Function pointer static_func_ptr = " << reinterpret_cast<void*>(static_func_ptr) << "\n";
-    std::puts("Member function pointer printing is not portable; skipping direct print.");
-
-    static_func_ptr = nullptr;
-    method_ptr = nullptr;
-
-    nullptr_and_nullptr_t();
-    function_pointer_vs_object_pointer();
-}
-
-void pointer_conversions()
-{
-    std::puts("\n== Multi-level pointer cv-qualification pitfalls ==");
-
-    std::cout << "C++ version: " << __cplusplus << '\n';
-
-    char** p = nullptr;
-
-    // const char** p1 = p; // ERROR: would allow writing const char* into char*
-    const char* const* p2 = p; (void)p2;        // OK
-    volatile char* const* p3 = p; (void)p3;     // OK
-    volatile const char* const* p4 = p2; (void)p4; // OK
-
-    double* a[2][3] = {};
-    // double const * const (*ap)[3] = a; // ERROR pre-C++20 (cv qualification rules)
-#if __cplusplus >= 202002L
-    // C++20 relaxed some of these array-pointer conversions.
-    double* const (*ap1)[3] = a;
-    (void)ap1;
-#endif
-
-    std::puts("Fact: the 'const char**' trap prevents writing a const pointer into a non-const slot.");
-}
-
 void show_const_pointers()
 {
     std::puts("\n== Const pointers and dynamic allocation ==");
@@ -417,68 +371,23 @@ tatatat)";
     std::puts("Modifying them through a non-const pointer is undefined behavior.");
 }
 
-namespace cpp
-{
-class tagged_union
-{
-  public:
-    struct bad_tag {};
-
-    void set_integer(int i)
-    {
-        tag_ = tag::integer;
-        i_ = i;
-    }
-    void set_pointer(int* pi)
-    {
-        tag_ = tag::pointer;
-        pi_ = pi;
-    }
-
-    int integer() const
-    {
-        if (tag_ != tag::integer) throw bad_tag();
-        return i_;
-    }
-    int* pointer() const
-    {
-        if (tag_ != tag::pointer) throw bad_tag();
-        return pi_;
-    }
-
-  private:
-    enum class tag { integer, pointer };
-    tag tag_{tag::integer};
-
-    union
-    {
-        int  i_{0};
-        int* pi_;
-    };
-};
-} // namespace cpp
-
-void show_union_tags()
-{
-    std::puts("\n== Tagged union demo ==");
-
-    cpp::tagged_union tu;
-    int i = 0;
-    tu.set_integer(1);
-    tu.set_pointer(&i);
-
-    // Reading inactive union member is UB; tagged-union is a manual discipline.
-    std::cout << "tagged_union pointer() = " << tu.pointer() << "\n";
-}
-
 int main()
 {
-    pointers_facts();
-    nullptr_type();
-    pointer_conversions();
+    show_bytes_of_object();
+    pointer_sizes_and_alignment();
+    address_and_addressof();
+    constness_on_pointer_vs_pointee();
+    pointer_arithmetic_rules();
+    void_pointer_facts();
+    nullptr_and_nullptr_t();
+    function_pointer_vs_object_pointer();
+    strict_aliasing_escape_hatches();
+    new_delete_and_zero_length_arrays();
+    pointer_comparisons();
+    pointer_integer_roundtrip();
+    pointer_to_member_obscurity();
     show_const_pointers();
     show_ptrs_refs();
     show_string_literals();
-    show_union_tags();
     return 0;
 }

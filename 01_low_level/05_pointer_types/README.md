@@ -37,7 +37,8 @@ int *intptr=&anint;
 
 * Equality/inequality (`==`, `!=`. comparisons are always meaningful.
 * Ordering comparisons (`<`, `>`, etc.. are only reliably specified in array/object-related cases; for unrelated pointers, don't assume raw `<` is meaningful.
-* If you need a strict weak ordering of pointers (e.g., for ordered containers., prefer `std::less<T*>`).
+* If you need a strict weak ordering of pointers (e.g. for ordered containers, prefer `std::less<T*>`)
+  * Example where it may have sense: architectures with segmented memory (some embedded systems).
 
 ### 6. Endianness, object representation, and "bytes"
 
