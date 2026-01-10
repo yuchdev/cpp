@@ -60,6 +60,7 @@ static const std::string& dangerous_ref()
     // Returns a reference to a temporary created inside the function => dangling.
     // This compiles because the temporary is destroyed at the end of the full-expression
     // that creates it (inside this function). The returned reference dangles.
+    // `warning: returning reference to local temporary object [-Wreturn-stack-address]`
     return std::string("dangling");
 }
 

@@ -1,4 +1,4 @@
-add_subdirectory(01_compare_pointers)
-add_subdirectory(02_pointer_facts)
+add_subdirectory(02_compare_pointers)
+add_subdirectory(01_pointer_facts)
 add_subdirectory(03_alignment)
 add_subdirectory(04_references)
