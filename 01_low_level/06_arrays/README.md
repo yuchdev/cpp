@@ -138,50 +138,6 @@ The address value may be numerically the same, but **arithmetic differs** (eleme
 
 ---
 
-## Exercises (recommended)
-
-These are intentionally practical-each exercise forces you to "touch" the rule.
-
-1. **Array size helper**
-
-   * Implement `array_size(T(&)[N]) -> N` (already shown), then extend it to reject pointers at compile time.
-
-2. **Overload trap**
-
-   * Write two overloads: one taking `const int*`, one taking `const int(&)[N]`.
-   * Call them with:
-
-     * an actual array
-     * a pointer to first element
-     * `std::array<int, N>.data()`
-   * Explain which overload is selected and why.
-
-3. **`sizeof` correctness audit**
-
-   * Take a code snippet that uses `sizeof(param)` inside a function.
-   * Refactor it to:
-
-     * pass the size explicitly, **or**
-     * accept a reference-to-array, **or**
-     * accept `std::span` (if C++20).
-
-4. **2D sum, generic**
-
-   * Implement `sum_2d_t` for any `R x C`.
-   * Add a `static_assert(R > 0 && C > 0)`.
-
-5. **`new[]/delete[]` mismatch demo (don't ship this!)**
-
-   * Create a tiny example that intentionally mismatches delete forms.
-   * Run with sanitizers (`-fsanitize=address,undefined`) and observe the failure.
-
-6. **Replace raw arrays with `std::array`**
-
-   * Convert a raw-array example to `std::array`.
-   * Keep the same memory layout, but remove manual size plumbing.
-
----
-
 ## Suggested toolchain flags (high signal for this repo)
 
 These warnings catch a lot of "array nonsense" early:
@@ -198,7 +154,7 @@ And for learning/verification, sanitizers are extremely valuable:
 
 ---
 
-## Next steps (where this module naturally leads)
+## Connected C++ entities
 
 If you want to extend the course beyond these files, the most useful next concepts are:
 
@@ -211,7 +167,7 @@ If you want to extend the course beyond these files, the most useful next concep
 
 ## Notes to developers migrating from other languages
 
-If you come from Python/Java/C#/JS/Go/Rust, C++ arrays can feel "unfair" at first. The mental shift is:
+If you come from Python/Java/C#, C++ arrays can feel "unfair" at first. The mental shift is:
 
 * In many languages, an "array" is a **first-class runtime object** (size, bounds, metadata, often heap-based).
 * In C++, a raw array `T[N]` is a **compile-time-sized object** with *no runtime metadata*. It's closer to "a struct containing N elements" than to a high-level collection.
