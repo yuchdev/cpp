@@ -81,12 +81,23 @@ a & b == c      // parsed as: a & (b == c)
 ### Undefined behavior
 
 * If the shift count ≥ bit width
-* If the left shift of signed integer that overflows
-* If the shift count is negative
 
 ```cpp
 uint32_t x = 1;
 x << 32;    // UB
+```
+
+* If the left shift of signed integer that overflows
+
+```cpp
+int x = 1 << 31;   // UB on 32-bit int
+```
+
+* If the shift count is negative
+
+```cpp
+uint32_t x = 1;
+x << -1;    // UB
 ```
 
 ### Implementation-defined
@@ -281,14 +292,16 @@ enum class Perm : uint32_t { Read = 1, Write = 2 };
 
 ### Standardized bit utilities
 
-* `std::popcount`
-* `std::countr_zero`, `std::countl_zero`
-* `std::rotl`, `std::rotr`
-* `std::has_single_bit`
+* `std::popcount` - population count
+* `std::countr_zero`, `std::countl_zero` - bit scans, CTZ/CLZ
+* `std::rotl`, `std::rotr` - bit rotations, defined behavior
+* `std::has_single_bit` - power-of-two test
+* `std::bit_width` - minimum bits to represent value
+* `std::bit_ceil`, `std::bit_floor`, `std::bit_round` - power-of-two rounding
 
 ### Impact
 
-> Decades of "Hacker's Delight" manully implemented tricks are now portable, readable, and optimized.
+> Decades of "Hacker's Delight" manually implemented tricks are now portable, readable, and optimized.
 
 ---
 
@@ -311,11 +324,11 @@ enum class Perm : uint32_t { Read = 1, Write = 2 };
 
 ## 14. Undefined behavior summary (memorize this)
 
-❌ Signed overflow
-❌ Shifting signed values into sign bit
-❌ Shift count ≥ width
-❌ Assuming signed right shift behavior
-❌ Assuming enum/flag width without fixing it
+* ❌ Signed overflow
+* ❌ Shifting signed values into sign bit
+* ❌ Shift count ≥ width
+* ❌ Assuming signed right shift behavior
+* ❌ Assuming enum/flag width without fixing it
 
 ---
 
