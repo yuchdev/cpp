@@ -306,11 +306,11 @@ default: return "<unknown>";
 
 ## 15. Common anti-patterns
 
-❌ Using unscoped enums in headers
-❌ Relying on default underlying type
-❌ Assuming enum values are contiguous
-❌ Using enums as bitmasks without operators
-❌ Switching without handling invalid states
+* ❌ Using unscoped enums in headers
+* ❌ Relying on default underlying type
+* ❌ Assuming enum values are contiguous
+* ❌ Using enums as bitmasks without operators
+* ❌ Switching without handling invalid states
 
 ---
 
