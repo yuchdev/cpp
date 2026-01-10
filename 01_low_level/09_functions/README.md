@@ -519,17 +519,17 @@ Unlike macros, attributes are part of the C++ grammar and are visible to tooling
 - Attributes introduced (standard syntax), but with very few standardized attributes early on.
 
 #### C++14
-- `[[deprecated]]`
-- `[[deprecated("message")]]`
+- `[[deprecated]]` - deprecated function
+- `[[deprecated("message")]]` - with custom message
 
 #### C++17
-- `[[nodiscard]]`
-- `[[maybe_unused]]`
-- `[[fallthrough]]`
+- `[[nodiscard]]` - warn if return value ignored
+- `[[maybe_unused]]` - suppress unused warnings
+- `[[fallthrough]]` - explicit switch fallthrough
 
 #### C++20
-- `[[likely]]`, `[[unlikely]]`
-- `[[no_unique_address]]`
+- `[[likely]]`, `[[unlikely]]` - branch prediction hints
+- `[[no_unique_address]]` - optimize empty members
 
 > Some compilers also support vendor attributes (e.g. `[[gnu::always_inline]]`) for much longer.
 
@@ -1824,54 +1824,6 @@ Small compile-time toggles can be appropriate, especially in embedded, or when y
 
 ---
 
-### 11. What the companion `.cpp` demonstrates
-
-`preprocessor_macros_demo.cpp` includes demos of:
-
-- predefined macros
-- conditional compilation
-- object-like macros vs `constexpr`
-- function-like macros and the safe statement macro pattern
-- stringizing (`#`) and token pasting (`###`)
-- variadic macros for logging
-- X-macros generating enum + string conversion
-- modern feature checks (`__has_include`, `__has_cpp_attribute`)
-- classic traps (optional via `-DDEMO_TRAPS=1`)
-- safer alternatives with templates/constexpr
-
-Build example:
-
-```bash
-g++ -std=c++20 -O2 -Wall -Wextra -pedantic preprocessor_macros_demo.cpp -o demo
-./demo
-```
-
-Enable trap demos:
-
-```bash
-g++ -std=c++20 -DDEMO_TRAPS=1 preprocessor_macros_demo.cpp -o demo
-./demo
-```
-
----
-
-### 12. Suggested exercises (quick)
-
-1. Preprocess-only output:
-  - Run `-E` and find where `TRACE_LINE` expanded.
-2. Turn `APP_ENABLE_TRACE` on:
-  - `-DAPP_ENABLE_TRACE=1`
-3. Add a new item to the X-macro list and observe enum + to_string updates.
-4. Intentionally break `CAT(a,b)` with invalid token paste and inspect the error.
-
----
-
-If you want, I can extend this with:
-- portable `LIKELY/UNLIKELY` macro wrappers,
-- "unique name" macros using `__COUNTER__`,
-- a clean header-only `LOG()` that routes to a real logger,
-- or a "how to safely interact with Windows headers" section.
-
 ### Prefer functions unless:
 
 * Conditional compilation
@@ -1930,4 +1882,3 @@ Key differences:
 * Use lambdas for local behavior
 * Use `constexpr` and attributes to express intent
 * Treat macros as a last resort
-
