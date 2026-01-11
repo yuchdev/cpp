@@ -13,6 +13,8 @@ They exist to structure programs, prevent naming conflicts, and enable large-sca
 * Use namespaces to express logical structure (C++ Standard 14.3.1)
 * Prevent name collisions across large codebases and libraries
 * Allow independent development and composition of components
+* Wrap legacy C libraries to avoid global namespace pollution
+* Facilitate argument-dependent lookup (ADL)
 * Enable controlled API evolution (inline namespaces)
 
 Namespaces **do not**:
@@ -211,6 +213,20 @@ lib::v1::f();  // explicit
 * Inline namespaces affect name lookup **and ABI**
 * Widely used in standard library implementations
 * Enable backward compatibility without breaking source code
+* Prefer using-declarations to using-directives when accessing inline namespace members
+
+```cpp
+using lib::f;        // imports v2::f
+using lib::v1::f;    // imports v1::f as well
+
+// Directive would import both versions
+using lib;
+```
+
+* Whenever possible, use using declarations and directives in scoped locations
+* The overloading mechanism works through namespaces
+* When declaring using `operator+()`, all overloaded members of `operator+()` will be resolved
+* 
 
 ---
 

@@ -191,6 +191,17 @@ void f(int);
 void f(const int); // same as above
 ```
 
+* When passing arguments by **non-const** reference, the argument being passed cannot be implicitly converted to avoid UB
+* Ambiguities arise when overloads differ only by `const` on reference parameters
+
+```cpp
+void g(int&);
+void g(const int&);
+int x = 42;
+g(x);       // calls g(int&)
+g(42);      // calls g(const int&)
+```
+
 ### 2.3 Function types are not objects - but decay constantly
 
 #### 2.3.1 Function-to-pointer decay
