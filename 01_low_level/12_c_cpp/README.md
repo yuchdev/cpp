@@ -7,7 +7,7 @@ This chapter focuses on **principal language and toolchain differences** that ma
 - reason about initialization, ABI, and linkage
 - migrate code between the languages
 
-Some files are **C-only** (`.c`) and some are **C++** (`.cpp`).
+Some files are **C-only** (`.c`) and some are **C++** (`.cpp`)
 
 ## Files
 
