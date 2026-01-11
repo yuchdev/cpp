@@ -14,15 +14,19 @@
 // - NEVER expose std::string/std::vector/classes in C ABI.
 // - Use opaque handles when you need objects.
 
-using c_callback_t = void(*)(int code, void* user);
+using c_callback_t = void (*)(int code, void* user);
 
 extern "C" int c_api_register_and_fire(c_callback_t cb, void* user)
 {
-    try {
-        if (!cb) return -1;   // null callback
+    try
+    {
+        if (!cb)
+            return -1; // null callback
         cb(123, user);
         return 0;
-    } catch (...) {
+    }
+    catch (...)
+    {
         // Never allow exceptions to escape into C.
         return -2;
     }

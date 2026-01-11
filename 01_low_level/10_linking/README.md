@@ -167,9 +167,9 @@ Or, since **C++17**, the modern solution:
 inline constexpr int ci = 42;
 ```
 
-✔ header-safe
-✔ ODR-safe
-✔ single entity program-wide
+* ✔ header-safe
+* ✔ ODR-safe
+* ✔ single entity program-wide
 
 ---
 

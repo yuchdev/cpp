@@ -42,28 +42,6 @@ Some files are **C-only** (`.c`) and some are **C++** (`.cpp`).
    - C++ features that C doesn't have (RAII/classes/templates/etc.)
    - a correct "C ABI facade" pattern: opaque handles + create/destroy + error codes
 
-## Build
-
-### C++ examples
-```bash
-g++ -std=c++20 -Wall -Wextra -pedantic 01_name_mangling_and_overload.cpp -o ex1
-g++ -std=c++20 -Wall -Wextra -pedantic 02_extern_c_and_callbacks.cpp -o ex2
-g++ -std=c++20 -Wall -Wextra -pedantic 03_static_init_and_main.cpp -o ex3
-g++ -std=c++20 -Wall -Wextra -pedantic 04_headers_and_types.cpp -o ex4
-g++ -std=c++20 -Wall -Wextra -pedantic 06_cpp_things_not_in_c.cpp -o ex6
-```
-
-### C-only example
-```bash
-cc -std=c11 -Wall -Wextra -pedantic 05_c_things_not_in_cpp.c -o ex5
-```
-
-### Inspect symbols (name mangling)
-```bash
-nm ex1 | grep print
-nm -C ex1 | grep print
-```
-
 ## ABI safety checklist for mixed projects
 
 - `extern "C"` changes **linkage / mangling**, not C++ semantics.
