@@ -279,7 +279,7 @@ void restore_fp_traps(int /*prev*/)
 
 } // namespace
 
-void fp_exceptions_ms()
+void fp_exceptions()
 {
     std::cout << "Enabling hardware FP traps and triggering one (non-MSVC path)...\n";
 
@@ -320,6 +320,6 @@ void fp_exceptions_ms()
 
 int main()
 {
-    fp_exceptions_ms();
+    fp_exceptions();
     return 0;
 }
