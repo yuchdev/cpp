@@ -1,14 +1,5 @@
 ### Classes
 
-Advices:
-
-* Express ideas directly in code rather than documentation
-* The basic idea of concrete classes is that they behave just like built-in types
-* The classical user-defined arithmetic type is complex
-* Avoid 'naked' new and delete operations
-* The `std::initializer_list` used to define the initializer-list constructor
-* The `std::initializer_list` is passed by value
-* It is possible to return a standard-library `unique_ptr`
 * A move constructor does not take a const argument as is supposed to remove the value from its argument
 * A move assignment is defined similarly
 * virtual call mechanism can be made almost as efficient as the 'normal function call' (within 25%)
@@ -66,7 +57,7 @@ Between the first and last operations, consistency is broken.
 * Rule 2: Ensure object data is consistent before making an outgoing call.
 * Rule 3: Consider that during the outgoing call the object's state can be changed.
 
-### Constaness of classes and members
+### Constness of classes and members
 
 * Method which does not change anything in class state must be declared const
 * A non-constant method cannot be called on a constant instance
@@ -111,6 +102,8 @@ Questions:
 ```
 d.add_day(1).add_month(1).add_year(1);
 ```
+* The `std::initializer_list` used to define the initializer-list constructor
+* The `std::initializer_list` is passed by value
 
 * A member class (often called a nested class) can refer to types and static members of its enclosing class
 * There are five situations in which an object is copied or moved:
