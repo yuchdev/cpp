@@ -127,3 +127,17 @@ constexpr point parr[] = {{1.,2.,3.},{1.,2.,3.}};
 static_assert(p.norm2() == 14.0);
 static_assert(parr[0].norm2() == 14.0);
 ```
+
+### `const`, `constexpr`, and `consteval` in practice
+
+Run `04_const_expr_eval` for executable examples of the distinction: `const`
+prevents mutation through that name but does not promise compile-time
+initialization; `constexpr` requires a constant-expression initializer and lets a
+function run either at compile time or at runtime; `consteval` makes a function
+immediate, so every call must be constant-evaluated. The example also covers
+constant `const` integral values, the shallow constness of `constexpr` pointers,
+and `std::is_constant_evaluated()`'s context-sensitive behavior (including trial
+constant evaluation for static-storage initializers). Common pitfalls include
+treating `constexpr` as a command to run at compile time, treating `consteval` as
+merely an optimization hint, and using `std::is_constant_evaluated()` to predict
+whether static initialization will ultimately be constant.

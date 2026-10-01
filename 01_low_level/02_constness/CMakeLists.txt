@@ -1,3 +1,4 @@
 add_subdirectory(01_runtime_constness)
 add_subdirectory(02_compile_time_constness)
 add_subdirectory(03_constness_and_classes)
+add_subdirectory(04_const_expr_eval)
