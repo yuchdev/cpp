@@ -37,14 +37,14 @@ void byte_type()
     std::memcpy(bytes, &v, sizeof(v)); // portable copy of representation
 
     std::cout << "bytes of uint32_t 0x12345678: ";
-    for (std::size_t i = 0; i < sizeof(v); ++i)
+    for (std::size_t i = 0; i < sizeof(v); ++i) // NOLINT(*-loop-convert)
     {
         std::cout << std::hex << std::to_integer<unsigned>(bytes[i]) << ' ';
     }
     std::cout << std::dec << '\n';
 
     // If you really need to view object representation in-place:
-    std::byte* raw = reinterpret_cast<std::byte*>(&v);
+    std::byte* raw = reinterpret_cast<std::byte*>(&v); // NOLINT(*-use-auto)
     std::cout << "first byte in-place: 0x"
               << std::hex << std::to_integer<unsigned>(raw[0]) << std::dec << '\n';
 

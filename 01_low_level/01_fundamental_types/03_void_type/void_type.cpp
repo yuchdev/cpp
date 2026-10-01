@@ -76,6 +76,20 @@ struct has_size_method : std::false_type {};
 template <typename T>
 struct has_size_method<T, void_t<decltype(std::declval<T&>().size())>> : std::true_type {};
 
+// 5) Use `void_t` directly in a function template's trailing return type.
+// If `size()` is invalid, substitution removes this overload and the fallback is selected.
+template <typename T>
+auto print_size(const T& value, int) -> void_t<decltype(value.size())>
+{
+    std::cout << "size = " << value.size() << '\n';
+}
+
+template <typename T>
+void print_size(const T&, ...)
+{
+    std::cout << "size() is not available\n";
+}
+
 static void void_in_templates()
 {
     std::puts("\n== void in templates ==");
@@ -88,6 +102,11 @@ static void void_in_templates()
 
     std::cout << "has_size_method<int>                = " << has_size_method<int>::value << '\n';
     std::cout << "has_size_method<std::vector<int>>   = " << has_size_method<std::vector<int>>::value << '\n';
+
+    std::cout << "print_size(vector): ";
+    print_size(std::vector<int>{1, 2, 3}, 0);
+    std::cout << "print_size(int): ";
+    print_size(42, 0);
 
     std::puts("Fact: SFINAE works by substituting template arguments; if a substitution fails,");
     std::puts("it removes that candidate (instead of hard error). Using void_t is a convenient pattern.");

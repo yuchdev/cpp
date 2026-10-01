@@ -10,8 +10,7 @@
 
 #include <utilities/bitwise.h>
 
-// C++20 updates
-#if __cplusplus >= 202002L
+#if __has_include(<format>)
 #include <format>
 #endif
 
@@ -70,11 +69,10 @@ void floating_point_representation()
     // Significand precision: 24 bits (23 explicitly stored)
     float float_numbers[] = { 1.0, 1.5, 0.75 };
 
-#if __cplusplus >= 202002L
-
-    std::format("Sizeof float {}", sizeof(float));
-    std::format("Sizeof long {}", sizeof(long));
-    std::format("Sizeof long* {}", sizeof(long*));
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
+    std::cout << std::format("Sizeof float {}\n", sizeof(float));
+    std::cout << std::format("Sizeof long {}\n", sizeof(long));
+    std::cout << std::format("Sizeof long* {}\n", sizeof(long*));
 #else
     std::cout << "Sizeof float " << sizeof(float) << '\n';
     std::cout << "Sizeof long " << sizeof(long) << '\n';
@@ -99,8 +97,8 @@ void floating_point_representation()
         long long* double_hack = reinterpret_cast<long long*>(&double_number);
         static_assert(sizeof(double_number) == sizeof(*double_hack), "Double and long long should have equal size");
 
-#if __cplusplus >= 202002L
-        std::format("Binary representation of {} =\n\t {} =\n\t {}\n",
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
+        std::cout << std::format("Binary representation of {} =\n\t {} =\n\t {}\n",
             double_number, *double_hack, bitwise(*double_hack));
 #else
         std::cout << "Binary representation of " << double_number << " =\n\t " << *double_hack
@@ -128,4 +126,3 @@ int main()
     floating_point_representation();
     return 0;
 }
-

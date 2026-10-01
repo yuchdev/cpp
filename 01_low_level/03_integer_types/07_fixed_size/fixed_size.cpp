@@ -2,6 +2,10 @@
 #include <iostream>
 #include <cstdint>
 
+#if __has_include(<format>)
+#include <format>
+#endif
+
 void fixed_size_types()
 {
     // Problem of C++ borrowed from C: we have lots of types
@@ -86,8 +90,10 @@ void fixed_size_types()
     // and whose type is the promoted type of int_least16_t, int_least32_t etc
     // Example: expands to a literal of type uint_least64_t and value 0xdeadbeef
     uint64_t my_uint = UINT64_C(0xdeadbeef);
-#if __cplusplus >= 202002L
-    std::format("my_uint = %d, sizeof(my_uint) = %d") % my_uint, sizeof(my_uint);
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
+    std::cout << std::format("my_uint = {}, sizeof(my_uint) = {}\n", my_uint, sizeof(my_uint));
+#else
+    std::cout << "my_uint = " << my_uint << ", sizeof(my_uint) = " << sizeof(my_uint) << '\n';
 #endif
 }
 
