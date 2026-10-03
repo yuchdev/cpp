@@ -15,23 +15,24 @@
   * PDP-8: `char == 12` bits
   * PDP-11, Windows CE: `char == 16` bits
   * Motorola DSP56k: `char == 24` bits
-    The exact number is exposed via the macro `CHAR_BIT`.
+
+The exact number is exposed via the macro `CHAR_BIT`.
 
 * C++ supports multiple character types for different encodings
 
 ```cpp
 char, signed char, unsigned char,
-wchar_t, char16_t, char32_t
+wchar_t, char16_t, char32_t,
+char8_t // (since C++20)
 ```
 
 These represent *code units*, not characters or glyphs.
 
-* `wchar_t` is implementation-defined
-  Its size and encoding vary:
+* `wchar_t` is implementation-defined. Its size and encoding vary:
   * Windows: UTF-16 (16-bit)
   * Linux/Unix: UTF-32 (32-bit)
 * `char16_t` and `char32_t` were added in C++11. They are intended for UTF-16 and UTF-32 code units respectively, and have fixed sizes.
-* Character literals can be prefixed
+* Character literals can be prefixed. Unicode literal prefixes added in C++11
 
 ```cpp
 'a'    // char
@@ -40,28 +41,23 @@ u'a'   // char16_t
 U'a'   // char32_t
 ```
 
-*(Unicode literal prefixes added in C++11)*
-
-* The notation `int{c}` yields the integer value of a character
-  This is a safe, explicit way to convert characters to integers without relying on promotions.
-* Some characters have standardized escape names.
-  For example: `\n`, `\t`, `\0`, `\\`, etc.
-  The actual numeric values of many control characters remain implementation-defined.
-* Only `char`, `unsigned char`, and `std::byte` may alias arbitrary memory
-  This is a special rule in the object model and is why serializers and memory inspectors rely on them.
+* The notation `int{c}` yields the integer value of a character. This is a safe, explicit way to convert characters to integers without relying on promotions.
+* Some characters have standardized escape names
+  * For example: `\n`, `\t`, `\0`, `\\`, etc.
+  * The actual numeric values of many control characters remain implementation-defined.
+* Only `char`, `unsigned char`, and `std::byte` may alias arbitrary memory.
+  * This is a special rule in the object model and is why serializers and memory inspectors rely on them.
 
 ---
 
 ### Integer types
 
-* C++ provides multiple integer types to match hardware capabilities.
-  The purpose is *not semantic clarity*, but efficient mapping to registers and instructions.
+* C++ provides multiple integer types to match hardware capabilities. The purpose is *not semantic clarity*, but efficient mapping to registers and instructions.
 
 * Guaranteed ordering of integer sizes
 
 ```cpp
-sizeof(char) <= sizeof(short) <= sizeof(int)
-             <= sizeof(long) <= sizeof(long long)
+sizeof(char) <= sizeof(short) <= sizeof(int) <= sizeof(long) <= sizeof(long long)
 ```
 
 * Signedness does not affect size
@@ -71,8 +67,7 @@ sizeof(int) == sizeof(unsigned int)
 sizeof(long) == sizeof(unsigned long)
 ```
 
-* `long long` was *added in C++11, inherited from C99*.
-  It guarantees at least 64 bits.
+* `long long` was *added in C++11, inherited from C99*. It guarantees at least 64 bits.
 
 * Exact-width and fast integer types live in `<cstdint>`
   *(added in C++11)*. Examples:
@@ -84,7 +79,7 @@ int16_t, uint32_t, int_fast64_t
   * Exact-width types may not exist on all platforms, but will be substituted with the next-larger type if needed.
   * `*_fast*` types trade size for speed
 
-* The type of integer literal depends on form, value, and suffix
+* The type of the integer literal depends on form, value, and suffix
 
 ```cpp
 42        // int
@@ -94,21 +89,15 @@ int16_t, uint32_t, int_fast64_t
 0xFF      // could be int, unsigned, or long
 ```
 
-* Unsigned integer overflow is well-defined.
-  It wraps modulo 2ⁿ.
+* Unsigned integer overflow is well-defined. It wraps modulo 2ⁿ.
 
-* Signed integer overflow is undefined behavior.
-  Compilers aggressively optimize assuming it *never happens*.
+* Signed integer overflow is an undefined behavior. Compilers aggressively optimize assuming it *never happens*
 
-* Integer alignment matters for performance.
-  Misaligned integer access may be slower or even illegal on some architectures.
+* Integer alignment matters for performance. Misaligned integer access may be slower or even illegal on some architectures.
 
-* `alignof(T)` yields alignment requirements.
-  Use `alignas()` when alignment must be enforced in declarations.
+* `alignof(T)` yields alignment requirements. Use `alignas()` when alignment must be enforced in declarations.
 
-* Floating-point multiplication can be faster than integer multiplication.
-  On many modern CPUs:
-
+* Floating-point multiplication can be faster than integer multiplication. On many modern CPUs:
   * FP units are deeply pipelined and always present
   * Integer multiplication may have higher latency or contention
   * FP units often handle more parallel operations
@@ -116,10 +105,9 @@ int16_t, uint32_t, int_fast64_t
 
 ---
 
-### Other fundamental & type-system facts
+### Other fundamental and type-system facts
 
 * Many behaviors are implementation-defined or unspecified
-
   * Implementation-defined: documented per compiler/ABI
   * Unspecified: allowed to vary per evaluation
   * Undefined behavior: *no guarantees at all*
@@ -128,7 +116,6 @@ int16_t, uint32_t, int_fast64_t
   Only alignment and non-nullness (unless throwing) are guaranteed.
 
 * C++ has hosted and freestanding implementations
-
   * Hosted: full standard library
   * Freestanding: minimal runtime for embedded, kernels, etc.
 
@@ -167,7 +154,7 @@ X a4(v);
 auto v{12345}; // NOT int -- initializer_list<int>
 ```
 
-Prefer `=` with `auto` unless list semantics are intended.
+* Prefer `=` with `auto` unless list semantics are intended.
 
 * Type aliases (`using`) are superior to `typedef`
   * Can be templated *(added in C++11)*
@@ -182,16 +169,13 @@ using Uchar = unsigned char; // OK
 using Uchar = unsigned Char; // error
 ```
 
-* `std::byte` is not an integer type *(added in C++17)*.
-  It exists to represent raw memory without arithmetic.
+* `std::byte` is not an integer type *(added in C++17)*. It exists to represent raw memory without arithmetic.
 
 * `sizeof(char)` is always `1` by definition, even if `CHAR_BIT != 8`.
 
-* Type names are part of the ABI.
-  Changing `int` to `long` in public interfaces can silently break binaries.
+* Type names are part of the ABI. Changing `int` to `long` in public interfaces can silently break binaries.
 
-* Alignment can affect object size
-  `sizeof(T)` may be larger than the sum of its fields due to padding.
+* Alignment can affect object size `sizeof(T)` may be larger than the sum of its fields due to padding.
 
 * The order of calculations inside subexpressions is not defined 
 
