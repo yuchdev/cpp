@@ -196,6 +196,33 @@ void* p;
   (void)side_effect(); // explicitly discard result
   ```
 
+#### `std::void_t`
+
+`std::void_t` is a type-trait utility (available since C++17), defined roughly as:
+
+```cpp
+template<class...>
+using void_t = void;
+```
+
+It turns any list of well-formed types into `void`. Its purpose is to make
+type or expression validity participate in template substitution, commonly
+for SFINAE-based detection:
+
+```cpp
+template<class T, class = void>
+struct has_value_type : std::false_type {};
+
+template<class T>
+struct has_value_type<T, std::void_t<typename T::value_type>>
+    : std::true_type {};
+```
+
+If `T::value_type` exists, the specialization is valid and the trait is true.
+If it does not, the substitution fails and the primary template is used instead.
+This lets generic code detect optional members or expressions at compile time
+without making the program ill-formed.
+
 #### Pitfalls
 
 * `void*` arithmetic is **not allowed** in C++
@@ -205,9 +232,7 @@ void* p;
   // ++p; // ill-formed (GNU extension allows this  -  non-portable)
   ```
 
-* `void` is not a placeholder type
-  If you want "unknown type", you probably want:
-
+* `void` is not a placeholder type. If you want "unknown type", you probably want:
   * templates
   * `auto`
   * `std::any`

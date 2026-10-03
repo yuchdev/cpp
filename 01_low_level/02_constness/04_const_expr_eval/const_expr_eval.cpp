@@ -24,7 +24,6 @@ static void const_is_not_a_compile_time_promise()
     // This is const too, but its value isn't available during constant evaluation.
     // template<int> struct size_tag {};
     // size_tag<from_runtime> invalid{};
-
     assert(from_runtime == 40);
 }
 
