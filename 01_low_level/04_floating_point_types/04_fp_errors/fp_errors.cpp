@@ -67,16 +67,17 @@ void fp_control_noexcept()
         ++steps;
     } while ((res = fetestexcept(FE_ALL_EXCEPT)) == 0);
     std::cout << "Inexact/Overflow Exceptions in " << steps << " steps: " << res << '\n';
-    std::cout << "2^+inf: %g\n"
-              << d2 << '\n';
+    std::cout << "overflowed value = " << d2 << '\n';
 
     feclearexcept(res);
 
-    // Create zero division error
-    double d3 = 1.0 / d1;
+    // Create an actual runtime division-by-zero condition.
+    volatile double runtime_zero = 0.0;
+    volatile double runtime_one = 1.0;
+    double d3 = runtime_one / runtime_zero;
     res = fetestexcept(FE_ALL_EXCEPT);
-    std::cout << "Zero Div Exceptions:" << res << '\n';
-    std::cout << "1/0:" << d3 << '\n';
+    std::cout << "Division-by-zero flags: " << res << '\n';
+    std::cout << "1/0 = " << d3 << '\n';
 
     feclearexcept(res);
 
@@ -89,8 +90,7 @@ void fp_control_noexcept()
         ++steps;
     } while ((s * s - 2) > 0);
     std::cout << "Inexact Exceptions in " << steps << " steps\n";
-    std::cout << "sqrt (2): %g\n"
-              << '\n';
+    std::cout << "sqrt(2) approximation = " << s << '\n';
 }
 
 void fp_control()
