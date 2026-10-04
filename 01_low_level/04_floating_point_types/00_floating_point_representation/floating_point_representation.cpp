@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <iostream>
 #include <limits>
+#include <numbers>
 #include <type_traits>
 
 #if __cplusplus > 202002L && __has_include(<stdfloat>)
@@ -126,6 +127,29 @@ static void endian_demo()
                  "are a separate representation question.\n";
 }
 
+
+#if defined(__cpp_lib_byteswap) && __cpp_lib_byteswap >= 202110L
+static void cxx23_byteswap_demo()
+{
+    std::cout << "\n== C++23 std::byteswap on a floating representation ==\n";
+
+    static_assert(sizeof(float) == sizeof(std::uint32_t));
+
+    constexpr float value = 1.0f;
+    constexpr std::uint32_t bits =
+        std::bit_cast<std::uint32_t>(value);
+    constexpr std::uint32_t swapped =
+        std::byteswap(bits);
+
+    std::cout << "float 1.0 bits = 0x" << std::hex << bits
+              << ", byte-swapped = 0x" << swapped
+              << std::dec << '\n';
+
+    std::cout << "byteswap operates on the integer representation; it does not "
+                 "numerically convert the floating-point value.\n";
+}
+#endif
+
 #if defined(CPP_DEMO_HAS_STDFLOAT)
 static void cxx23_fixed_width_floating_types()
 {
@@ -144,9 +168,18 @@ static void cxx23_fixed_width_floating_types()
     {
         static_assert(!std::is_same_v<std::float32_t, float>);
         std::float32_t x = 0.1f32;
+        const auto mixed = x + 1.0f;
+
+        // C++23 conversion rank/subrank rules make the fixed-width extended
+        // type win over a standard type of equal rank.
+        static_assert(std::is_same_v<decltype(mixed), const std::float32_t>);
+
+        const auto pi32 = std::numbers::pi_v<std::float32_t>;
+
         std::cout << "float32_t: sizeof=" << sizeof(x)
                   << ", digits=" << std::numeric_limits<std::float32_t>::digits
-                  << ", value(as double)=" << static_cast<double>(x) << '\n';
+                  << ", value(as double)=" << static_cast<double>(x)
+                  << ", pi(as double)=" << static_cast<double>(pi32) << '\n';
     }
 #endif
 
@@ -184,6 +217,10 @@ int main()
     representation_and_limits();
     spacing_and_integer_precision();
     endian_demo();
+
+#if defined(__cpp_lib_byteswap) && __cpp_lib_byteswap >= 202110L
+    cxx23_byteswap_demo();
+#endif
 
 #if defined(CPP_DEMO_HAS_STDFLOAT)
     cxx23_fixed_width_floating_types();
