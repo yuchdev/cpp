@@ -106,10 +106,12 @@ static int historical_magic_round_to_int(float value)
     constexpr float magic = std::bit_cast<float>(magic_bits);
 
     const float shifted = value + magic;
-    const std::uint32_t shifted_bits =
-        std::bit_cast<std::uint32_t>(shifted);
+    const std::int32_t shifted_bits =
+        std::bit_cast<std::int32_t>(shifted);
+    const std::int32_t magic_as_signed =
+        static_cast<std::int32_t>(magic_bits);
 
-    return static_cast<int>(shifted_bits - magic_bits);
+    return shifted_bits - magic_as_signed;
 }
 
 static void historical_trick_demo()
@@ -133,6 +135,9 @@ static void historical_trick_demo()
 static void large_integer_to_double()
 {
     std::cout << "\n== Integer -> floating precision loss ==\n";
+
+    static_assert(std::numeric_limits<double>::radix == 2);
+    static_assert(std::numeric_limits<double>::digits < 64);
 
     constexpr std::uint64_t exact_boundary =
         std::uint64_t{1} << std::numeric_limits<double>::digits; // 2^53 on binary64
