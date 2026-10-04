@@ -1,5 +1,6 @@
 #include <bit>
 #include <bitset>
+#include <cmath>
 #include <cstdint>
 #include <iomanip>
 #include <iostream>
