@@ -75,7 +75,7 @@ static void show_bytes_of_object()
     // std::bit_cast is representation conversion, not numeric conversion.
     const auto copied_bytes =
         std::bit_cast<std::array<std::byte, sizeof(long)>>(example);
-    static_assert(copied_bytes.size() == sizeof(long));
+    static_assert(std::tuple_size_v<decltype(copied_bytes)> == sizeof(long));
 
     std::puts("Fact: byte order is a representation property, not a property of pointers.");
     std::puts("Fact: std::as_bytes/std::bit_cast are preferable to unrelated typed pointer punning.");
