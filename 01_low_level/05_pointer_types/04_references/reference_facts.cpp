@@ -1,4 +1,5 @@
 // ReSharper disable All
+#include <algorithm>
 #include <cstdio>
 #include <functional>
 #include <memory>
