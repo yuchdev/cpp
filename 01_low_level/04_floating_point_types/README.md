@@ -1900,7 +1900,7 @@ The caller can then decide whether the accuracy/performance trade-off is accepta
 
 The core arithmetic model did not suddenly become different in C++20 or C++23, but the language and library gained several facilities that remove old folklore, express numerical intent more precisely, and make extended floating-point types first-class.
 
-### C++20: \`std::bit_cast\` replaces representation-punning folklore
+### C++20: `std::bit_cast` replaces representation-punning folklore
 
 Before C++20, low-level code commonly used:
 
@@ -1928,19 +1928,19 @@ This is especially important in floating-point code because representation inspe
 * sign/exponent/fraction demonstrations;
 * historical bit hacks such as fast inverse square root.
 
-\`std::bit_cast\` solves the **object-model operation**. It does not prove that the source type is IEEE binary32/binary64. Format assumptions still need to be established separately.
+`std::bit_cast` solves the **object-model operation**. It does not prove that the source type is IEEE binary32/binary64. Format assumptions still need to be established separately.
 
-### C++20: \`std::endian\` separates byte order from floating encoding
+### C++20: `std::endian` separates byte order from floating encoding
 
-\`std::endian::native\` lets code query native scalar byte order.
+`std::endian::native` lets code query native scalar byte order.
 
 That is useful when inspecting the memory representation of a floating-point object, but remember:
 
 > endianness and IEEE field layout are different properties.
 
-If a \`float\` is known to be IEEE binary32, bit positions in the \`std::uint32_t\` obtained through \`bit_cast\` have the expected numeric significance regardless of how the four bytes are ordered in memory.
+If a `float` is known to be IEEE binary32, bit positions in the `std::uint32_t` obtained through `bit_cast` have the expected numeric significance regardless of how the four bytes are ordered in memory.
 
-### C++20: \`std::numbers\` removes dependency on non-standard constants
+### C++20: `std::numbers` removes dependency on non-standard constants
 
 Modern code can write:
 
@@ -1951,9 +1951,9 @@ double pi = std::numbers::pi;
 float pif = std::numbers::pi_v<float>;
 ~~~
 
-rather than relying on implementation macros such as \`M_PI\`.
+rather than relying on implementation macros such as `M_PI`.
 
-The standard constants include \`e\`, \`pi\`, \`sqrt2\`, \`sqrt3\`, \`phi\`, logarithmic constants, and related inverses.
+The standard constants include `e`, `pi`, `sqrt2`, `sqrt3`, `phi`, logarithmic constants, and related inverses.
 
 The variable-template form matters in generic code because it obtains the constant directly in the target floating type:
 
@@ -1965,7 +1965,7 @@ T circle_area(T r)
 }
 ~~~
 
-### C++20: \`std::midpoint\` is not just prettier syntax
+### C++20: `std::midpoint` is not just prettier syntax
 
 Naively computing:
 
@@ -1983,9 +1983,9 @@ std::midpoint(a, b)
 
 For floating-point arguments, the specification is designed so that at most one inexact operation occurs.
 
-This makes \`midpoint\` useful not just for integers but also for numerically careful floating-point code.
+This makes `midpoint` useful not just for integers but also for numerically careful floating-point code.
 
-### C++20: \`std::lerp\` provides stronger interpolation guarantees
+### C++20: `std::lerp` provides stronger interpolation guarantees
 
 The obvious formula:
 
@@ -2001,11 +2001,11 @@ C++20 adds:
 std::lerp(a, b, t)
 ~~~
 
-with useful guarantees such as exact endpoint behavior for \`t == 0\` and \`t == 1\`, and finite results for finite endpoints when \`t\` lies in the interpolation interval.
+with useful guarantees such as exact endpoint behavior for `t == 0` and `t == 1`, and finite results for finite endpoints when `t` lies in the interpolation interval.
 
-That makes \`std::lerp\` a numerical contract, not merely a spelling convenience.
+That makes `std::lerp` a numerical contract, not merely a spelling convenience.
 
-### C++20: floating-point \`<=>\` is a partial order
+### C++20: floating-point `<=>` is a partial order
 
 For integers, three-way comparison naturally produces a strong ordering.
 
@@ -2021,11 +2021,11 @@ assert(result == std::partial_ordering::unordered);
 
 This is an important type-system acknowledgement of IEEE-style comparison semantics.
 
-A floating value is therefore not naturally \`std::totally_ordered\` merely because the syntax supports \`<\`, \`<=\`, and \`<=>\`.
+A floating value is therefore not naturally `std::totally_ordered` merely because the syntax supports `<`, `<=`, and `<=>`.
 
 If NaNs can appear in sortable data, define an explicit total-order policy.
 
-### C++20: the \`std::floating_point\` concept is a category check, not a format guarantee
+### C++20: the `std::floating_point` concept is a category check, not a format guarantee
 
 C++20 adds:
 
@@ -2041,19 +2041,19 @@ template<std::floating_point T>
 T relative_error(T a, T b);
 ~~~
 
-But satisfying \`std::floating_point\` does **not** imply:
+But satisfying `std::floating_point` does **not** imply:
 
 * IEEE 754;
 * radix 2;
 * a particular number of bits;
 * support for NaN or infinity;
-* a particular \`long double\` ABI.
+* a particular `long double` ABI.
 
-Use concepts for type-category constraints and \`std::numeric_limits\` for numerical representation properties.
+Use concepts for type-category constraints and `std::numeric_limits` for numerical representation properties.
 
 ### C++20: floating-point atomics gained arithmetic operations
 
-Since C++20, floating-point specializations of \`std::atomic\` provide operations such as:
+Since C++20, floating-point specializations of `std::atomic` provide operations such as:
 
 ~~~cpp
 std::atomic<double> total{0.0};
@@ -2076,9 +2076,9 @@ Atomicity and floating-point-environment control are separate contracts.
 
 ### C++20 formatting is useful for diagnostics, not a replacement for round-trip policy
 
-\`std::format\` arrived in C++20 and supports floating-point presentation styles, including hexadecimal floating representation.
+`std::format` arrived in C++20 and supports floating-point presentation styles, including hexadecimal floating representation.
 
-For diagnostic output this is much cleaner than hand-maintained \`printf\` format strings.
+For diagnostic output this is much cleaner than hand-maintained `printf` format strings.
 
 For machine interchange, however, decide explicitly whether you need:
 
@@ -2087,9 +2087,27 @@ For machine interchange, however, decide explicitly whether you need:
 * hexadecimal exact representation;
 * locale independence.
 
-\`std::to_chars\` / \`std::from_chars\` remain particularly useful for locale-independent, non-allocating text conversion.
+`std::to_chars` / `std::from_chars` remain particularly useful for locale-independent, non-allocating text conversion.
 
-### C++23: \`<stdfloat>\` adds optional fixed-width floating-point types
+### C++23: `std::byteswap` helps at binary-format boundaries
+
+C++23 adds `std::byteswap` for integer types:
+
+~~~cpp
+std::uint32_t bits = std::bit_cast<std::uint32_t>(value);
+bits = std::byteswap(bits);
+~~~
+
+This is useful when a binary format specifies a byte order different from the host.
+
+The sequence deliberately expresses two separate operations:
+
+1. `std::bit_cast` obtains the floating-point object's representation as an integer value;
+2. `std::byteswap` reverses the bytes of that integer representation.
+
+`std::byteswap` does **not** numerically transform a floating-point value, and it does not define a file/network format by itself.
+
+### C++23: `<stdfloat>` adds optional fixed-width floating-point types
 
 C++23 adds optional aliases:
 
@@ -2127,25 +2145,25 @@ The standardized properties are worth memorizing:
 
 | Type | Storage bits | Precision bits | Exponent bits |
 |---|---:|---:|---:|
-| \`std::float16_t\` | 16 | 11 | 5 |
-| \`std::float32_t\` | 32 | 24 | 8 |
-| \`std::float64_t\` | 64 | 53 | 11 |
-| \`std::float128_t\` | 128 | 113 | 15 |
-| \`std::bfloat16_t\` | 16 | 8 | 8 |
+| `std::float16_t` | 16 | 11 | 5 |
+| `std::float32_t` | 32 | 24 | 8 |
+| `std::float64_t` | 64 | 53 | 11 |
+| `std::float128_t` | 128 | 113 | 15 |
+| `std::bfloat16_t` | 16 | 8 | 8 |
 
-\`bfloat16\` is particularly instructive: compared with binary16 it spends fewer bits on precision and more on exponent range.
+`bfloat16` is particularly instructive: compared with binary16 it spends fewer bits on precision and more on exponent range.
 
-### C++23 fixed-width floating aliases are not aliases for \`float\` or \`double\`
+### C++23 fixed-width floating aliases are not aliases for `float` or `double`
 
 This is deliberately different from fixed-width integers.
 
-If \`std::float32_t\` exists, it names an **extended floating-point type**. It is not permitted to be merely:
+If `std::float32_t` exists, it names an **extended floating-point type**. It is not permitted to be merely:
 
 ~~~cpp
 using float32_t = float;
 ~~~
 
-Likewise, \`std::float64_t\` is not simply a standardized spelling of \`double\`.
+Likewise, `std::float64_t` is not simply a standardized spelling of `double`.
 
 This distinction exists so extended floating-point types can coexist with the three standard floating-point types even when they have the same value representation.
 
@@ -2171,7 +2189,7 @@ C++23 formalizes **floating-point conversion rank** and **conversion subrank**.
 
 This matters when standard and extended types have overlapping value sets.
 
-For equal conversion rank, fixed-width floating types such as \`std::float32_t\` and \`std::float64_t\` have greater conversion subrank than standard floating types of equal rank.
+For equal conversion rank, fixed-width floating types such as `std::float32_t` and `std::float64_t` have greater conversion subrank than standard floating types of equal rank.
 
 These rules affect:
 
@@ -2181,13 +2199,13 @@ These rules affect:
 * overload resolution;
 * common floating type selection in math functions.
 
-This is an advanced but important consequence of \`<stdfloat>\`: “same width” does not mean “same type semantics”.
+This is an advanced but important consequence of `<stdfloat>`: “same width” does not mean “same type semantics”.
 
 ### C++23 common math overloads account for extended floating types
 
-The \`<cmath>\` overload model was updated so mixed arithmetic arguments can select a common floating-point type using the new rank/subrank system.
+The `<cmath>` overload model was updated so mixed arithmetic arguments can select a common floating-point type using the new rank/subrank system.
 
-That means generic code should prefer the standard overload set rather than manually forcing everything through \`double\`.
+That means generic code should prefer the standard overload set rather than manually forcing everything through `double`.
 
 The old habit:
 
@@ -2205,7 +2223,7 @@ Where the fixed-width floating type exists, the variable-template constants can 
 std::numbers::pi_v<std::float32_t>
 ~~~
 
-This is another reason to prefer the typed \`_v<T>\` form in generic code.
+This is another reason to prefer the typed `_v<T>` form in generic code.
 
 ### C++23 floating literal suffixes remove an old ambiguity
 
@@ -2235,7 +2253,7 @@ That matters because writing:
 std::float32_t x = 0.1;
 ~~~
 
-first creates a \`double\` literal and then converts it.
+first creates a `double` literal and then converts it.
 
 A suffix can make the literal's source type match the target type directly.
 
@@ -2243,14 +2261,14 @@ A suffix can make the literal's source type match the target type directly.
 
 The accompanying examples intentionally demonstrate the modern rules:
 
-* representation examples use \`std::bit_cast\`, not inactive-union or unrelated-pointer punning;
-* byte order is queried with \`std::endian\`;
-* \`std::numbers::pi\` replaces \`M_PI\`;
-* interpolation examples use \`std::lerp\` and \`std::midpoint\`;
-* comparison demonstrates \`std::partial_ordering\`;
+* representation examples use `std::bit_cast`, not inactive-union or unrelated-pointer punning;
+* byte order is queried with `std::endian`;
+* `std::numbers::pi` replaces `M_PI`;
+* interpolation examples use `std::lerp` and `std::midpoint`;
+* comparison demonstrates `std::partial_ordering`;
 * floating atomics use the C++20 specialization explicitly;
-* C++23 \`<stdfloat>\` code is compiled only when both the language mode and library expose it;
-* the historical integer-conversion and inverse-square-root tricks remain, but only after the representation operation itself has been made standard-conforming with \`std::bit_cast\`.
+* C++23 `<stdfloat>` code is compiled only when both the language mode and library expose it;
+* the historical integer-conversion and inverse-square-root tricks remain, but only after the representation operation itself has been made standard-conforming with `std::bit_cast`.
 
 The goal is not to erase historical techniques. It is to separate:
 
