@@ -1,254 +1,161 @@
-#define _USE_MATH_DEFINES
-#include <iostream>
-#include <vector>
+#include <bit>
 #include <cmath>
-
-// OsX workaround
-#ifdef __APPLE__
-#include <cfloat>
 #include <cstdint>
-#endif
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <optional>
 
-#include <utilities/bitwise.h>
-#include <utilities/generate.h>
-
-/*
- *  It's important to know this technique is outdated by now.
- *  However, it perfectly demonstrates how floating point numbers are stored in memory,
- *  and their (sometimes unexpected) interconnections with integer types.
- *
- *  Significand is stored without whole part, which is 1.0 anyway
- *  So we can set 1 and shift significand to the right.
- *
- *  CPU makes significand shift itself before any operation under floating point numbers
- *  with different exponent value. To be exact, it moves significand of a smaller number,
- *  until it matches significand of bigger number. Say, we want to add 36.72 and 10000.0
- *  They could be written in a scientific notation as 3.672e1 and 1.0e5
- *  CPU takes 3.672e1 and moves it 5-1=4 digits right, receiving 0.0003672e5
- *  Now we can add both number and receive 1.0003672e5
- *  Now imagine, if we keep moving 3672 to the right, eventually 2 and then 7 would be truncated,
- *  and 36 is everything what left. But this is exactly the whole part of 36.72!
- *  For 32-bit floating point value you should move it to the size of exponent
-*/
-
-namespace
+static void builtin_conversion_semantics()
 {
-    union convertible
+    std::cout << "== Built-in floating -> integer conversion ==\n";
+
+    for (double x : {9.99, -9.99, 1.5, -1.5})
     {
-        float f;
-        int i;
-    };
-}
-
-// TODO: It's hard to show without access to any old CPU
-void classic_ftol()
-{
-    // Converting floating point to integer
-    // Using any type of cast, C++ or C style, we implicitly call C function ftol(),
-    // which saves rounding mode, set rounding mode for the conversion, convert and restore rounding mode
-    // Let's see some assembly representation
-    // (cvttss2si == Convert with Truncation Scalar Single-Precision Floating-Point Value to Integer)
-    float fp_single = 9.99f;
-    int i = static_cast<int>(fp_single);
-
-    // GCC 11
-    // movss        xmm0, DWORD PTR fp_single[rip]
-    // cvttss2si    eax, xmm0
-    // mov          DWORD PTR i[rip], eax
-
-    // Clang 12
-    // cvttss2si    eax, dword ptr [fp_single]
-    // mov          dword ptr[i1], eax
-
-    double fp_double = 9.99;
-    i = static_cast<int>(fp_double);
-
-    // GCC 11
-    //  movsd       xmm0, QWORD PTR fp_double[rip]
-    // cvttsd2si    eax, xmm0
-    // mov          DWORD PTR i[rip], eax
-
-    // Clang 12
-    // cvttsd2si    eax, qword ptr [fp_double]
-    // mov          dword ptr[i2], eax
-
-    // We can take advantage of this
-    // these techniques are applicable to any high-performance application that mixes
-    // floating-point and integer math on modern processors
-
-    convertible f;
-    f.f = 1.0f;
-    for (size_t i = 0; i < 22; ++i) {
-        f.i = f.i >> 1;
-        std::cout << bitwise(f.i) << '\n';
+        std::cout << x << " -> static_cast<int> = "
+                  << static_cast<int>(x) << '\n';
     }
+
+    std::cout << "Built-in conversion truncates toward zero; it does not obey "
+                 "the dynamic FP rounding mode.\n";
 }
 
-int fast_ftoi(float x)
+static std::optional<int> checked_to_int(double value)
 {
-    // alignment shift to change the bit representation of a floating-point number
-    // until it's the same as an integer's bit representation,
-    // and then we can just read it like a normal integer
+    if (!std::isfinite(value))
+        return std::nullopt;
 
-    // This trick works for positive numbers,
-    // but if you try to convert a negative number it will fail
+    // For this concrete double -> int example, both int endpoints are exactly
+    // representable as double on mainstream implementations.
+    constexpr double lo =
+        static_cast<double>(std::numeric_limits<int>::min());
+    constexpr double hi =
+        static_cast<double>(std::numeric_limits<int>::max());
 
-    // the normalization step screws it up because now that we've
-    // borrowed from the implicit 1 bit, it's no longer the most significant bit
+    // Conversion first discards the fractional part. A value such as
+    // INT_MAX + 0.9 still truncates to INT_MAX and is representable.
+    const double truncated = std::trunc(value);
 
-    // We can get this 1 bit simply by multiplying our large number by 1.5. 1.5 in binary is
-    // 1.1, and the first 1 becomes the implicit 1 bit, and the second becomes the
-    // most significant bit of the mantissa
+    if (truncated < lo || truncated > hi)
+        return std::nullopt;
 
-    // If you subtract the integer representation of our large, floating-point shift number
-    // (in other words, treat its bits like an integer instead of a float) from the
-    // integer representation of the number we just converted, it will remove all the
-    // high bits properly for both types of numbers, making the bits equal zero for
-    // positive values and filling them in with ones for negative values
-    convertible magic;
-    // 1 << 22 = 2^23 (e.g. convert float to integer)
-    // 150 << 23 is 1.5 trick for negative conversion
-    // For double the same masks are (1LL << 51) and (1075LL << 52)
-    magic.i = (150 << 23) | (1 << 22);
-
-    convertible c;
-    c.f = x + magic.f;
-    // Not to create 'if' condition for the negatives we use subtraction trick
-    // it will remove all the high bits properly for both types of numbers(positive and negative),
-    // making the bits equal zero for positive values and filling them in with ones for negative values.
-    return c.i - magic.i;
+    return static_cast<int>(value);
 }
 
-int flol_debug(float x)
+static void checked_conversion_demo()
 {
-    std::cout << "\nConverting to int x = " << x << '\n';
-    const int magic1 = (150 << 23);
-    std::cout << "magic1 = " << bitwise(magic1) << '\n';
+    std::cout << "\n== Range-check before conversion ==\n";
 
-    const int magic2 = (1 << 22);
-    std::cout << "magic2 = " << bitwise(magic2) << '\n';
-
-    int magic = magic1 | magic2;
-    std::cout << "magic =  " << bitwise(magic) << '\n';
-
-
-    // append to the converted number
-    // float representation of the magic integer mask
-    std::cout << "x =  " << x << ", x2 = " << bitwise(x) << '\n';
-    std::cout << "magic =  " << *(reinterpret_cast<float*>(&magic)) << ", magic2 = " << bitwise(magic) << '\n';
-    std::cout << "x += magic" << '\n';
-    x += *(reinterpret_cast<float*>(&magic));
-    std::cout << "x  = " << x << " x2 = " << bitwise(x) << '\n';
-
-    // subtract from integer representation of the converted number
-    // magic int mask
-    std::cout << "x = " << bitwise(*(reinterpret_cast<int*>(&x))) << '\n';
-    std::cout << "magic = " << bitwise(magic) << '\n';
-    int res = *(reinterpret_cast<int*>(&x)) - magic;
-
-    std::cout << "x - magic = " << res << " res2 = " << bitwise(res) << '\n';
-    return res;
-}
-
-
-long long fast_dtoll(double d)
-{
-
-    union castable
-    {
-        double d;
-        long long l;
+    const double values[] = {
+        42.75,
+        -42.75,
+        static_cast<double>(std::numeric_limits<int>::max()),
+        static_cast<double>(std::numeric_limits<int>::max()) + 1024.0,
+        std::numeric_limits<double>::infinity(),
+        std::numeric_limits<double>::quiet_NaN()
     };
 
-    castable magic;
-    magic.l = (1075LL << 52) | (1LL << 51);
-
-    castable c;
-    c.d = d + magic.d;
-    return c.l - magic.l;
-}
-
-template <typename T>
-struct TPTraitsBase {};
-
-template <>
-struct TPTraitsBase<float>
-{
-    typedef int ret_type;
-    typedef int mask_type;
-    typedef float convert_type;
-    static const mask_type mask = (150 << 23) | (1 << 22);
-
-};
-
-template <>
-struct TPTraitsBase<double>
-{
-    typedef long long ret_type;
-    typedef long long mask_type;
-    typedef double convert_type;
-    static const mask_type mask = (1075LL << 52) | (1LL << 51);
-};
-
-template <typename T>
-struct TPTraits : TPTraitsBase<T>
-{
-    union castable
+    for (double value : values)
     {
-        typename TPTraitsBase<T>::convert_type f;
-        typename TPTraitsBase<T>::mask_type i;
-    };
-};
+        const auto result = checked_to_int(value);
 
+        std::cout << std::setprecision(std::numeric_limits<double>::max_digits10)
+                  << value << " -> ";
 
-template <typename FP>
-typename TPTraits<FP>::ret_type fast_fpconvert(FP f)
-{
-    typename TPTraits<FP>::castable magic {};
-    magic.i = TPTraits<FP>::mask;
+        if (result)
+            std::cout << *result;
+        else
+            std::cout << "rejected";
 
-    volatile typename TPTraits<FP>::castable ret {};
-    ret.f = f + magic.f;
-    return ret.i - magic.i;
+        std::cout << '\n';
+    }
+
+    std::cout << "Out-of-range floating -> integer conversion, including NaN "
+                 "and infinity, is undefined behavior for the built-in cast.\n";
 }
 
-void test_fast_ftoi()
+static void representation_is_not_conversion()
 {
-    float f = 1.0;
-    long i1 = fast_fpconvert(f);
-    std::cout << f << " -> " << i1 << '\n';
+    std::cout << "\n== std::bit_cast is representation transfer, not conversion ==\n";
 
-    f = 1.5;
-    i1 = fast_fpconvert(f);
-    std::cout << f << " -> " << i1 << '\n';
+    constexpr float value = 9.75f;
+    constexpr std::uint32_t bits =
+        std::bit_cast<std::uint32_t>(value);
 
-    f = -1.5;
-    i1 = fast_fpconvert(f);
-    std::cout << f << " -> " << i1 << '\n';
+    std::cout << "numeric conversion static_cast<int>(9.75f) = "
+              << static_cast<int>(value) << '\n';
+    std::cout << "representation bit_cast<uint32_t>(9.75f) = 0x"
+              << std::hex << bits << std::dec << '\n';
 
-
-    double d = 1.0;
-    long long i2 = fast_fpconvert(d);
-    std::cout << d << " -> " << i1 << '\n';
-
-    d = 1.5;
-    i2 = fast_fpconvert(d);
-    std::cout << d << " -> " << i1 << '\n';
-
-    d = -1.5;
-    i2 = fast_fpconvert(d);
-    std::cout << d << " -> " << i1 << '\n';
+    static_assert(std::bit_cast<float>(bits) == value);
 }
 
-
-void benchmark()
+// Historical "add a large float and subtract its integer representation" trick.
+// This is intentionally presented as an obsolete rounding trick, not as a
+// replacement for static_cast<int>. It relies on IEEE binary32 layout and
+// round-to-nearest behavior and has a restricted useful range.
+static int historical_magic_round_to_int(float value)
 {
-    RandomReal<double> rr;
-    std::vector<double> randoms = rr.generate(0.0, 10.0, 1000000);
+    static_assert(sizeof(float) == sizeof(std::uint32_t));
+    static_assert(std::numeric_limits<float>::is_iec559);
+    static_assert(std::numeric_limits<float>::radix == 2);
+    static_assert(std::numeric_limits<float>::digits == 24);
+
+    constexpr std::uint32_t magic_bits =
+        (std::uint32_t{150} << 23) | (std::uint32_t{1} << 22);
+    constexpr float magic = std::bit_cast<float>(magic_bits);
+
+    const float shifted = value + magic;
+    const std::uint32_t shifted_bits =
+        std::bit_cast<std::uint32_t>(shifted);
+
+    return static_cast<int>(shifted_bits - magic_bits);
+}
+
+static void historical_trick_demo()
+{
+    std::cout << "\n== Historical magic-number rounding trick ==\n";
+
+    for (float x : {1.4f, 1.5f, 1.6f, -1.4f, -1.5f, -1.6f, 9.99f})
+    {
+        std::cout << x
+                  << " -> magic trick " << historical_magic_round_to_int(x)
+                  << ", static_cast<int> " << static_cast<int>(x)
+                  << ", lround " << std::lround(x)
+                  << '\n';
+    }
+
+    std::cout << "Notice that the historical trick rounds; static_cast<int> "
+                 "truncates. Modern CPUs have direct conversion instructions, "
+                 "so this representation trick is mainly educational.\n";
+}
+
+static void large_integer_to_double()
+{
+    std::cout << "\n== Integer -> floating precision loss ==\n";
+
+    constexpr std::uint64_t exact_boundary =
+        std::uint64_t{1} << std::numeric_limits<double>::digits; // 2^53 on binary64
+
+    const std::uint64_t n1 = exact_boundary;
+    const std::uint64_t n2 = exact_boundary + 1;
+
+    const double d1 = static_cast<double>(n1);
+    const double d2 = static_cast<double>(n2);
+
+    std::cout << "n1 = " << n1 << ", n2 = " << n2 << '\n';
+    std::cout << std::setprecision(std::numeric_limits<double>::max_digits10)
+              << "double(n1) = " << d1
+              << ", double(n2) = " << d2 << '\n';
+    std::cout << std::boolalpha
+              << "double(n1) == double(n2): " << (d1 == d2) << '\n';
 }
 
 int main()
 {
-    classic_ftol();
-    return 0;
+    builtin_conversion_semantics();
+    checked_conversion_demo();
+    representation_is_not_conversion();
+    historical_trick_demo();
+    large_integer_to_double();
 }
