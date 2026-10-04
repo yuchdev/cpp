@@ -2,6 +2,7 @@
 #include <cstdio>
 #include <functional>
 #include <memory>
+#include <ranges>
 #include <string>
 #include <type_traits>
 #include <utility>
