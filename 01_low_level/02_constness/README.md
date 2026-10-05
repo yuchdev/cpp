@@ -1,6 +1,6 @@
-## Constness facts (C++98 to C++17)
+# Constness facts (C++98 to C++17)
 
-### Runtime vs. compile-time constness
+## Runtime vs. compile-time constness
 
 * `const` is not "compile-time constant": `const int x = f();` is runtime-initialized; it is read-only *after* initialization.
 * `constexpr` means "can be constant-evaluated" (in a constant-expression context). A `constexpr` function can still run at runtime when the context doesn't require constant evaluation.
@@ -13,7 +13,7 @@
 
 ---
 
-### Type-level const: top-level vs. low-level
+## Type-level const: top-level vs. low-level
 
 * Top-level const vs. low-level const:
 
@@ -28,7 +28,7 @@
 
 ---
 
-### Const references, temporaries, and lifetime pitfalls
+## Const references, temporaries, and lifetime pitfalls
 
 * `const T&` can bind to temporaries; lifetime extension applies to the reference's lifetime:
   * `const std::string& r = std::string("hi");` is safe while `r` is alive.
@@ -39,7 +39,7 @@
 
 ---
 
-### Const and member functions: what `const` really means
+## Const and member functions: what `const` really means
 
 * `const` member functions are about the `this` type: in `T::foo() const`, `this` is `T const*` (conceptually: you can't modify non-`mutable` members).
 * `mutable` members can be modified inside `const` member functions:
@@ -51,7 +51,7 @@
 
 ---
 
-### Overloading on const and value category
+## Overloading on const and value category
 
 * You can overload member functions on constness:
 
@@ -63,7 +63,7 @@
 
 ---
 
-### `const_cast`: what is legal, and what becomes UB
+## `const_cast`: what is legal, and what becomes UB
 
 * `const_cast` can remove constness, but modifying a truly `const` object is Undefined Behavior.
 * It is only safe to remove constness and write when the original object was *not actually const*, e.g.:
@@ -72,7 +72,7 @@
 
 ---
 
-### "Const is shallow": deep constness is not automatic
+## "Const is shallow": deep constness is not automatic
 
 * `const` does not imply deep immutability:
   * `const std::shared_ptr<T>` makes the smart pointer non-reseatable, but does not make `T` const.
@@ -82,7 +82,7 @@
 
 ---
 
-### Return types and API pitfalls
+## Return types and API pitfalls
 
 * `const` on a return-by-value type is almost always useless and can be harmful:
   * `const T f();` doesn't provide meaningful safety and can interfere with moves and generic code.
@@ -92,7 +92,7 @@
 
 ---
 
-### Iterator constness
+## Iterator constness
 
 * Distinguish:
   * `container::const_iterator` = iterator that yields `const T&` (cannot mutate elements)
@@ -101,7 +101,7 @@
 
 ---
 
-### `constexpr` objects and literal types
+## `constexpr` objects and literal types
 
 * A class usable in constant expressions is a literal type (informally: can appear in `constexpr` contexts).
 * In C++11/14/17, `constexpr` constructors and member functions enable compile-time objects.
@@ -120,7 +120,7 @@ static_assert(p.norm2() == 14.0);
 static_assert(parr[0].norm2() == 14.0);
 ```
 
-### `const`, `constexpr`, `consteval`, and `constinit` in practice
+## `const`, `constexpr`, `consteval`, and `constinit` in practice
 
 `const` is about the immutability of an object through a particular name; it says nothing about whether the compiler can initialize it at compile time. 
 
