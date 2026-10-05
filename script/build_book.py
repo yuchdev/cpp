@@ -185,11 +185,12 @@ def validate_headings(chapter_dir: Path, chapter_number: int, headings: list[Hea
             )
 
         if heading.level == 1:
-            expected_h1 = f"{chapter_number:02d}."
-            if not heading.title.startswith(expected_h1):
+            h1_match = re.match(r"^(?P<number>\\d{2})(?:\\.(?=[ \\t]|$))?(?:[ \\t]+|$)", heading.title)
+            expected_h1 = f"{chapter_number:02d}"
+            if h1_match is None or h1_match.group("number") != expected_h1:
                 warn(
                     chapter_dir,
-                    f"H1 on line {heading.line} must start with {expected_h1!r}",
+                    f"H1 on line {heading.line} must start with two-digit chapter number {expected_h1!r}",
                 )
         elif heading.level > 1:
             parent_prefix = active_prefixes.get(heading.level - 1)
