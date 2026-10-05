@@ -24,12 +24,12 @@ UB is not a compiler bug. It exists to:
 
 ---
 
-## UB vs Unspecified vs Implementation‑Defined
+## UB vs. Unspecified vs. Implementation‑Defined
 
-| Category | Meaning |
-|--------|--------|
-| Undefined behavior | No guarantees at all |
-| Unspecified behavior | One of several valid behaviors |
+| Category               | Meaning                         |
+|------------------------|---------------------------------|
+| Undefined behavior     | No guarantees at all            |
+| Unspecified behavior   | One of several valid behaviors  |
 | Implementation‑defined | Compiler documents the behavior |
 
 ---
@@ -90,7 +90,7 @@ Fix: bounds checks; prefer `std::array`, `std::span`, `.at()` for checked access
 What happens: `max + 1` overflows `int`.  
 Why it's UB: signed overflow is undefined (unlike unsigned, which wraps modulo 2^N).  
 Typical outcomes: "impossible" branches removed, wrong loops/comparisons.  
-Fix: widen types, check overflow, or use unsigned if wrap is intended.
+Fix: widen types, check overflow, or use unsigned if a wrap is intended.
 
 ### 4) `division_by_zero()` - integer divide by zero
 What happens: `i / 0`.  
@@ -109,14 +109,14 @@ Why it's UB: element 5 does not exist; even reads can violate object bounds assu
 Fix: bounds checks; use `.at()` for teaching/debug.
 
 ### 7) `expired_pointer()` - dangling pointer to a dead local
-What happens: pointer refers to `x`, then `x` goes out of scope.  
+What happens: a pointer refers to `x`, then `x` goes out of scope.  
 Why it's UB: object lifetime ended; dereference is invalid.  
 Fix: never return/store pointers to locals; copy the value or allocate with ownership.
 
 ### 8) `type_punning_pointer()` - strict-aliasing violation via `reinterpret_cast`
 What happens: reads an `int` object as `float`.  
 Why it's UB: violates strict aliasing (and can violate alignment).  
-Fix: `std::memcpy` (C++11+) or `std::bit_cast` (C++20) for bit reinterpretation.
+Fix: `std::memcpy` (C++11+) or `std::bit_cast` (C++20) for a bit of reinterpretation.
 
 ### 9) `evaluation_order()` - using a variable in its own initializer
 What happens: `int i = i * 0;` reads `i` before it's initialized.  
@@ -133,9 +133,9 @@ What happens: calls `ptr->foo()` after `delete ptr`.
 Why it's UB: use-after-free; virtual dispatch relies on vptr/vtable that no longer exists.  
 Fix: never use pointers after delete; use smart pointers and clear ownership rules.
 
-### 12) `dangling_reference()` - reference to freed object
+### 12) `dangling_reference()` - reference to a freed object
 What happens: reference `ref` outlives the pointee.  
-Why it's UB: references don't rebind; they dangle if the object dies.  
+Why it's UB: references to don't rebind; they dangle if the object dies.  
 Fix: don't bind refs to owned dynamic objects unless lifetime is guaranteed.
 
 ### 13) `realloc_fails()` - mixing allocation families (`new` with `realloc`)
