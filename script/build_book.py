@@ -187,7 +187,10 @@ def validate_headings(chapter_dir: Path, chapter_number: int, headings: list[Hea
             )
 
         if heading.level == 1:
+            h1_match = re.match(
                 r"^(?P<number>\d{2})(?:\.(?=[ \t]|$))?(?:[ \t]+|$)",
+                heading.title,
+            )
             expected_h1 = f"{chapter_number:02d}"
             if h1_match is None or h1_match.group("number") != expected_h1:
                 warn(
