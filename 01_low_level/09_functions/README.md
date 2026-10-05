@@ -1,4 +1,4 @@
-# Functions in C++: Advanced Facts, Pitfalls, and Evolution (C++98 → C++20)
+# 9. Functions in C++: Advanced Facts, Pitfalls, and Evolution (C++98 → C++20)
 
 > Functions are the fundamental abstraction boundary in C++.
 > They combine language rules, ABI conventions, optimizer behavior, and C legacy.
