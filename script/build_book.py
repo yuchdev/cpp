@@ -22,8 +22,10 @@ from pathlib import Path
 CHAPTER_DIR_RE = re.compile(r"^(?P<number>\d{2})(?:_|$)")
 ATX_HEADING_RE = re.compile(r"^(?P<marks>#{1,6})[ \t]+(?P<title>.*?)[ \t]*#*[ \t]*$")
 FENCE_RE = re.compile(r"^[ \t]{0,3}(?P<fence>`{3,}|~{3,})")
-NUMBER_PREFIX_RE = re.compile(\n    r"^(?P<number>\\d+(?:\\.\\d+)*)(?:\\.(?=[ \\t]|$))?(?:[ \\t]+|$)"\n)
-H1_NUMBER_PREFIX_RE = re.compile(r"^\\d{1,2}(?:\\.(?=[ \\t]|$))?(?:[ \\t]+|$)")
+NUMBER_PREFIX_RE = re.compile(
+    r"^(?P<number>\d+(?:\.\d+)*)(?:\.(?=[ \t]|$))?(?:[ \t]+|$)"
+)
+H1_NUMBER_PREFIX_RE = re.compile(r"^\d{1,2}(?:\.(?=[ \t]|$))?(?:[ \t]+|$)")
 CPP_VERSION_SUFFIX_RE = re.compile(
     r"\s*\(\s*C\+\+\d{2}(?:\s*(?:→|->|–|-|to)\s*C\+\+\d{2})?\s*\)\s*$",
     re.IGNORECASE,
@@ -185,7 +187,7 @@ def validate_headings(chapter_dir: Path, chapter_number: int, headings: list[Hea
             )
 
         if heading.level == 1:
-            h1_match = re.match(r"^(?P<number>\\d{2})(?:\\.(?=[ \\t]|$))?(?:[ \\t]+|$)", heading.title)
+                r"^(?P<number>\d{2})(?:\.(?=[ \t]|$))?(?:[ \t]+|$)",
             expected_h1 = f"{chapter_number:02d}"
             if h1_match is None or h1_match.group("number") != expected_h1:
                 warn(
