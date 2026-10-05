@@ -1,105 +1,180 @@
-#define _USE_MATH_DEFINES
-#include <iostream>
-#include <iomanip>
+#include <algorithm>
+#include <bit>
 #include <cmath>
-
-// OsX workaround
-#include <cfloat>
+#include <compare>
+#include <concepts>
 #include <cstdint>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <numbers>
 
-#include <utilities/bitwise.h>
-
-// Comparing two floating-point numbers one should remember, that calculation error for floating-point 
-// is proportional to its modulus, unlike fixed-point, where error is fixed as well.
-//
-// Example above shows exact comparison of two Pi approximation does not work (and does not expected to do so).
-// Compare to Standard Library constant does not work as well.
-// To solve this problem, we should use Epsilon value, also provided by math standard library: DBL_EPSILON
-// Its critical to understand that this is not universal error value, 
-// it's a minimum value which is change floating-point number bitwise representation when added to 1.0
-// In other words, (1 +/- DBL_EPSILON) != 1
-// Numbers bigger than 1.0 do not "feel the difference", you can add DBL_EPSILON to 2.0 as many times as you want, 
-// it will not have any effect. These number consider DBL_EPSILON as ZERO
-// In the meantime, DBL_EPSILON value is not zero, it's 1e-16
-// It means, all Planck-range numbers would be also all equal to zero for DBL_EPSILON.
-// However, Planck constant as much important as the light speed, 
-// representation of such constants is a primary purpose on floating-point numbers.
-//
-// So, how to use DBL_EPSILON is a right way?
-// Imagine you need to compare two floating-point numbers, like approximations of Pi from the given example.
-// As we have two numbers, we need to pick up the biggest one, and multiply it to DBL_EPSILON - 
-// this way we'll get a value, which guarantees both of compared number being sensitive to its addition
-// Wrapping it up, let's write some code
-bool close_enough(double a, double b)
+template <std::floating_point T>
+bool nearly_equal(T a, T b,
+                  T rel_tol = T{8} * std::numeric_limits<T>::epsilon(),
+                  T abs_tol = T{})
 {
-    if (fabs(a - b) <= DBL_EPSILON * fmax(fabs(a), fabs(b))) {
+    // Exact equality is useful here: it handles identical finite values,
+    // equal infinities, and +0 == -0 without subtraction.
+    if (a == b)
         return true;
-    }
-    return false;
+
+    if (std::isnan(a) || std::isnan(b))
+        return false;
+
+    const T diff = std::fabs(a - b);
+    const T scale = std::max(std::fabs(a), std::fabs(b));
+
+    return diff <= std::max(abs_tol, rel_tol * scale);
 }
 
-// However, this algorithm also requires some improvements
-// DBL_EPSILON defines difference in one bit of floating-point number bitwise representation.
-// On practice however, numbers mostly differ on more than one bit,
-// that is why realistic Epsilon approximation could be multiplied to something like 16
-bool close_enough2(double a, double b)
+static std::uint64_t ordered_double_key(double value)
 {
-    if (fabs(a - b) <= 16 * DBL_EPSILON * fmax(fabs(a), fabs(b))) {
-        return true;
-    }
-    return false;
+    static_assert(sizeof(double) == sizeof(std::uint64_t));
+    static_assert(std::numeric_limits<double>::is_iec559);
+
+    constexpr std::uint64_t sign = std::uint64_t{1} << 63;
+    const std::uint64_t bits = std::bit_cast<std::uint64_t>(value);
+
+    // Map IEEE sign-magnitude-like encoding into monotonically increasing keys.
+    // Negative encodings are reversed; nonnegative encodings are shifted above them.
+    return (bits & sign) ? ~bits : (bits | sign);
 }
 
-void compare_floating_point()
+static std::uint64_t ulp_distance(double a, double b)
 {
-    double d1 = 0;
-    double d2 = sin(1.0);
+    if (a == b)
+        return 0; // intentionally treats +0 and -0 as the same numeric value
 
-    if (d1 == d2) {
-        std::cout << "It's not that scary\n";
-    }
+    if (std::isnan(a) || std::isnan(b))
+        return std::numeric_limits<std::uint64_t>::max();
 
-    // Let's get Pi using 2 different approximations
-
-    // 1.Machin-like formula
-    double pi1 = 4 * (4 * atan(0.2) - atan(1. / 239.));
-    // 2.60-base approximation
-    double pi2 = 3 + 8. / 60. + 29. / pow(60., 2) + 44. / pow(60., 3);
-
-    if (pi1 != pi2) {
-        std::cout << "Well, this does not compute...\n";
-    }
-
-    if (close_enough(pi1, pi2) || close_enough2(pi1, pi2)) {
-        std::cout << "What about now?\n";
-    }
-
+    const auto ka = ordered_double_key(a);
+    const auto kb = ordered_double_key(b);
+    return ka > kb ? ka - kb : kb - ka;
 }
 
-void show_close_enough()
+static void compare_pi_approximations()
 {
+    std::cout << "== Exact vs approximate comparison ==\n";
 
-    // nextafter() returns the next representable value after x in the direction of y
-    double d = 1.0;
-    double e = nextafter(d, 2.0);
-    if (close_enough(d, e)) {
-        std::cout << d << " == " << e << '\n';
-        std::cout << "Bitwise d == " << bitwise(d) << '\n';
-        std::cout << "Bitwise e == " << bitwise(e) << '\n';
-    }
+    // Machin-like formula.
+    const double pi1 =
+        4.0 * (4.0 * std::atan(0.2) - std::atan(1.0 / 239.0));
 
-    d = 0.00000000000000000001;
-    e = nextafter(d, 1.0);
-    if (close_enough(d, e)) {
-        std::cout << d << " == " << e << '\n';
-        std::cout << "Bitwise d == " << bitwise(d) << '\n';
-        std::cout << "Bitwise e == " << bitwise(e) << '\n';
-    }
+    // Sexagesimal approximation.
+    const double pi2 =
+        3.0 + 8.0 / 60.0
+            + 29.0 / std::pow(60.0, 2)
+            + 44.0 / std::pow(60.0, 3);
+
+    const double standard_pi = std::numbers::pi; // C++20
+
+    std::cout << std::setprecision(std::numeric_limits<double>::max_digits10);
+    std::cout << "Machin-like pi = " << pi1 << '\n';
+    std::cout << "sexagesimal pi = " << pi2 << '\n';
+    std::cout << "std::numbers::pi = " << standard_pi << '\n';
+
+    std::cout << std::boolalpha;
+    std::cout << "pi1 == pi2: " << (pi1 == pi2) << '\n';
+    std::cout << "nearly_equal(pi1, pi2): "
+              << nearly_equal(pi1, pi2, 1e-8, 1e-15) << '\n';
+
+    // The sexagesimal approximation is only approximate to a few decimal places.
+    // Machine epsilon is not an appropriate universal domain tolerance.
 }
 
+static void relative_and_absolute_tolerance()
+{
+    std::cout << "\n== Relative and absolute tolerance play different roles ==\n";
+
+    const double near_zero_a = 0.0;
+    const double near_zero_b = 1e-15;
+
+    std::cout << "relative-only near zero: "
+              << nearly_equal(near_zero_a, near_zero_b,
+                              1e-12, 0.0) << '\n';
+    std::cout << "with absolute tolerance: "
+              << nearly_equal(near_zero_a, near_zero_b,
+                              1e-12, 1e-14) << '\n';
+
+    const double large_a = 1e12;
+    const double large_b =
+        std::nextafter(large_a, std::numeric_limits<double>::infinity());
+
+    std::cout << std::setprecision(std::numeric_limits<double>::max_digits10)
+              << "one ULP near 1e12 = " << (large_b - large_a) << '\n';
+}
+
+static void ulp_demo()
+{
+    std::cout << "\n== ULP neighborhood with std::nextafter ==\n";
+
+    const double a = 1.0;
+    const double b =
+        std::nextafter(a, std::numeric_limits<double>::infinity());
+    const double c =
+        std::nextafter(b, std::numeric_limits<double>::infinity());
+
+    std::cout << std::setprecision(std::numeric_limits<double>::max_digits10);
+    std::cout << "a = " << a << '\n';
+    std::cout << "b = " << b << ", ULP distance(a,b) = "
+              << ulp_distance(a, b) << '\n';
+    std::cout << "c = " << c << ", ULP distance(a,c) = "
+              << ulp_distance(a, c) << '\n';
+
+    std::cout << "ULP distance is a representation metric, not a domain-specific "
+                 "definition of equality.\n";
+}
+
+static void partial_ordering_demo()
+{
+    std::cout << "\n== C++20 floating-point <=> gives partial ordering ==\n";
+
+    const double qnan = std::numeric_limits<double>::quiet_NaN();
+    const double one = 1.0;
+
+    const std::partial_ordering normal_order = one <=> 2.0;
+    const std::partial_ordering nan_order = qnan <=> one;
+
+    std::cout << "1.0 <=> 2.0 is less: "
+              << std::boolalpha
+              << (normal_order == std::partial_ordering::less) << '\n';
+
+    std::cout << "NaN <=> 1.0 is unordered: "
+              << (nan_order == std::partial_ordering::unordered) << '\n';
+
+    std::cout << "NaN == NaN: " << (qnan == qnan) << '\n';
+    std::cout << "NaN < 1.0: " << (qnan < one) << '\n';
+
+    // A comparator for sorting data containing NaNs therefore needs an explicit
+    // policy; ordinary floating-point < is not a total ordering relation.
+}
+
+static void signed_zero_demo()
+{
+    std::cout << "\n== Signed zero ==\n";
+
+    const double positive_zero = +0.0;
+    const double negative_zero = -0.0;
+
+    std::cout << std::boolalpha
+              << "+0 == -0: " << (positive_zero == negative_zero) << '\n'
+              << "signbit(+0): " << std::signbit(positive_zero) << '\n'
+              << "signbit(-0): " << std::signbit(negative_zero) << '\n';
+
+    if (std::numeric_limits<double>::is_iec559)
+    {
+        std::cout << "1/+0 = " << 1.0 / positive_zero << '\n'
+                  << "1/-0 = " << 1.0 / negative_zero << '\n';
+    }
+}
 
 int main()
 {
-    // TODO: insert any function call
-    return 0;
+    compare_pi_approximations();
+    relative_and_absolute_tolerance();
+    ulp_demo();
+    partial_ordering_demo();
+    signed_zero_demo();
 }

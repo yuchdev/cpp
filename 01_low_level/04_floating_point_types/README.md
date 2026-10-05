@@ -17,15 +17,17 @@ The familiar explanation — “`0.1` cannot be represented exactly in binary”
 
 This chapter follows the seven examples in this directory:
 
-1. [`00_floating_point_representation/floating_point_representation.cpp`](00_floating_point_representation/floating_point_representation.cpp) — representation, precision, range, and IEEE-754 assumptions.
-2. [`01_extract_fp_components/extract_fp_components.cpp`](01_extract_fp_components/extract_fp_components.cpp) — sign, exponent, significand, subnormals, and safe bit inspection.
-3. [`02_compare_fp/compare_fp.cpp`](02_compare_fp/compare_fp.cpp) — equality, ULPs, relative error, absolute error, NaNs, and robust comparisons.
-4. [`03_fp_functions/fp_functions.cpp`](03_fp_functions/fp_functions.cpp) — rounding, classification, decomposition, stable math functions, and special values.
-5. [`04_fp_errors/fp_errors.cpp`](04_fp_errors/fp_errors.cpp) — the floating-point environment, status flags, rounding modes, traps, and compiler interaction.
+1. [`00_floating_point_representation/floating_point_representation.cpp`](00_floating_point_representation/floating_point_representation.cpp) — representation, precision, range, C++20 `std::bit_cast`/`std::endian`, and guarded C++23 `<stdfloat>`.
+2. [`01_extract_fp_components/extract_fp_components.cpp`](01_extract_fp_components/extract_fp_components.cpp) — sign, exponent, significand, subnormals, and C++20-safe bit inspection.
+3. [`02_compare_fp/compare_fp.cpp`](02_compare_fp/compare_fp.cpp) — equality, ULPs, relative/absolute error, signed zero, NaNs, and C++20 partial ordering.
+4. [`03_fp_functions/fp_functions.cpp`](03_fp_functions/fp_functions.cpp) — rounding, classification, stable math functions, C++20 constants, interpolation, and midpoint.
+5. [`04_fp_errors/fp_errors.cpp`](04_fp_errors/fp_errors.cpp) — floating-point environment, status flags, rounding modes, traps, compiler interaction, and C++20 atomic floating-point operations.
 6. [`05_fast_integer_cast/integer_cast.cpp`](05_fast_integer_cast/integer_cast.cpp) — floating/integer conversions, historical bit hacks, and undefined-behavior boundaries.
 7. [`06_fast_reverse_sqrt/reverse_sqrt.cpp`](06_fast_reverse_sqrt/reverse_sqrt.cpp) — the classic fast inverse square root, Newton iteration, representation tricks, and why the hack is mainly historical now.
 
 The emphasis is on facts that remain surprising even to experienced C++ programmers.
+
+The repository currently builds as C++20. C++23-only examples are feature-tested so the C++20 baseline stays buildable while newer toolchains can expose the additional demonstrations.
 
 ---
 
@@ -1893,7 +1895,394 @@ The caller can then decide whether the accuracy/performance trade-off is accepta
 
 ---
 
-## 8. Cross-cutting pitfalls worth remembering
+
+## 8. What C++20 and C++23 materially changed for floating-point code
+
+The core arithmetic model did not suddenly become different in C++20 or C++23, but the language and library gained several facilities that remove old folklore, express numerical intent more precisely, and make extended floating-point types first-class.
+
+### C++20: `std::bit_cast` replaces representation-punning folklore
+
+Before C++20, low-level code commonly used:
+
+~~~cpp
+float f = 1.0f;
+auto bits = *reinterpret_cast<std::uint32_t*>(&f);
+~~~
+
+or inactive union members.
+
+Those techniques are not the portable C++ object-model solution.
+
+C++20 adds:
+
+~~~cpp
+std::uint32_t bits =
+    std::bit_cast<std::uint32_t>(f);
+~~~
+
+This is especially important in floating-point code because representation inspection is common in:
+
+* ULP analysis;
+* serializers;
+* NaN payload experiments;
+* sign/exponent/fraction demonstrations;
+* historical bit hacks such as fast inverse square root.
+
+`std::bit_cast` solves the **object-model operation**. It does not prove that the source type is IEEE binary32/binary64. Format assumptions still need to be established separately.
+
+### C++20: `std::endian` separates byte order from floating encoding
+
+`std::endian::native` lets code query native scalar byte order.
+
+That is useful when inspecting the memory representation of a floating-point object, but remember:
+
+> endianness and IEEE field layout are different properties.
+
+If a `float` is known to be IEEE binary32, bit positions in the `std::uint32_t` obtained through `bit_cast` have the expected numeric significance regardless of how the four bytes are ordered in memory.
+
+### C++20: `std::numbers` removes dependency on non-standard constants
+
+Modern code can write:
+
+~~~cpp
+#include <numbers>
+
+double pi = std::numbers::pi;
+float pif = std::numbers::pi_v<float>;
+~~~
+
+rather than relying on implementation macros such as `M_PI`.
+
+The standard constants include `e`, `pi`, `sqrt2`, `sqrt3`, `phi`, logarithmic constants, and related inverses.
+
+The variable-template form matters in generic code because it obtains the constant directly in the target floating type:
+
+~~~cpp
+template<std::floating_point T>
+T circle_area(T r)
+{
+    return std::numbers::pi_v<T> * r * r;
+}
+~~~
+
+### C++20: `std::midpoint` is not just prettier syntax
+
+Naively computing:
+
+~~~cpp
+(a + b) / 2
+~~~
+
+can overflow even when the mathematical midpoint is representable.
+
+C++20 provides:
+
+~~~cpp
+std::midpoint(a, b)
+~~~
+
+For floating-point arguments, the specification is designed so that at most one inexact operation occurs.
+
+This makes `midpoint` useful not just for integers but also for numerically careful floating-point code.
+
+### C++20: `std::lerp` provides stronger interpolation guarantees
+
+The obvious formula:
+
+~~~cpp
+a + t * (b - a)
+~~~
+
+looks trivial, but extreme values can expose overflow and monotonicity problems.
+
+C++20 adds:
+
+~~~cpp
+std::lerp(a, b, t)
+~~~
+
+with useful guarantees such as exact endpoint behavior for `t == 0` and `t == 1`, and finite results for finite endpoints when `t` lies in the interpolation interval.
+
+That makes `std::lerp` a numerical contract, not merely a spelling convenience.
+
+### C++20: floating-point `<=>` is a partial order
+
+For integers, three-way comparison naturally produces a strong ordering.
+
+Floating point cannot do that because NaN is unordered.
+
+~~~cpp
+double nan = std::numeric_limits<double>::quiet_NaN();
+
+auto result = nan <=> 1.0;
+
+assert(result == std::partial_ordering::unordered);
+~~~
+
+This is an important type-system acknowledgement of IEEE-style comparison semantics.
+
+A floating value is therefore not naturally `std::totally_ordered` merely because the syntax supports `<`, `<=`, and `<=>`.
+
+If NaNs can appear in sortable data, define an explicit total-order policy.
+
+### C++20: the `std::floating_point` concept is a category check, not a format guarantee
+
+C++20 adds:
+
+~~~cpp
+template<class T>
+concept std::floating_point;
+~~~
+
+This is useful for constraining generic numerical APIs:
+
+~~~cpp
+template<std::floating_point T>
+T relative_error(T a, T b);
+~~~
+
+But satisfying `std::floating_point` does **not** imply:
+
+* IEEE 754;
+* radix 2;
+* a particular number of bits;
+* support for NaN or infinity;
+* a particular `long double` ABI.
+
+Use concepts for type-category constraints and `std::numeric_limits` for numerical representation properties.
+
+### C++20: floating-point atomics gained arithmetic operations
+
+Since C++20, floating-point specializations of `std::atomic` provide operations such as:
+
+~~~cpp
+std::atomic<double> total{0.0};
+
+total.fetch_add(1.25);
+total.fetch_sub(0.25);
+~~~
+
+This has an obscure but important numerical caveat: the floating-point environment used by the atomic operation may differ from the calling thread's floating-point environment.
+
+So code must not assume that setting:
+
+~~~cpp
+std::fesetround(FE_DOWNWARD);
+~~~
+
+necessarily makes an atomic floating-point addition follow the same runtime rounding environment.
+
+Atomicity and floating-point-environment control are separate contracts.
+
+### C++20 formatting is useful for diagnostics, not a replacement for round-trip policy
+
+`std::format` arrived in C++20 and supports floating-point presentation styles, including hexadecimal floating representation.
+
+For diagnostic output this is much cleaner than hand-maintained `printf` format strings.
+
+For machine interchange, however, decide explicitly whether you need:
+
+* shortest round-trip form;
+* fixed precision;
+* hexadecimal exact representation;
+* locale independence.
+
+`std::to_chars` / `std::from_chars` remain particularly useful for locale-independent, non-allocating text conversion.
+
+### C++23: `std::byteswap` helps at binary-format boundaries
+
+C++23 adds `std::byteswap` for integer types:
+
+~~~cpp
+std::uint32_t bits = std::bit_cast<std::uint32_t>(value);
+bits = std::byteswap(bits);
+~~~
+
+This is useful when a binary format specifies a byte order different from the host.
+
+The sequence deliberately expresses two separate operations:
+
+1. `std::bit_cast` obtains the floating-point object's representation as an integer value;
+2. `std::byteswap` reverses the bytes of that integer representation.
+
+`std::byteswap` does **not** numerically transform a floating-point value, and it does not define a file/network format by itself.
+
+### C++23: `<stdfloat>` adds optional fixed-width floating-point types
+
+C++23 adds optional aliases:
+
+~~~cpp
+std::float16_t
+std::float32_t
+std::float64_t
+std::float128_t
+std::bfloat16_t
+~~~
+
+with corresponding implementation macros:
+
+~~~cpp
+__STDCPP_FLOAT16_T__
+__STDCPP_FLOAT32_T__
+__STDCPP_FLOAT64_T__
+__STDCPP_FLOAT128_T__
+__STDCPP_BFLOAT16_T__
+~~~
+
+and literal suffixes such as:
+
+~~~cpp
+0.5f16
+0.5f32
+0.5f64
+0.5f128
+0.5bf16
+~~~
+
+when the corresponding optional type is supported.
+
+The standardized properties are worth memorizing:
+
+| Type | Storage bits | Precision bits | Exponent bits |
+|---|---:|---:|---:|
+| `std::float16_t` | 16 | 11 | 5 |
+| `std::float32_t` | 32 | 24 | 8 |
+| `std::float64_t` | 64 | 53 | 11 |
+| `std::float128_t` | 128 | 113 | 15 |
+| `std::bfloat16_t` | 16 | 8 | 8 |
+
+`bfloat16` is particularly instructive: compared with binary16 it spends fewer bits on precision and more on exponent range.
+
+### C++23 fixed-width floating aliases are not aliases for `float` or `double`
+
+This is deliberately different from fixed-width integers.
+
+If `std::float32_t` exists, it names an **extended floating-point type**. It is not permitted to be merely:
+
+~~~cpp
+using float32_t = float;
+~~~
+
+Likewise, `std::float64_t` is not simply a standardized spelling of `double`.
+
+This distinction exists so extended floating-point types can coexist with the three standard floating-point types even when they have the same value representation.
+
+Consequences show up in:
+
+* overload resolution;
+* type traits;
+* template specialization;
+* conversion ranking;
+* ABI boundaries.
+
+### C++23 introduced floating-point conversion rank and subrank
+
+Before extended standard-width types became first-class, the familiar hierarchy was mostly:
+
+~~~text
+long double
+double
+float
+~~~
+
+C++23 formalizes **floating-point conversion rank** and **conversion subrank**.
+
+This matters when standard and extended types have overlapping value sets.
+
+For equal conversion rank, fixed-width floating types such as `std::float32_t` and `std::float64_t` have greater conversion subrank than standard floating types of equal rank.
+
+These rules affect:
+
+* usual arithmetic conversions;
+* implicit conversions;
+* narrowing decisions;
+* overload resolution;
+* common floating type selection in math functions.
+
+This is an advanced but important consequence of `<stdfloat>`: “same width” does not mean “same type semantics”.
+
+### C++23 common math overloads account for extended floating types
+
+The `<cmath>` overload model was updated so mixed arithmetic arguments can select a common floating-point type using the new rank/subrank system.
+
+That means generic code should prefer the standard overload set rather than manually forcing everything through `double`.
+
+The old habit:
+
+~~~cpp
+return std::sqrt(static_cast<double>(x));
+~~~
+
+can needlessly throw away range or precision when extended floating types are involved.
+
+### C++23 mathematical constants extend naturally to fixed-width floating types
+
+Where the fixed-width floating type exists, the variable-template constants can be instantiated for it:
+
+~~~cpp
+std::numbers::pi_v<std::float32_t>
+~~~
+
+This is another reason to prefer the typed `_v<T>` form in generic code.
+
+### C++23 floating literal suffixes remove an old ambiguity
+
+Before C++23:
+
+~~~cpp
+0.1f  // float
+0.1   // double
+0.1L  // long double
+~~~
+
+were the standard choices.
+
+With supported C++23 extended types:
+
+~~~cpp
+0.1f32
+0.1f64
+0.1bf16
+~~~
+
+construct values directly in the intended extended type.
+
+That matters because writing:
+
+~~~cpp
+std::float32_t x = 0.1;
+~~~
+
+first creates a `double` literal and then converts it.
+
+A suffix can make the literal's source type match the target type directly.
+
+### Source-level modernization in this chapter
+
+The accompanying examples intentionally demonstrate the modern rules:
+
+* representation examples use `std::bit_cast`, not inactive-union or unrelated-pointer punning;
+* byte order is queried with `std::endian`;
+* `std::numbers::pi` replaces `M_PI`;
+* interpolation examples use `std::lerp` and `std::midpoint`;
+* comparison demonstrates `std::partial_ordering`;
+* floating atomics use the C++20 specialization explicitly;
+* C++23 `<stdfloat>` code is compiled only when both the language mode and library expose it;
+* the historical integer-conversion and inverse-square-root tricks remain, but only after the representation operation itself has been made standard-conforming with `std::bit_cast`.
+
+The goal is not to erase historical techniques. It is to separate:
+
+> **historically clever machine trick**
+
+from:
+
+> **portable modern C++ operation**
+
+so the examples teach both the hardware idea and the current language contract.
+
+---
+
+## 9. Cross-cutting pitfalls worth remembering
 
 The examples above point to several broader rules that apply throughout numerical C++.
 
@@ -2050,7 +2439,7 @@ Sometimes fixed-point or integer arithmetic is the simpler engineering solution.
 
 ---
 
-## 9. Practical inspection checklist
+## 10. Practical inspection checklist
 
 When reviewing numerical C++ code, ask:
 
@@ -2075,7 +2464,7 @@ When reviewing numerical C++ code, ask:
 
 ---
 
-## 10. Useful standard-library tools
+## 11. Useful standard-library tools
 
 For low-level and numerical floating-point work, the most useful facilities include:
 

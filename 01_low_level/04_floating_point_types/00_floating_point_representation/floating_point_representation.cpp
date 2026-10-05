@@ -1,128 +1,230 @@
-#include <iostream>
-
-// OsX workaround
-#ifdef __APPLE__
-#define _USE_MATH_DEFINES
+#include <bit>
+#include <bitset>
 #include <cmath>
-#include <cfloat>
 #include <cstdint>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <numbers>
+#include <type_traits>
+
+#if __cplusplus > 202002L && __has_include(<stdfloat>)
+#include <stdfloat>
+#define CPP_DEMO_HAS_STDFLOAT 1
 #endif
 
-#include <utilities/bitwise.h>
-
-#if __has_include(<format>)
-#include <format>
-#endif
-
-// 1.Floating-point format
-// https://en.wikipedia.org/wiki/Floating-point_arithmetic
-
-// The term floating point (FP) refers to the fact that a number's decimal point can "float",
-// in the other words, it can be placed anywhere relative to the significant digits of the number.
-// For example:
-// 0.1
-// 0.001
-// 0.00...0001
-// 10000000000
-// 5*10^-10; 7*10^9
-void show_int_float()
+template <typename Floating, typename UInt>
+void print_bits(Floating value)
 {
-    // The reason for providing more than one integer type, more than one unsigned type,
-    // and more than one floating-point type is to allow the programmer
-    // to take advantage of hardware characteristics
+    static_assert(std::is_floating_point_v<Floating>);
+    static_assert(std::is_unsigned_v<UInt>);
+    static_assert(sizeof(Floating) == sizeof(UInt));
 
-    // This is what is guaranteed about sizes of fundamental types :
-    // 1 = sizeof(char) <= sizeof(short) <= sizeof(int) <= sizeof(long) <= sizeof(long long)
-    // 1 <= sizeof(bool) <= sizeof(long)
-    // sizeof(char) <= sizeof(wchar_t) <= sizeof(long)
-    // sizeof(float) <= sizeof(double) <= sizeof(long double)
-    // sizeof(N) == sizeof(signed N) == sizeof(unsigned N)
+    const UInt bits = std::bit_cast<UInt>(value);
 
-    // Some implementation-defined aspects of fundamental types
-    //can be found by a simple use of sizeof, and more can be found in <limits>
+    std::cout << std::setprecision(std::numeric_limits<Floating>::max_digits10)
+              << value << " -> 0x" << std::hex << bits << std::dec
+              << " -> " << std::bitset<sizeof(UInt) * 8>(bits) << '\n';
+}
 
-    int i1 = 077;
-    int i2 = 0xaa;
-    long l1 = 100l;
-    unsigned long l2 = 100ul;
-    unsigned long long l3 = 100ull;
+template <typename T>
+void print_limits(const char* name)
+{
+    using limits = std::numeric_limits<T>;
 
-    float f1 = 1.f;
-    // long float f2 = 1.f;
-    double d1 = 1.0;
-    long double d2 = 1.0;
+    std::cout << name
+              << ": sizeof=" << sizeof(T)
+              << ", radix=" << limits::radix
+              << ", digits=" << limits::digits
+              << ", digits10=" << limits::digits10
+              << ", max_digits10=" << limits::max_digits10
+              << ", min=" << limits::min()
+              << ", lowest=" << limits::lowest()
+              << ", max=" << limits::max()
+              << ", IEC559=" << std::boolalpha << limits::is_iec559
+              << '\n';
+}
+
+static void representation_and_limits()
+{
+    std::cout << "== Standard floating-point types ==\n";
+
+    // C++ guarantees only the nondecreasing size relation; exact formats are
+    // implementation-defined.
+    static_assert(sizeof(float) <= sizeof(double));
+    static_assert(sizeof(double) <= sizeof(long double));
+
+    print_limits<float>("float");
+    print_limits<double>("double");
+    print_limits<long double>("long double");
+
+    // The bit layout below is meaningful only after establishing the expected
+    // format. These assertions intentionally document the assumption.
+    if constexpr (sizeof(float) == sizeof(std::uint32_t))
+    {
+        std::cout << "\nfloat representations (C++20 std::bit_cast):\n";
+        print_bits<float, std::uint32_t>(1.0f);
+        print_bits<float, std::uint32_t>(1.5f);
+        print_bits<float, std::uint32_t>(0.75f);
+        print_bits<float, std::uint32_t>(-0.0f);
+    }
+
+    if constexpr (sizeof(double) == sizeof(std::uint64_t))
+    {
+        std::cout << "\ndouble representations (C++20 std::bit_cast):\n";
+        print_bits<double, std::uint64_t>(1.0);
+        print_bits<double, std::uint64_t>(1.5);
+        print_bits<double, std::uint64_t>(0.75);
+        print_bits<double, std::uint64_t>(-0.0);
+    }
+}
+
+static void spacing_and_integer_precision()
+{
+    std::cout << "\n== Non-uniform spacing ==\n";
+
+    const double one = 1.0;
+    const double next_one =
+        std::nextafter(one, std::numeric_limits<double>::infinity());
+
+    const double large = 1'000'000'000'000.0;
+    const double next_large =
+        std::nextafter(large, std::numeric_limits<double>::infinity());
+
+    std::cout << std::setprecision(std::numeric_limits<double>::max_digits10);
+    std::cout << "nextafter(1.0,+inf)-1.0 = "
+              << next_one - one << '\n';
+    std::cout << "nextafter(1e12,+inf)-1e12 = "
+              << next_large - large << '\n';
+
+    // binary32 has 24 bits of precision on the overwhelmingly common IEEE
+    // implementation. At 2^24, the next integer can no longer be represented.
+    if constexpr (std::numeric_limits<float>::radix == 2 &&
+                  std::numeric_limits<float>::digits == 24)
+    {
+        constexpr float exact_boundary = 16'777'216.0f; // 2^24
+        constexpr float rounded_next = 16'777'217.0f;
+        static_assert(exact_boundary == rounded_next);
+
+        std::cout << "float(16777216) == float(16777217): "
+                  << std::boolalpha
+                  << (exact_boundary == rounded_next) << '\n';
+    }
+}
+
+static void endian_demo()
+{
+    std::cout << "\n== C++20 std::endian ==\n";
+
+    if constexpr (std::endian::native == std::endian::little)
+        std::cout << "native scalar byte order: little endian\n";
+    else if constexpr (std::endian::native == std::endian::big)
+        std::cout << "native scalar byte order: big endian\n";
+    else
+        std::cout << "native scalar byte order: mixed/other\n";
+
+    std::cout << "Endianness describes byte order in memory; IEEE field positions "
+                 "are a separate representation question.\n";
 }
 
 
-// In computing, floating-point arithmetic (FP) is arithmetic 
-// using formulaic representation of real numbers as an approximation 
-// so as to support a trade-off between range and precision.
-// Representation:
-// FP_Number = Significand * Base^Exponent
-// 1.2345 = 12345 * 10^-4
-// All these numbers are "packed" in 32, 64 or 128 bit value
-void floating_point_representation()
+#if defined(__cpp_lib_byteswap) && __cpp_lib_byteswap >= 202110L
+static void cxx23_byteswap_demo()
 {
-    // Single-precision format is a computer number format, usually occupying 32 bits in computer memory
-    // Sign bit: 1 bit
-    // Exponent width: 8 bits
-    // Significand precision: 24 bits (23 explicitly stored)
-    float float_numbers[] = { 1.0, 1.5, 0.75 };
+    std::cout << "\n== C++23 std::byteswap on a floating representation ==\n";
 
-#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
-    std::cout << std::format("Sizeof float {}\n", sizeof(float));
-    std::cout << std::format("Sizeof long {}\n", sizeof(long));
-    std::cout << std::format("Sizeof long* {}\n", sizeof(long*));
-#else
-    std::cout << "Sizeof float " << sizeof(float) << '\n';
-    std::cout << "Sizeof long " << sizeof(long) << '\n';
-    std::cout << "Sizeof long* " << sizeof(long*) << '\n';
-#endif
+    static_assert(sizeof(float) == sizeof(std::uint32_t));
 
-    for (auto float_number : float_numbers) {
+    constexpr float value = 1.0f;
+    constexpr std::uint32_t bits =
+        std::bit_cast<std::uint32_t>(value);
+    constexpr std::uint32_t swapped =
+        std::byteswap(bits);
 
-        uint32_t* float_hack = reinterpret_cast<uint32_t*>(&float_number);
-        static_assert(sizeof(float_number) == sizeof(*float_hack), "Float and long should have equal size");
-        std::cout << "Binary representation of " << float_number << " =\n\t " << *float_hack
-            << " =\n\t " << bitwise(*float_hack) << '\n';
-    }
+    std::cout << "float 1.0 bits = 0x" << std::hex << bits
+              << ", byte-swapped = 0x" << swapped
+              << std::dec << '\n';
 
-    // Double precision is a computer number format, usually occupying 64 bits in computer memory
-    // Sign bit: 1 bit
-    // Exponent: 11 bits
-    // Significand precision: 53 bits (52 explicitly stored)
-    double double_numbers[] = { 1.0, 1.5, 0.75 };
-
-    for (auto double_number : double_numbers) {
-        long long* double_hack = reinterpret_cast<long long*>(&double_number);
-        static_assert(sizeof(double_number) == sizeof(*double_hack), "Double and long long should have equal size");
-
-#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
-        std::cout << std::format("Binary representation of {} =\n\t {} =\n\t {}\n",
-            double_number, *double_hack, bitwise(*double_hack));
-#else
-        std::cout << "Binary representation of " << double_number << " =\n\t " << *double_hack
-            << " =\n\t " << bitwise(*double_hack) << '\n';
-#endif
-    }
-    
-    // Unlike integers, distribution of floating-point numbers is not uniform
-    // It is denser for smaller and dense for larger numbers
-    // Using floating-point numbers is a constant trade-off between range and precision
-
-    // Epsilon is a floating-point positive number, as such (1 +/- Epsilon) != 1
-    // DBL_EPSILON C++ Standard library == 10 ^ -16
-
-    // Standard library  also have several special values
-    // +/- INF and NaN (Not a number)
-    // Two kinds of NaN: a quiet NaN (qNaN) and a signaling NaN (sNaN)
-
-    // Numerical computing solutions like Maxima or Mathematica 
-    // often "knows" very precise representation of numbers like Pi or e
+    std::cout << "byteswap operates on the integer representation; it does not "
+                 "numerically convert the floating-point value.\n";
 }
+#endif
+
+#if defined(CPP_DEMO_HAS_STDFLOAT)
+static void cxx23_fixed_width_floating_types()
+{
+    std::cout << "\n== C++23 <stdfloat> optional extended types ==\n";
+
+#ifdef __STDCPP_FLOAT16_T__
+    {
+        std::float16_t x = 0.1f16;
+        std::cout << "float16_t: sizeof=" << sizeof(x)
+                  << ", digits=" << std::numeric_limits<std::float16_t>::digits
+                  << ", value(as double)=" << static_cast<double>(x) << '\n';
+    }
+#endif
+
+#ifdef __STDCPP_FLOAT32_T__
+    {
+        static_assert(!std::is_same_v<std::float32_t, float>);
+        std::float32_t x = 0.1f32;
+        const auto mixed = x + 1.0f;
+
+        // C++23 conversion rank/subrank rules make the fixed-width extended
+        // type win over a standard type of equal rank.
+        static_assert(std::is_same_v<decltype(mixed), const std::float32_t>);
+
+        const auto pi32 = std::numbers::pi_v<std::float32_t>;
+
+        std::cout << "float32_t: sizeof=" << sizeof(x)
+                  << ", digits=" << std::numeric_limits<std::float32_t>::digits
+                  << ", value(as double)=" << static_cast<double>(x)
+                  << ", pi(as double)=" << static_cast<double>(pi32) << '\n';
+    }
+#endif
+
+#ifdef __STDCPP_FLOAT64_T__
+    {
+        static_assert(!std::is_same_v<std::float64_t, double>);
+        std::float64_t x = 0.1f64;
+        std::cout << "float64_t: sizeof=" << sizeof(x)
+                  << ", digits=" << std::numeric_limits<std::float64_t>::digits
+                  << ", value(as long double)="
+                  << static_cast<long double>(x) << '\n';
+    }
+#endif
+
+#ifdef __STDCPP_BFLOAT16_T__
+    {
+        std::bfloat16_t x = 0.1bf16;
+        std::cout << "bfloat16_t: sizeof=" << sizeof(x)
+                  << ", digits=" << std::numeric_limits<std::bfloat16_t>::digits
+                  << ", value(as double)=" << static_cast<double>(x) << '\n';
+    }
+#endif
+
+#if !defined(__STDCPP_FLOAT16_T__) && !defined(__STDCPP_FLOAT32_T__) && \
+    !defined(__STDCPP_FLOAT64_T__) && !defined(__STDCPP_FLOAT128_T__) && \
+    !defined(__STDCPP_BFLOAT16_T__)
+    std::cout << "<stdfloat> exists, but this implementation exposes none "
+                 "of the optional fixed-width floating types.\n";
+#endif
+}
+#endif
 
 int main()
 {
-    floating_point_representation();
-    return 0;
+    representation_and_limits();
+    spacing_and_integer_precision();
+    endian_demo();
+
+#if defined(__cpp_lib_byteswap) && __cpp_lib_byteswap >= 202110L
+    cxx23_byteswap_demo();
+#endif
+
+#if defined(CPP_DEMO_HAS_STDFLOAT)
+    cxx23_fixed_width_floating_types();
+#else
+    std::cout << "\nC++23 <stdfloat> demo not enabled by this build/toolchain.\n";
+#endif
 }
