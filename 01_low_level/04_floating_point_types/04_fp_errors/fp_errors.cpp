@@ -1,5 +1,7 @@
+#include <atomic>
 #include <cmath>
 #include <iomanip>
+#include <limits>
 #include <iostream>
 
 #include <cfenv>
@@ -65,16 +67,17 @@ void fp_control_noexcept()
         ++steps;
     } while ((res = fetestexcept(FE_ALL_EXCEPT)) == 0);
     std::cout << "Inexact/Overflow Exceptions in " << steps << " steps: " << res << '\n';
-    std::cout << "2^+inf: %g\n"
-              << d2 << '\n';
+    std::cout << "overflowed value = " << d2 << '\n';
 
     feclearexcept(res);
 
-    // Create zero division error
-    double d3 = 1.0 / d1;
+    // Create an actual runtime division-by-zero condition.
+    volatile double runtime_zero = 0.0;
+    volatile double runtime_one = 1.0;
+    double d3 = runtime_one / runtime_zero;
     res = fetestexcept(FE_ALL_EXCEPT);
-    std::cout << "Zero Div Exceptions:" << res << '\n';
-    std::cout << "1/0:" << d3 << '\n';
+    std::cout << "Division-by-zero flags: " << res << '\n';
+    std::cout << "1/0 = " << d3 << '\n';
 
     feclearexcept(res);
 
@@ -87,16 +90,16 @@ void fp_control_noexcept()
         ++steps;
     } while ((s * s - 2) > 0);
     std::cout << "Inexact Exceptions in " << steps << " steps\n";
-    std::cout << "sqrt (2): %g\n"
-              << '\n';
+    std::cout << "sqrt(2) approximation = " << s << '\n';
 }
 
 void fp_control()
 {
-    // Floating Point Environment is a system-wide variable
-    // which value is being set (and never clear!) on floating point exception/error situation,
-    // and keep additional information about the error
-    // FP is probably set by 'stmxcsr' assembly instruction in special SSE MXCSR register
+    // The floating-point environment is execution-thread state, not one process-global
+    // variable. Its implementation may involve x87 state, SSE/AVX MXCSR, ARM FPCR/FPSR,
+    // or other target-specific control/status registers. Standard <cfenv> deliberately
+    // abstracts those details. Exception flags are sticky until cleared or the environment
+    // is replaced.
 
     // default FP environment (system-dependent!)
     fenv_t fenv = *FE_DFL_ENV;
@@ -130,6 +133,73 @@ void fp_control()
     {
         std::cout << "no exceptions raised" << '\n';
     }
+}
+
+
+class RoundingModeGuard
+{
+public:
+    explicit RoundingModeGuard(int mode)
+        : old_mode_{std::fegetround()}
+    {
+        if (std::fesetround(mode) != 0)
+            std::cerr << "Warning: requested rounding mode is not supported\n";
+    }
+
+    ~RoundingModeGuard()
+    {
+        if (old_mode_ != -1)
+            std::fesetround(old_mode_);
+    }
+
+    RoundingModeGuard(const RoundingModeGuard&) = delete;
+    RoundingModeGuard& operator=(const RoundingModeGuard&) = delete;
+
+private:
+    int old_mode_;
+};
+
+void rounding_mode_demo()
+{
+    std::cout << "\nC++ floating-point environment: dynamic rounding mode\n";
+
+    const double value = 2.5;
+
+    {
+        RoundingModeGuard guard{FE_DOWNWARD};
+        std::cout << "FE_DOWNWARD rint(2.5) = " << std::rint(value) << '\n';
+    }
+
+    {
+        RoundingModeGuard guard{FE_UPWARD};
+        std::cout << "FE_UPWARD rint(2.5) = " << std::rint(value) << '\n';
+    }
+
+    // Built-in floating -> integer conversion still truncates toward zero and does
+    // not adopt the current floating-point rounding mode.
+    {
+        RoundingModeGuard guard{FE_UPWARD};
+        std::cout << "FE_UPWARD static_cast<int>(2.5) = "
+                  << static_cast<int>(value) << '\n';
+    }
+}
+
+void atomic_floating_point_cxx20()
+{
+    std::cout << "\nC++20 atomic floating-point specialization\n";
+
+    std::atomic<double> total{1.5};
+    const double old = total.fetch_add(0.25, std::memory_order_relaxed);
+
+    std::cout << "old value = " << old
+              << ", new value = " << total.load(std::memory_order_relaxed)
+              << ", always lock-free = " << std::boolalpha
+              << std::atomic<double>::is_always_lock_free << '\n';
+
+    // Since C++20, atomic floating-point specializations provide fetch_add/fetch_sub.
+    // A subtle standard rule: the floating-point environment used by the atomic
+    // operation may differ from the calling thread's environment. Do not use an
+    // atomic FP operation as a way to enforce a particular rounding-mode policy.
 }
 
 #ifdef _MSC_VER
@@ -320,6 +390,15 @@ void fp_exceptions()
 
 int main()
 {
+    fp_control_noexcept();
+    fp_control();
+    rounding_mode_demo();
+    atomic_floating_point_cxx20();
+
+#ifdef _MSC_VER
+    fp_exceptions_ms();
+#else
     fp_exceptions();
+#endif
     return 0;
 }

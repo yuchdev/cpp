@@ -1,9 +1,14 @@
 // ReSharper disable All
+#include <algorithm>
+#include <cstdio>
 #include <functional>
+#include <memory>
+#include <ranges>
 #include <string>
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <version>
 
 
 /*
@@ -301,11 +306,11 @@ static void reference_wrapper_demo()
 }
 
 // ----------------------------------------------------------------------------
-// 10) Timeline: C++98..C++17 (reference-relevant highlights)
+// 10) Timeline: C++98..C++23 (reference-relevant highlights)
 // ----------------------------------------------------------------------------
 static void standards_timeline()
 {
-    std::puts("\n== 10) C++98..C++17 timeline (reference highlights) ==");
+    std::puts("\n== 10) C++98..C++23 timeline (reference highlights) ==");
 
     std::puts("C++98:");
     std::puts("  - lvalue references (T&), const references (const T&)");
@@ -322,9 +327,19 @@ static void standards_timeline()
     std::puts("  - return type deduction (auto) + decltype(auto) (C++14) helps preserve references");
 
     std::puts("C++17:");
-    std::puts("  - guaranteed copy elision (reduces the need to 'std::move' returns)");
-    std::puts("  - structured bindings: can bind by value or by reference (auto& / auto&&)");
-    std::puts("  - constexpr lambdas (C++17) improve compile-time reference-heavy code");
+    std::puts("  - guaranteed copy elision changes many return-value lifetime/performance patterns");
+    std::puts("  - structured bindings can bind by value or by reference (auto& / auto&&)");
+    std::puts("  - constexpr lambdas improve compile-time generic code");
+
+    std::puts("C++20:");
+    std::puts("  - concepts let APIs state reference/category constraints directly");
+    std::puts("  - ranges introduce borrowed_range/dangling to model iterator lifetime hazards");
+    std::puts("  - more constexpr library machinery makes reference-heavy code usable at compile time");
+
+    std::puts("C++23:");
+    std::puts("  - std::forward_like copies cv/ref qualifiers from one type onto another expression");
+    std::puts("  - reference_constructs_from_temporary/reference_converts_from_temporary detect dangerous bindings");
+    std::puts("  - deducing this (explicit object parameters) can reduce duplicated cv/ref-qualified member overloads");
 }
 
 // ----------------------------------------------------------------------------
@@ -348,6 +363,63 @@ static void structured_bindings_demo()
 #endif
 }
 
+// ----------------------------------------------------------------------------
+// 12) C++20 ranges: std::ranges::dangling makes a lifetime bug visible in type
+// ----------------------------------------------------------------------------
+static void ranges_dangling_demo()
+{
+    std::puts("\n== 12) C++20 ranges and dangling ==");
+
+    // Algorithms on a temporary non-borrowed range cannot safely return an
+    // iterator into the destroyed range. The ranges library represents that
+    // result as std::ranges::dangling instead.
+    using Result = decltype(std::ranges::find(std::vector<int>{1, 2, 3}, 2));
+    static_assert(std::is_same_v<Result, std::ranges::dangling>);
+
+    std::vector<int> values{1, 2, 3};
+    auto it = std::ranges::find(values, 2);
+    std::printf("found value in live range: %d\n", *it);
+
+    std::puts("borrowed_range is a lifetime property: can iterators outlive the range object?");
+}
+
+// ----------------------------------------------------------------------------
+// 13) C++23 std::forward_like
+// ----------------------------------------------------------------------------
+#if defined(__cpp_lib_forward_like) && __cpp_lib_forward_like >= 202207L
+static void forward_like_demo()
+{
+    std::puts("\n== 13) std::forward_like (C++23) ==");
+
+    int value = 42;
+
+    static_assert(std::is_same_v<
+        decltype(std::forward_like<const int&>(value)),
+        const int&>);
+
+    static_assert(std::is_same_v<
+        decltype(std::forward_like<int&&>(value)),
+        int&&>);
+
+    std::puts("std::forward_like<Like>(x) applies Like's cv/ref flavor to x.");
+}
+#endif
+
+// ----------------------------------------------------------------------------
+// 14) C++23 traits for detecting references that would dangle
+// ----------------------------------------------------------------------------
+#if defined(__cpp_lib_reference_from_temporary) && __cpp_lib_reference_from_temporary >= 202202L
+static void reference_from_temporary_traits()
+{
+    std::puts("\n== 14) C++23 reference-from-temporary traits ==");
+
+    static_assert(std::reference_constructs_from_temporary_v<const int&, int>);
+    static_assert(std::reference_converts_from_temporary_v<const int&, int>);
+
+    std::puts("These traits let generic libraries reject constructions/conversions that would bind a reference to a temporary.");
+}
+#endif
+
 int main()
 {
     lvalue_reference_basics();
@@ -361,6 +433,13 @@ int main()
     reference_wrapper_demo();
     standards_timeline();
     structured_bindings_demo();
+    ranges_dangling_demo();
+#if defined(__cpp_lib_forward_like) && __cpp_lib_forward_like >= 202207L
+    forward_like_demo();
+#endif
+#if defined(__cpp_lib_reference_from_temporary) && __cpp_lib_reference_from_temporary >= 202202L
+    reference_from_temporary_traits();
+#endif
 
     return 0;
 }

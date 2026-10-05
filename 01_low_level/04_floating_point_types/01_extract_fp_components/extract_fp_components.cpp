@@ -1,126 +1,161 @@
-#define _USE_MATH_DEFINES
-#include <iostream>
-#include <iomanip>
+#include <bit>
+#include <bitset>
 #include <cmath>
-
-// OsX workaround
-#include <cfloat>
+#include <concepts>
 #include <cstdint>
+#include <iomanip>
+#include <iostream>
+#include <limits>
+#include <type_traits>
 
-#include <utilities/bitwise.h>
-
-// 2. "Extract" sign bit, significand and exponent
-// * Before significand we always assume 1
-// * Effective exponent is exponent_value-127
-void extract_fp_components(float val)
-{
-    static_assert(sizeof(uint32_t) == sizeof(float), "sizeof(uint32_t) should be equal sizeof(float)");
-
-    union
-    {
-        float floating_number;
-        uint32_t bitwise_representation;
-    } float_bits;
-
-    float_bits.floating_number = val;
-
-    // extract sign bit
-    uint32_t sign_bit = (float_bits.bitwise_representation >> 31) ? -1 : 1;
-
-    // extract exponent
-    uint32_t exponent = (float_bits.bitwise_representation >> 23) & 0xFF;
-
-    // extract significand
-    uint32_t significand = float_bits.bitwise_representation & 0x7FFFFF;
-
-    std::cout << "Significand binary representation = " << bitwise(significand) << '\n';
-
-    int m =
-        exponent ?
-        significand | 0x800000 :
-        significand << 1;
-
-    double m1 = double(m) / pow(2., 23.);
-
-    // exponent shift
-    exponent -= 127;
-
-    std::cout << "s = " << sign_bit << "; e =  " << exponent << "; m(2) = " << m << "; m(10) = " << m1 << '\n';
-}
-
-// 1.0 = 0 01111111 00000000000000000000000
-// E = 01111111 = 127 - 127 = 0
-// 1.0 = (-1)^s * 1.M * 2^E = (1-)^0 * 1.000 * 2^0 = 1.0
-
-//       s E        M
-// 1.5 = 0 01111111 10000000000000000000000
-// E = 01111111 = 127 - 127 = 0
-// 1.1(2) = 2^0 + 2^(-1) = 1 + 1/2 = 1.5
-// 1.5 = (-1)^s * 1.M * 2^E = (1-)^0 * 1.1(2) * 2^0 = 1.5
-
-
-// Let's create generic, template-based floating-point components extractor
-template <typename FloatingPoint, typename Bitwise>
-struct floating_point_traits {};
+template <typename T>
+struct ieee754_traits;
 
 template <>
-struct floating_point_traits<float, long>
+struct ieee754_traits<float>
 {
-    static constexpr size_t significand = 23;
-    static constexpr size_t exponent = 31;
-    static constexpr long minus_one = 0x7FFFFF;
-    static constexpr long sign_mask = 0x800000;
+    using uint_type = std::uint32_t;
+
+    static constexpr int fraction_bits = 23;
+    static constexpr int exponent_bits = 8;
+    static constexpr int exponent_bias = 127;
+
+    static constexpr uint_type sign_mask = 0x80000000u;
+    static constexpr uint_type exponent_mask = 0x7f800000u;
+    static constexpr uint_type fraction_mask = 0x007fffffu;
+    static constexpr uint_type exponent_all_ones = 0xffu;
 };
 
 template <>
-struct floating_point_traits<double, long long>
+struct ieee754_traits<double>
 {
-    static constexpr size_t significand = 52;
-    static constexpr size_t exponent = 63;
-    static constexpr long long minus_one = 0x7FFFFFFFFFFF;
-    static constexpr long long sign_mask = 0x800000000000;
+    using uint_type = std::uint64_t;
+
+    static constexpr int fraction_bits = 52;
+    static constexpr int exponent_bits = 11;
+    static constexpr int exponent_bias = 1023;
+
+    static constexpr uint_type sign_mask = 0x8000000000000000ull;
+    static constexpr uint_type exponent_mask = 0x7ff0000000000000ull;
+    static constexpr uint_type fraction_mask = 0x000fffffffffffffull;
+    static constexpr uint_type exponent_all_ones = 0x7ffu;
 };
 
-template <typename FloatingPoint, typename Bitwise>
-void extract_fp_components(FloatingPoint val)
+template <std::floating_point T>
+void extract_ieee_components(T value)
 {
+    using traits = ieee754_traits<T>;
+    using UInt = typename traits::uint_type;
 
-    static constexpr size_t exponent = floating_point_traits<FloatingPoint, Bitwise>::exponent;
-    static constexpr size_t significand = floating_point_traits<FloatingPoint, Bitwise>::significand;
-    static constexpr size_t minus_one = floating_point_traits<FloatingPoint, Bitwise>::minus_one;
-    static constexpr size_t sign_mask = floating_point_traits<FloatingPoint, Bitwise>::sign_mask;
+    static_assert(sizeof(T) == sizeof(UInt),
+                  "This demonstration expects the matching IEEE storage width");
+    static_assert(std::numeric_limits<T>::radix == 2,
+                  "This decoder is specifically for binary floating point");
 
-    union
+    const UInt bits = std::bit_cast<UInt>(value);
+    const bool negative = (bits & traits::sign_mask) != 0;
+    const UInt raw_exponent =
+        (bits & traits::exponent_mask) >> traits::fraction_bits;
+    const UInt fraction = bits & traits::fraction_mask;
+
+    std::cout << "\nvalue = "
+              << std::setprecision(std::numeric_limits<T>::max_digits10)
+              << value << '\n';
+    std::cout << "bits  = " << std::bitset<sizeof(UInt) * 8>(bits) << '\n';
+    std::cout << "sign  = " << (negative ? '-' : '+') << '\n';
+    std::cout << "raw exponent = " << raw_exponent << '\n';
+    std::cout << "stored fraction = " << fraction << '\n';
+
+    if (raw_exponent == traits::exponent_all_ones)
     {
-        FloatingPoint floating_point_repr;
-        Bitwise integer_repr;
-    } f;
-    f.floating_point_repr = val;
+        if (fraction == 0)
+            std::cout << "classification: infinity\n";
+        else
+            std::cout << "classification: NaN (payload bits live in the fraction field)\n";
+        return;
+    }
 
-    // TODO: warning C4293: '>>': shift count negative or too big, undefined behavior
-    int s = (f.dw >> exponent) ? -1 : 1;
-    // TODO: warning C4293: '>>': shift count negative or too big, undefined behavior
-    int e = (f.dw >> significand) & 0xFF;
-    int m =
-        e ?
-        (f.integer_repr & minus_one) | sign_mask :
-        (f.integer_repr & minus_one) << 1;
+    if (raw_exponent == 0)
+    {
+        if (fraction == 0)
+        {
+            std::cout << "classification: "
+                      << (negative ? "negative zero" : "positive zero")
+                      << '\n';
+            return;
+        }
 
-    e -= 127;
-    std::cout << "sign = " << s
-        << " mantissa = " << m
-        << " exponent = " << e << '\n';
+        const int exponent = 1 - traits::exponent_bias;
+        const long double significand =
+            static_cast<long double>(fraction) /
+            std::ldexp(1.0L, traits::fraction_bits);
+
+        std::cout << "classification: subnormal\n";
+        std::cout << "effective significand = 0.fraction = "
+                  << significand << '\n';
+        std::cout << "effective exponent = " << exponent << '\n';
+        return;
+    }
+
+    const int exponent =
+        static_cast<int>(raw_exponent) - traits::exponent_bias;
+    const long double significand =
+        1.0L +
+        static_cast<long double>(fraction) /
+            std::ldexp(1.0L, traits::fraction_bits);
+
+    std::cout << "classification: normal\n";
+    std::cout << "effective significand = 1.fraction = "
+              << significand << '\n';
+    std::cout << "effective exponent = " << exponent << '\n';
 }
 
-void floating_point_components()
+template <std::floating_point T>
+void numerical_decomposition(T value)
 {
-    extract_fp_components(1.0);
-    extract_fp_components(1.5);
-    extract_fp_components(-1.0);
+    std::cout << "\nstd::frexp numerical decomposition of "
+              << std::setprecision(std::numeric_limits<T>::max_digits10)
+              << value << "\n";
+
+    int exponent = 0;
+    const T fraction = std::frexp(value, &exponent);
+
+    std::cout << "fraction = " << fraction
+              << ", exponent = " << exponent
+              << ", recomposed = " << std::ldexp(fraction, exponent)
+              << '\n';
+
+    // frexp/ldexp describe the numeric value and do not require knowledge of
+    // IEEE field widths, exponent bias, or object representation.
+}
+
+static void special_values()
+{
+    std::cout << "\n== Special encodings ==\n";
+
+    extract_ieee_components(+0.0f);
+    extract_ieee_components(-0.0f);
+    extract_ieee_components(std::numeric_limits<float>::denorm_min());
+    extract_ieee_components(std::numeric_limits<float>::infinity());
+    extract_ieee_components(std::numeric_limits<float>::quiet_NaN());
 }
 
 int main()
 {
-    floating_point_components();
-    return 0;
+    static_assert(std::numeric_limits<float>::is_iec559,
+                  "This bit-field demonstration expects IEC 559 / IEEE-style float");
+    static_assert(std::numeric_limits<double>::is_iec559,
+                  "This bit-field demonstration expects IEC 559 / IEEE-style double");
+
+    extract_ieee_components(1.0f);
+    extract_ieee_components(1.5f);
+    extract_ieee_components(-1.0f);
+
+    extract_ieee_components(1.0);
+    extract_ieee_components(1.5);
+
+    numerical_decomposition(8.0);
+    numerical_decomposition(0.1);
+
+    special_values();
 }
