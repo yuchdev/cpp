@@ -1,4 +1,4 @@
-# Integer Types in Modern C++
+# 03. Integer Types in Modern C++
 
 Integer arithmetic in C++ looks simple until the program crosses a boundary: a different ABI, a different integer rank, a signed/unsigned comparison, a narrowing conversion, a serialization format, or an optimizer that takes undefined behavior seriously.
 

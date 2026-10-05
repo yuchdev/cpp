@@ -1,4 +1,4 @@
-# Constness facts (C++98 to C++17)
+# 02. Constness facts (C++98 to C++17)
 
 ## Runtime vs. compile-time constness
 

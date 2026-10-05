@@ -1,4 +1,4 @@
-# Fundamental types 
+# 01. Fundamental types 
 
 ## 1. `bool`
 

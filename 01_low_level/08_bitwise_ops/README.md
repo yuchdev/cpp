@@ -1,4 +1,4 @@
-# Bitwise Operations in C++
+# 08. Bitwise Operations in C++
 
 ## Advanced Facts, Pitfalls, and Evolution (C++98 → C++20)
 

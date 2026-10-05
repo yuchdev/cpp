@@ -1,6 +1,4 @@
-# C++ Enums - Advanced Facts, Pitfalls, and Evolution (C++98 → C++20)
-
-> This document is a reference chapter on `enum` and `enum class`, collecting obscure, non-obvious, and advanced facts useful for low-level, ABI-sensitive, or correctness-critical C++ code.
+# 07. C++ Enums - Advanced Facts, Pitfalls, and Evolution (C++98 → C++20)
 
 ---
 

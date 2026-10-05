@@ -1,4 +1,4 @@
-# Floating-Point Types in Modern C++
+# 04. Floating-Point Types in Modern C++
 
 Floating-point arithmetic is one of the places where code can be perfectly valid C++ and still behave very differently from the mathematical notation it resembles.
 

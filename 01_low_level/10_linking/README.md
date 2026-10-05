@@ -1,4 +1,4 @@
-## Linking. External Declarations and the Program Model
+# 10. Linking. External Declarations and the Program Model
 
 > C-style linking. Linkage and function pointers.
 > One Definition Rule (ODR). Translation units.

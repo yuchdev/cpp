@@ -1,4 +1,4 @@
-# Pointers, References, Alignment, and Object Lifetime in Modern C++
+# 05. Pointers, References, Alignment, and Object Lifetime in Modern C++
 
 Pointers look simple because their surface syntax is old:
 

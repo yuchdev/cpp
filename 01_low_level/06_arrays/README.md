@@ -1,4 +1,4 @@
-# C++ Arrays - Decay, Types, and Modern Alternatives
+# 06. C++ Arrays - Decay, Types, and Modern Alternatives
 
 ## Roadmap
 
