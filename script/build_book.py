@@ -266,8 +266,6 @@ def compile_book(input_dir: Path, output_dir: Path, do_renumber: bool, do_check:
             text = renumber_markdown(text, chapter_number)
 
         headings = parse_headings(text)
-        if do_check:
-            total_warnings += validate_headings(readme, chapter_number, headings)
 
         if headings and headings[0].level == 1:
             title = chapter_title_from_h1(headings[0])
@@ -306,6 +304,16 @@ def compile_book(input_dir: Path, output_dir: Path, do_renumber: bool, do_check:
     book_name = f"{output_dir.name}.md"
     book_path = output_dir / book_name
     book_path.write_text("".join(book_chunks), encoding="utf-8")
+
+    if do_check:
+        compiled_chunks = split_book(book_path.read_text(encoding="utf-8"))
+        for entry, chunk in zip(manifest_entries, compiled_chunks):
+            chapter_number = int(entry["chapter"])
+            total_warnings += validate_headings(
+                f"{book_path} [chapter {chapter_number:02d}]",
+                chapter_number,
+                parse_headings(chunk),
+            )
 
     manifest = {
         "version": 1,
