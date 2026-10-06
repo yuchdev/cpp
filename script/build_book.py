@@ -1,19 +1,11 @@
 #!/usr/bin/env python3
-"""Build a Markdown book part from chapter README files.
-
-Each immediate numbered subdirectory of the input directory is treated as a
-chapter. Its README.md is copied to the output directory and renamed from the
-chapter's number and H1 title.
-
-The build is deliberately non-fatal for chapter-format problems: validation
-issues are printed as warnings, while readable chapters are still copied.
-"""
+"""Compile/decompile Markdown book chapters from chapter README.md files."""
 
 from __future__ import annotations
 
 import argparse
+import json
 import re
-import shutil
 import sys
 import unicodedata
 from dataclasses import dataclass
@@ -21,7 +13,8 @@ from pathlib import Path
 
 CHAPTER_DIR_RE = re.compile(r"^(?P<number>\d{2})(?:_|$)")
 ATX_HEADING_RE = re.compile(r"^(?P<marks>#{1,6})[ \t]+(?P<title>.*?)[ \t]*#*[ \t]*$")
-FENCE_RE = re.compile(r"^[ \t]{0,3}(?P<fence>`{3,}|~{3,})")
+FENCE_RE = re.compile(r"^[ \t]{0,3}(?P<fence>\`{3,}|~{3,})")
+LEADING_NUMBER_RE = re.compile(r"^\s*\d+(?:\.\d+)*\.?\s*")
 NUMBER_PREFIX_RE = re.compile(
     r"^(?P<number>\d+(?:\.\d+)*)(?:\.(?=[ \t]|$))?(?:[ \t]+|$)"
 )
@@ -30,6 +23,7 @@ CPP_VERSION_SUFFIX_RE = re.compile(
     r"\s*\(\s*C\+\+\d{2}(?:\s*(?:→|->|–|-|to)\s*C\+\+\d{2})?\s*\)\s*$",
     re.IGNORECASE,
 )
+MANIFEST_NAME = "manifest.json"
 
 
 @dataclass(frozen=True)
@@ -39,14 +33,12 @@ class Heading:
     line: int
 
 
-def warn(chapter: Path, message: str) -> None:
-    """Print one chapter validation warning."""
+def warn(chapter: Path | str, message: str) -> None:
     print(f"WARNING: {chapter}: {message}", file=sys.stderr)
 
 
-def parse_headings(text: str) -> list[Heading]:
-    """Return ATX headings outside fenced code blocks."""
-    headings: list[Heading] = []
+def iter_markdown_lines(text: str):
+    """Yield (line_number, line, heading_match) while ignoring fenced code."""
     fence_char: str | None = None
     fence_length = 0
 
@@ -54,206 +46,228 @@ def parse_headings(text: str) -> list[Heading]:
         fence_match = FENCE_RE.match(line)
         if fence_match:
             fence = fence_match.group("fence")
-            current_char = fence[0]
-            current_length = len(fence)
-
+            char = fence[0]
+            length = len(fence)
             if fence_char is None:
-                fence_char = current_char
-                fence_length = current_length
+                fence_char, fence_length = char, length
+                yield line_number, line, None
+                continue
+            if char == fence_char and length >= fence_length:
+                fence_char, fence_length = None, 0
+                yield line_number, line, None
                 continue
 
-            if current_char == fence_char and current_length >= fence_length:
-                fence_char = None
-                fence_length = 0
-                continue
+        heading = None if fence_char is not None else ATX_HEADING_RE.match(line)
+        yield line_number, line, heading
 
-        if fence_char is not None:
-            continue
 
-        match = ATX_HEADING_RE.match(line)
+def parse_headings(text: str) -> list[Heading]:
+    headings: list[Heading] = []
+    for line_number, _line, match in iter_markdown_lines(text):
         if match:
             headings.append(
-                Heading(
-                    level=len(match.group("marks")),
-                    title=match.group("title").strip(),
-                    line=line_number,
-                )
+                Heading(len(match.group("marks")), match.group("title").strip(), line_number)
             )
-
     return headings
 
 
 def chapter_title_from_h1(h1: Heading) -> str:
-    """Return the display title used to form the generated filename."""
     title = H1_NUMBER_PREFIX_RE.sub("", h1.title, count=1).strip()
-    title = CPP_VERSION_SUFFIX_RE.sub("", title).strip()
-    return title
+    return CPP_VERSION_SUFFIX_RE.sub("", title).strip()
 
 
 def filename_component(title: str) -> str:
-    """Convert a chapter title to a punctuation-free underscore-separated name.
-
-    Unicode letters and digits are retained. '+' is retained because it is part
-    of the language name C++. Other punctuation and symbols become separators.
-    """
     pieces: list[str] = []
-    previous_was_separator = False
-
+    separator = False
     for char in title:
         if char.isalnum() or char == "+":
             pieces.append(char)
-            previous_was_separator = False
-            continue
-
-        category = unicodedata.category(char)
-        if char.isspace() or category[0] in {"P", "S"}:
-            if pieces and not previous_was_separator:
+            separator = False
+        elif char.isspace() or unicodedata.category(char)[0] in {"P", "S"}:
+            if pieces and not separator:
                 pieces.append("_")
-                previous_was_separator = True
-            continue
-
-        if pieces and not previous_was_separator:
+                separator = True
+        elif pieces and not separator:
             pieces.append("_")
-            previous_was_separator = True
-
+            separator = True
     return "".join(pieces).strip("_")
 
 
 def numeric_prefix(heading: Heading) -> tuple[int, ...] | None:
-    """Parse the dotted numeric prefix at the beginning of a heading."""
     match = NUMBER_PREFIX_RE.match(heading.title)
     if not match:
         return None
     return tuple(int(part) for part in match.group("number").split("."))
 
 
-def validate_headings(chapter_dir: Path, chapter_number: int, headings: list[Heading]) -> None:
-    """Warn about Markdown hierarchy, depth, and numbering violations."""
+def validate_headings(label: Path | str, chapter_number: int, headings: list[Heading]) -> int:
+    warnings = 0
+
+    def issue(message: str) -> None:
+        nonlocal warnings
+        warnings += 1
+        warn(label, message)
+
     if not headings:
-        warn(chapter_dir, "README.md contains no ATX headings")
-        return
+        issue("contains no ATX headings")
+        return warnings
 
     if headings[0].level != 1:
-        warn(
-            chapter_dir,
-            f"first heading is H{headings[0].level} on line {headings[0].line}; chapter must start with H1",
+        issue(
+            f"first heading is H{headings[0].level} on line {headings[0].line}; "
+            "chapter must start with H1"
         )
 
-    h1_headings = [heading for heading in headings if heading.level == 1]
-    if len(h1_headings) != 1:
-        warn(chapter_dir, f"expected exactly one H1, found {len(h1_headings)}")
+    h1s = [heading for heading in headings if heading.level == 1]
+    if len(h1s) != 1:
+        issue(f"expected exactly one H1, found {len(h1s)}")
 
     max_level = max(heading.level for heading in headings)
     if max_level < 3:
-        warn(chapter_dir, f"maximum heading depth is H{max_level}; expected at least H3")
+        issue(f"maximum heading depth is H{max_level}; expected at least H3")
 
     previous = headings[0]
     for heading in headings[1:]:
         if heading.level > previous.level + 1:
-            warn(
-                chapter_dir,
+            issue(
                 f"heading level jumps from H{previous.level} on line {previous.line} "
-                f"to H{heading.level} on line {heading.line}",
+                f"to H{heading.level} on line {heading.line}"
             )
         previous = heading
 
-    # Track the most recent valid numeric prefix at every active level. This lets
-    # us verify that e.g. H3 "9.2.1" really belongs below H2 "9.2".
-    active_prefixes: dict[int, tuple[int, ...]] = {}
-
+    active: dict[int, tuple[int, ...]] = {}
     for heading in headings:
         prefix = numeric_prefix(heading)
         if prefix is None:
-            warn(
-                chapter_dir,
-                f"H{heading.level} on line {heading.line} is not numbered: {heading.title!r}",
-            )
-            active_prefixes.pop(heading.level, None)
+            issue(f"H{heading.level} on line {heading.line} is not numbered: {heading.title!r}")
+            active.pop(heading.level, None)
             continue
 
-        expected_components = heading.level
-        if len(prefix) != expected_components:
-            warn(
-                chapter_dir,
+        if len(prefix) != heading.level:
+            issue(
                 f"H{heading.level} on line {heading.line} has number "
-                f"{'.'.join(map(str, prefix))}; expected {expected_components} component(s)",
+                f"{'.'.join(map(str, prefix))}; expected {heading.level} component(s)"
             )
 
-        if not prefix or prefix[0] != chapter_number:
-            warn(
-                chapter_dir,
-                f"H{heading.level} on line {heading.line} belongs to chapter "
-                f"{prefix[0] if prefix else '?'}; expected chapter {chapter_number}",
+        if prefix[0] != chapter_number:
+            issue(
+                f"H{heading.level} on line {heading.line} belongs to chapter {prefix[0]}; "
+                f"expected chapter {chapter_number}"
             )
 
         if heading.level == 1:
-            h1_match = re.match(
-                r"^(?P<number>\d{2})(?:\.(?=[ \t]|$))?(?:[ \t]+|$)",
-                heading.title,
-            )
-            expected_h1 = f"{chapter_number:02d}"
-            if h1_match is None or h1_match.group("number") != expected_h1:
-                warn(
-                    chapter_dir,
-                    f"H1 on line {heading.line} must start with two-digit chapter number {expected_h1!r}",
-                )
-        elif heading.level > 1:
-            parent_prefix = active_prefixes.get(heading.level - 1)
-            if parent_prefix is not None and prefix[: heading.level - 1] != parent_prefix:
-                warn(
-                    chapter_dir,
+            expected = f"{chapter_number:02d}"
+            if not re.match(rf"^{re.escape(expected)}(?:\.(?=[ \t]|$))?(?:[ \t]+|$)", heading.title):
+                issue(f"H1 on line {heading.line} must start with two-digit chapter number {expected!r}")
+        else:
+            parent = active.get(heading.level - 1)
+            if parent is not None and prefix[: heading.level - 1] != parent:
+                issue(
                     f"H{heading.level} number {'.'.join(map(str, prefix))} on line "
-                    f"{heading.line} does not match parent "
-                    f"{'.'.join(map(str, parent_prefix))}",
+                    f"{heading.line} does not match parent {'.'.join(map(str, parent))}"
                 )
 
-        active_prefixes[heading.level] = prefix
-        for deeper_level in list(active_prefixes):
-            if deeper_level > heading.level:
-                del active_prefixes[deeper_level]
+        active[heading.level] = prefix
+        for deeper in list(active):
+            if deeper > heading.level:
+                del active[deeper]
+
+    return warnings
+
+
+def renumber_markdown(text: str, chapter_number: int) -> str:
+    """Remove existing heading numbers and rebuild numbering from the heading tree."""
+    counters = [0] * 6
+    output: list[str] = []
+
+    for _line_number, line, match in iter_markdown_lines(text):
+        if not match:
+            output.append(line)
+            continue
+
+        level = len(match.group("marks"))
+        title = LEADING_NUMBER_RE.sub("", match.group("title").strip(), count=1).strip()
+
+        if level == 1:
+            counters = [0] * 6
+            counters[0] = chapter_number
+            number = f"{chapter_number:02d}."
+        else:
+            if counters[0] == 0:
+                counters[0] = chapter_number
+            counters[level - 1] += 1
+            for index in range(level, 6):
+                counters[index] = 0
+
+            # If malformed input skips a level, create the missing parent as 1 so
+            # the result is still deterministically numbered; --check will warn
+            # about the structural jump separately.
+            for index in range(1, level - 1):
+                if counters[index] == 0:
+                    counters[index] = 1
+
+            number = ".".join(str(counters[index]) for index in range(level))
+
+        output.append(f"{'#' * level} {number} {title}".rstrip())
+
+    return "\n".join(output).rstrip() + "\n"
 
 
 def find_chapters(input_dir: Path) -> list[tuple[int, Path]]:
-    """Find immediate NN_* chapter directories in numeric order."""
     chapters: list[tuple[int, Path]] = []
-
     for child in input_dir.iterdir():
-        if not child.is_dir():
-            continue
-
-        match = CHAPTER_DIR_RE.match(child.name)
-        if match:
-            chapters.append((int(match.group("number")), child))
-
-    chapters.sort(key=lambda item: (item[0], item[1].name))
-    return chapters
+        if child.is_dir():
+            match = CHAPTER_DIR_RE.match(child.name)
+            if match:
+                chapters.append((int(match.group("number")), child))
+    return sorted(chapters, key=lambda item: (item[0], item[1].name))
 
 
-def build_book(input_dir: Path, output_dir: Path) -> int:
-    """Validate and copy all chapter README files."""
+def normalize_chunk(text: str) -> str:
+    """Return a chapter ending with exactly one empty line."""
+    return text.rstrip() + "\n\n"
+
+
+def relative_source(path: Path) -> str:
+    try:
+        return path.resolve().relative_to(Path.cwd().resolve()).as_posix()
+    except ValueError:
+        return str(path.resolve())
+
+
+def compile_book(input_dir: Path, output_dir: Path, do_renumber: bool, do_check: bool) -> int:
     chapters = find_chapters(input_dir)
     if not chapters:
         print(f"Error: no numbered chapter directories found in {input_dir}", file=sys.stderr)
         return 1
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    copied = 0
+    manifest_entries: list[dict[str, object]] = []
+    book_chunks: list[str] = []
     used_names: set[str] = set()
+    copied = 0
+    total_warnings = 0
 
     for chapter_number, chapter_dir in chapters:
         readme = chapter_dir / "README.md"
         if not readme.is_file():
             warn(chapter_dir, "README.md is missing; chapter skipped")
+            total_warnings += 1
             continue
 
         try:
             text = readme.read_text(encoding="utf-8")
         except (OSError, UnicodeError) as exc:
             warn(chapter_dir, f"cannot read README.md: {exc}; chapter skipped")
+            total_warnings += 1
             continue
 
+        if do_renumber:
+            text = renumber_markdown(text, chapter_number)
+
         headings = parse_headings(text)
-        validate_headings(chapter_dir, chapter_number, headings)
+        if do_check:
+            total_warnings += validate_headings(readme, chapter_number, headings)
 
         if headings and headings[0].level == 1:
             title = chapter_title_from_h1(headings[0])
@@ -263,50 +277,190 @@ def build_book(input_dir: Path, output_dir: Path) -> int:
         safe_title = filename_component(title)
         if not safe_title:
             warn(chapter_dir, "chapter title produces an empty filename; chapter skipped")
+            total_warnings += 1
             continue
 
         output_name = f"{chapter_number:02d}.{safe_title}.md"
         if output_name in used_names:
             warn(chapter_dir, f"generated filename collision: {output_name}; chapter skipped")
+            total_warnings += 1
             continue
-
         used_names.add(output_name)
+
+        chapter_text = normalize_chunk(text)
         destination = output_dir / output_name
-        shutil.copyfile(readme, destination)
+        destination.write_text(chapter_text, encoding="utf-8")
+        book_chunks.append(chapter_text)
+
+        manifest_entries.append(
+            {
+                "chapter": chapter_number,
+                "compiled_file": output_name,
+                "source_readme": relative_source(readme),
+            }
+        )
         copied += 1
         print(f"{readme} -> {destination}")
 
-    print(f"Copied {copied} chapter(s) to {output_dir}")
+    book_name = f"{output_dir.name}.md"
+    book_path = output_dir / book_name
+    book_path.write_text("".join(book_chunks), encoding="utf-8")
+
+    manifest = {
+        "version": 1,
+        "input_directory": relative_source(input_dir),
+        "book_file": book_name,
+        "chapters": manifest_entries,
+    }
+    (output_dir / MANIFEST_NAME).write_text(
+        json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
+    print(f"Built {copied} chapter(s)")
+    print(f"Book: {book_path}")
+    print(f"Manifest: {output_dir / MANIFEST_NAME}")
+    if do_check:
+        print(f"Check warnings: {total_warnings}")
     return 0 if copied else 1
+
+
+def split_book(text: str) -> list[str]:
+    """Split a compiled book at H1 headings outside fenced code blocks."""
+    lines = text.splitlines()
+    starts: list[int] = []
+    for line_number, _line, match in iter_markdown_lines(text):
+        if match and len(match.group("marks")) == 1:
+            starts.append(line_number - 1)
+
+    if not starts:
+        return []
+
+    chunks: list[str] = []
+    for index, start in enumerate(starts):
+        end = starts[index + 1] if index + 1 < len(starts) else len(lines)
+        chunks.append(normalize_chunk("\n".join(lines[start:end])))
+    return chunks
+
+
+def resolve_source_path(source: str) -> Path:
+    path = Path(source).expanduser()
+    return path if path.is_absolute() else (Path.cwd() / path)
+
+
+def decompile_book(book_dir: Path) -> int:
+    manifest_path = book_dir / MANIFEST_NAME
+    if not manifest_path.is_file():
+        print(f"Error: manifest not found: {manifest_path}", file=sys.stderr)
+        return 1
+
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        print(f"Error: cannot read manifest: {exc}", file=sys.stderr)
+        return 1
+
+    entries = manifest.get("chapters", [])
+    book_file = manifest.get("book_file")
+    if not isinstance(entries, list) or not isinstance(book_file, str):
+        print("Error: invalid manifest format", file=sys.stderr)
+        return 1
+
+    book_path = book_dir / book_file
+    if not book_path.is_file():
+        print(f"Error: compiled book not found: {book_path}", file=sys.stderr)
+        return 1
+
+    chunks = split_book(book_path.read_text(encoding="utf-8"))
+    if len(chunks) != len(entries):
+        print(
+            f"Error: book contains {len(chunks)} H1 chapter chunk(s), "
+            f"manifest contains {len(entries)} chapter(s)",
+            file=sys.stderr,
+        )
+        return 1
+
+    written = 0
+    for entry, chunk in zip(entries, chunks):
+        if not isinstance(entry, dict) or not isinstance(entry.get("source_readme"), str):
+            print("Error: invalid chapter entry in manifest", file=sys.stderr)
+            return 1
+
+        destination = resolve_source_path(entry["source_readme"])
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(normalize_chunk(chunk), encoding="utf-8")
+        written += 1
+        print(f"{book_path} -> {destination}")
+
+    print(f"Decompiled {written} chapter(s)")
+    return 0
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Copy chapter README.md files into a numbered Markdown book directory."
+        description="Compile chapter README files into a Markdown book, or decompile it back."
+    )
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
+        "--compile",
+        action="store_true",
+        help="Compile INPUT_DIRECTORY into OUTPUT_DIRECTORY (default mode).",
+    )
+    mode.add_argument(
+        "--decompile",
+        action="store_true",
+        help="Decompile OUTPUT_DIRECTORY book back to README.md files using manifest.json.",
     )
     parser.add_argument(
-        "input_directory",
-        type=Path,
-        help="Book part directory, for example 01_low_level",
+        "--check",
+        action="store_true",
+        help="Validate heading hierarchy and numbering after compilation/renumbering.",
     )
     parser.add_argument(
-        "output_directory",
+        "--renumber",
+        action="store_true",
+        help="Remove existing heading numbers and renumber the compiled chapters before --check.",
+    )
+    parser.add_argument(
+        "paths",
+        nargs="+",
         type=Path,
-        help="Destination directory, for example Advanced_C++_Book_01",
+        metavar="PATH",
+        help="Compile: INPUT_DIRECTORY OUTPUT_DIRECTORY. Decompile: OUTPUT_DIRECTORY.",
     )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
-    input_dir = args.input_directory.expanduser().resolve()
-    output_dir = args.output_directory.expanduser().resolve()
 
+    if args.decompile:
+        if args.check or args.renumber:
+            print("Error: --decompile is incompatible with --check and --renumber", file=sys.stderr)
+            return 2
+        if len(args.paths) != 1:
+            print("Error: --decompile requires exactly one OUTPUT_DIRECTORY", file=sys.stderr)
+            return 2
+        book_dir = args.paths[0].expanduser().resolve()
+        if not book_dir.is_dir():
+            print(f"Error: book directory does not exist: {book_dir}", file=sys.stderr)
+            return 1
+        return decompile_book(book_dir)
+
+    if len(args.paths) != 2:
+        print(
+            "Error: --compile requires INPUT_DIRECTORY and OUTPUT_DIRECTORY",
+            file=sys.stderr,
+        )
+        return 2
+
+    input_dir = args.paths[0].expanduser().resolve()
+    output_dir = args.paths[1].expanduser().resolve()
     if not input_dir.is_dir():
-        print(f"Error: input directory does not exist or is not a directory: {input_dir}", file=sys.stderr)
+        print(f"Error: input directory does not exist: {input_dir}", file=sys.stderr)
         return 1
 
-    return build_book(input_dir, output_dir)
+    return compile_book(input_dir, output_dir, args.renumber, args.check)
 
 
 if __name__ == "__main__":
