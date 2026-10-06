@@ -297,6 +297,7 @@ def compile_book(input_dir: Path, output_dir: Path, do_renumber: bool, do_check:
                 "chapter": chapter_number,
                 "compiled_file": output_name,
                 "source_readme": relative_source(readme),
+                "source_readme_absolute": str(readme.resolve()),
             }
         )
         copied += 1
@@ -343,7 +344,14 @@ def split_book(text: str) -> list[str]:
     return chunks
 
 
-def resolve_source_path(source: str) -> Path:
+def resolve_source_path(entry: dict[str, object]) -> Path:
+    absolute = entry.get("source_readme_absolute")
+    if isinstance(absolute, str):
+        return Path(absolute).expanduser()
+
+    source = entry.get("source_readme")
+    if not isinstance(source, str):
+        raise ValueError("manifest chapter has no source_readme")
     path = Path(source).expanduser()
     return path if path.is_absolute() else (Path.cwd() / path)
 
@@ -382,11 +390,28 @@ def decompile_book(book_dir: Path) -> int:
 
     written = 0
     for entry, chunk in zip(entries, chunks):
-        if not isinstance(entry, dict) or not isinstance(entry.get("source_readme"), str):
+        if not isinstance(entry, dict):
             print("Error: invalid chapter entry in manifest", file=sys.stderr)
             return 1
 
-        destination = resolve_source_path(entry["source_readme"])
+        expected_chapter = entry.get("chapter")
+        headings = parse_headings(chunk)
+        actual_prefix = numeric_prefix(headings[0]) if headings else None
+        actual_chapter = actual_prefix[0] if actual_prefix else None
+        if not isinstance(expected_chapter, int) or actual_chapter != expected_chapter:
+            print(
+                f"Error: manifest expects chapter {expected_chapter}, "
+                f"but corresponding book chunk starts with chapter {actual_chapter}",
+                file=sys.stderr,
+            )
+            return 1
+
+        try:
+            destination = resolve_source_path(entry)
+        except ValueError as exc:
+            print(f"Error: {exc}", file=sys.stderr)
+            return 1
+
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(normalize_chunk(chunk), encoding="utf-8")
         written += 1
