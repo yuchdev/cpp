@@ -12,17 +12,21 @@ from dataclasses import dataclass
 from pathlib import Path
 
 CHAPTER_DIR_RE = re.compile(r"^(?P<number>\d{2})(?:_|$)")
+
 ATX_HEADING_RE = re.compile(r"^(?P<marks>#{1,6})[ \t]+(?P<title>.*?)[ \t]*#*[ \t]*$")
+
 FENCE_RE = re.compile(r"^[ \t]{0,3}(?P<fence>\`{3,}|~{3,})")
+
 LEADING_NUMBER_RE = re.compile(r"^\s*\d+(?:\.\d+)*\.?\s*")
-NUMBER_PREFIX_RE = re.compile(
-    r"^(?P<number>\d+(?:\.\d+)*)(?:\.(?=[ \t]|$))?(?:[ \t]+|$)"
-)
+
+NUMBER_PREFIX_RE = re.compile(r"^(?P<number>\d+(?:\.\d+)*)(?:\.(?=[ \t]|$))?(?:[ \t]+|$)")
+
 H1_NUMBER_PREFIX_RE = re.compile(r"^\d{1,2}(?:\.(?=[ \t]|$))?(?:[ \t]+|$)")
+
 CPP_VERSION_SUFFIX_RE = re.compile(
-    r"\s*\(\s*C\+\+\d{2}(?:\s*(?:→|->|–|-|to)\s*C\+\+\d{2})?\s*\)\s*$",
-    re.IGNORECASE,
+    r"\s*\(\s*C\+\+\d{2}(?:\s*(?:→|->|–|-|to)\s*C\+\+\d{2})?\s*\)\s*$", re.IGNORECASE,
 )
+
 MANIFEST_NAME = "manifest.json"
 
 
