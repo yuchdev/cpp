@@ -206,7 +206,7 @@ static void constexpr_template_demo()
     static_assert(euclidean_gcd(48, 18) == 6);
 
     int runtime = read_runtime();
-    assert(template_square(runtime) == 1681);
+    assert(template_square(runtime) == runtime * runtime);
 
     // constexpr on a function template means each specialization MAY be usable
     // in constant evaluation. It does not force every call to compile time.
@@ -265,7 +265,7 @@ static void if_constexpr_template_demo()
     static_assert(unsigned_magnitude(7u) == 7u);
 
     const int runtime = -read_runtime();
-    assert(unsigned_magnitude(runtime) == 41);
+    assert(unsigned_magnitude(runtime) == -runtime);
 
     // `if constexpr` decides which branch is instantiated for T. It does NOT
     // mean the call itself must be constant-evaluated.

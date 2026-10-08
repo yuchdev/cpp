@@ -28,7 +28,7 @@ A useful first map is:
 | `if constexpr` | C++17 | Should this template branch exist for this specialization? |
 | `consteval` | C++20 | Must this function call be constant-evaluated? |
 | `constinit` | C++20 | Must this static/thread-local variable have static initialization? |
-| `std::is_constant_evaluated()` | C++20 | Is this call currently evaluated in a manifestly constant-evaluated context? |
+| `std::is_constant_evaluated()` | C++20 | Is this expression currently being evaluated during constant evaluation? |
 | `if consteval` | C++23 | Select a branch specifically for constant evaluation. |
 
 The shortest reliable mental model is:

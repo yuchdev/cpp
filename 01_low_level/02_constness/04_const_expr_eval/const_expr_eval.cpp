@@ -134,7 +134,7 @@ static void if_consteval_demo()
     static_assert(compile_time == 42);
 
     int runtime_input = read_runtime();
-    assert(mode_specific_double(runtime_input) == 80);
+    assert(mode_specific_double(runtime_input) == runtime_input * 2);
 #endif
 }
 
