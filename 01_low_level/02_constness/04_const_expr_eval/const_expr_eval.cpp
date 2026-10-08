@@ -105,6 +105,63 @@ static void common_pitfalls()
     // whether initialization will ultimately be constant.
 }
 
+// ---- 6) C++23 if consteval: evaluation-mode branch with immediate context ----
+#if defined(__cpp_if_consteval) && __cpp_if_consteval >= 202106L
+consteval int compile_time_double(int value)
+{
+    return value * 2;
+}
+
+constexpr int mode_specific_double(int value)
+{
+    if consteval
+    {
+        // This branch is an immediate-function context, so calling a consteval
+        // helper with the function parameter is permitted here.
+        return compile_time_double(value);
+    }
+    else
+    {
+        return value * 2;
+    }
+}
+#endif
+
+static void if_consteval_demo()
+{
+#if defined(__cpp_if_consteval) && __cpp_if_consteval >= 202106L
+    constexpr int compile_time = mode_specific_double(21);
+    static_assert(compile_time == 42);
+
+    int runtime_input = read_runtime();
+    assert(mode_specific_double(runtime_input) == runtime_input * 2);
+#endif
+}
+
+// ---- 7) is_constant_evaluated is NOT an optimizer detector ------------------
+constexpr int evaluation_probe(int value)
+{
+    if (std::is_constant_evaluated())
+        return value + 1000;
+
+    return value + 1;
+}
+
+static void optimizer_vs_constant_evaluation()
+{
+    constexpr int compile_time = evaluation_probe(1);
+    static_assert(compile_time == 1001);
+
+    // A compiler may optimize this call to a literal machine constant, but the
+    // source-language evaluation is not thereby manifestly constant-evaluated.
+    int runtime = evaluation_probe(1);
+    assert(runtime == 2);
+
+    // This would be a conceptual mistake:
+    // if constexpr (std::is_constant_evaluated()) { ... }
+    // The condition of if constexpr is itself constant-evaluated.
+}
+
 } // namespace cpp
 
 int main()
@@ -114,6 +171,8 @@ int main()
     cpp::consteval_requires_constant_evaluation();
     cpp::evaluation_mode_is_contextual();
     cpp::common_pitfalls();
+    cpp::if_consteval_demo();
+    cpp::optimizer_vs_constant_evaluation();
 
     std::cout << "const_expr_eval.cpp: OK\n";
     return 0;
