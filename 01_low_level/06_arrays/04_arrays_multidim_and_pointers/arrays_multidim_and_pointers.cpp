@@ -1,3 +1,4 @@
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <iostream>
@@ -18,9 +19,13 @@ static void layout_is_contiguous()
         {4, 5, 6}
     };
 
-    int* flat = &m[0][0];
-    assert(flat[0] == 1);
-    assert(flat[3] == 4);
+    // The rows are adjacent because m is an array of two int[3] objects.
+    static_assert(sizeof(m) == 6 * sizeof(int));
+    assert(&m[1][0] == m[1]);
+
+    // Do not model the whole matrix as one int[6] by taking &m[0][0] and
+    // incrementing through the next row. Pointer arithmetic is defined within
+    // the inner int[3] array object (plus one-past), not across sibling rows.
 
     int (*rowp)[3] = m;
     static_assert(std::is_same_v<decltype(rowp), int (*)[3]>);
@@ -66,14 +71,11 @@ static void passing_2d()
 #if defined(__cpp_lib_mdspan) && __cpp_lib_mdspan >= 202207L
 static void mdspan_cpp23()
 {
-    int storage[2][3] = {
-        {1, 2, 3},
-        {4, 5, 6}
-    };
+    std::array<int, 6> storage = {1, 2, 3, 4, 5, 6};
 
-    // mdspan separates storage from multidimensional indexing. The view is
-    // non-owning; the underlying six ints still live in the raw array.
-    std::mdspan view{&storage[0][0], 2, 3};
+    // mdspan separates one flat contiguous storage range from multidimensional
+    // indexing. The view is non-owning.
+    std::mdspan view{storage.data(), 2, 3};
 
     static_assert(decltype(view)::rank() == 2);
 
@@ -83,7 +85,7 @@ static void mdspan_cpp23()
     assert(view[1, 0] == 4);
 
     view[1, 2] = 42;
-    assert(storage[1][2] == 42);
+    assert(storage[5] == 42);
 }
 #else
 static void mdspan_cpp23()
