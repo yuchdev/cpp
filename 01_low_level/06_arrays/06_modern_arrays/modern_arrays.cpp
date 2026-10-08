@@ -125,8 +125,9 @@ static void bytes_view_cpp20()
     std::array<std::uint32_t, 2> words{0x01020304u, 0x05060708u};
 
     const auto bytes = std::as_bytes(std::span{words});
+    using ByteSpan = std::remove_cv_t<decltype(bytes)>;
 
-    static_assert(decltype(bytes)::extent == sizeof(words));
+    static_assert(ByteSpan::extent == sizeof(words));
     assert(bytes.size_bytes() == sizeof(words));
 
     // std::as_bytes exposes object representation without inventing an
