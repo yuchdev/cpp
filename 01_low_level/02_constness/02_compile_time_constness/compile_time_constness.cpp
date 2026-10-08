@@ -1,8 +1,11 @@
 // ReSharper disable All
 #include <array>
 #include <cassert>
+#include <concepts>
+#include <cstdint>
 #include <cstddef>
 #include <iostream>
+#include <limits>
 #include <type_traits>
 
 namespace cpp {
@@ -178,6 +181,96 @@ static void const_is_not_constexpr()
     // std::array<int, runtime> a{}; // ERROR: runtime not constant expression
 }
 
+// ---- 10) constexpr templates: dual compile-time/runtime API ------------------
+template <std::integral T>
+constexpr T template_square(T value)
+{
+    return value * value;
+}
+
+template <std::integral T>
+constexpr T euclidean_gcd(T a, T b)
+{
+    while (b != 0)
+    {
+        T next = a % b;
+        a = b;
+        b = next;
+    }
+    return a;
+}
+
+static void constexpr_template_demo()
+{
+    static_assert(template_square(7) == 49);
+    static_assert(euclidean_gcd(48, 18) == 6);
+
+    int runtime = read_runtime();
+    assert(template_square(runtime) == 1681);
+
+    // constexpr on a function template means each specialization MAY be usable
+    // in constant evaluation. It does not force every call to compile time.
+}
+
+// ---- 11) consteval templates: compile-time-only function families ------------
+#if defined(__cpp_consteval) && __cpp_consteval >= 201811L
+template <std::unsigned_integral T>
+consteval T bit_mask(unsigned bit)
+{
+    if (bit >= std::numeric_limits<T>::digits)
+        throw "bit index out of range";
+
+    return T{1} << bit;
+}
+
+template <auto Value>
+struct value_tag
+{
+    static constexpr auto value = Value;
+};
+#endif
+
+static void consteval_template_demo()
+{
+#if defined(__cpp_consteval) && __cpp_consteval >= 201811L
+    constexpr auto mask = bit_mask<std::uint32_t>(7);
+    static_assert(mask == 0x80u);
+
+    value_tag<bit_mask<std::uint32_t>(5)> tag{};
+    static_assert(tag.value == 0x20u);
+
+    // unsigned runtime_bit = static_cast<unsigned>(read_runtime());
+    // auto bad = bit_mask<std::uint32_t>(runtime_bit);
+    // ERROR: an immediate function call needs constant-evaluable arguments.
+#endif
+}
+
+// ---- 12) if constexpr selects template structure, not evaluation mode --------
+template <class T>
+constexpr auto unsigned_magnitude(T value)
+{
+    if constexpr (std::is_signed_v<T>)
+    {
+        return value < 0 ? -value : value;
+    }
+    else
+    {
+        return value;
+    }
+}
+
+static void if_constexpr_template_demo()
+{
+    static_assert(unsigned_magnitude(-7) == 7);
+    static_assert(unsigned_magnitude(7u) == 7u);
+
+    const int runtime = -read_runtime();
+    assert(unsigned_magnitude(runtime) == 41);
+
+    // `if constexpr` decides which branch is instantiated for T. It does NOT
+    // mean the call itself must be constant-evaluated.
+}
+
 } // namespace cpp
 
 int main()
@@ -191,6 +284,9 @@ int main()
     cpp::constant_contexts();
     cpp::string_literal_ok();
     cpp::const_is_not_constexpr();
+    cpp::constexpr_template_demo();
+    cpp::consteval_template_demo();
+    cpp::if_constexpr_template_demo();
 
     std::cout << "compile_time_constness.cpp: OK\n";
     return 0;
