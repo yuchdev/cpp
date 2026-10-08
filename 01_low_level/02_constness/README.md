@@ -21,15 +21,15 @@ The examples in this directory are:
 
 A useful first map is:
 
-| Facility                       | Since | Main question                                                            |
-|--------------------------------|------:|--------------------------------------------------------------------------|
-| `const`                        | C++98 | Can this object be modified through this type/expression?                |
-| `constexpr`                    | C++11 | Can this variable/function participate in constant evaluation?           |
-| `if constexpr`                 | C++17 | Should this template branch exist for this specialization?               |
-| `consteval`                    | C++20 | Must this function call be constant-evaluated?                           |
-| `constinit`                    | C++20 | Must this static/thread-local variable have static initialization?       |
+| Facility | Since | Main question |
+|---|---:|---|
+| `const` | C++98 | Can this object be modified through this type/expression? |
+| `constexpr` | C++11 | Can this variable/function participate in constant evaluation? |
+| `if constexpr` | C++17 | Should this template branch exist for this specialization? |
+| `consteval` | C++20 | Must this function call be constant-evaluated? |
+| `constinit` | C++20 | Must this static/thread-local variable have static initialization? |
 | `std::is_constant_evaluated()` | C++20 | Is this expression currently being evaluated during constant evaluation? |
-| `if consteval`                 | C++23 | Select a branch specifically for constant evaluation.                    |
+| `if consteval` | C++23 | Select a branch specifically for constant evaluation. |
 
 The shortest reliable mental model is:
 
@@ -45,11 +45,11 @@ The rest of the chapter expands that distinction.
 
 A `const` object may be initialized entirely at runtime:
 
-```cpp
+~~~cpp
 int read_from_socket();
 
 const int value = read_from_socket();
-```
+~~~
 
 After initialization, `value` cannot be modified through that name, but its value was not known during translation.
 
@@ -63,10 +63,10 @@ A better rule is:
 
 Some `const` integral or enumeration objects initialized with constant expressions can themselves be usable in integral constant-expression contexts:
 
-```cpp
+~~~cpp
 const int n = 4;
 static_assert(n * n == 16);
-```
+~~~
 
 But that is a consequence of the initializer satisfying constant-expression rules, not a general property of `const`.
 
@@ -76,7 +76,7 @@ A **constant expression** is an expression that satisfies the language rules for
 
 Contexts that require constant expressions include, among others:
 
-```cpp
+~~~cpp
 static_assert(expr);
 
 template<int N>
@@ -90,14 +90,14 @@ case expr:
 }
 
 std::array<int, expr> a;
-```
+~~~
 
 The interesting distinction is:
 
-```cpp
+~~~cpp
 const int a = runtime_value(); // read-only, not a constant expression
 constexpr int b = 42;          // must be initialized by a constant expression
-```
+~~~
 
 `const` affects the declared type.
 
@@ -107,7 +107,7 @@ constexpr int b = 42;          // must be initialized by a constant expression
 
 A `constexpr` function may be evaluated either at compile time or runtime:
 
-```cpp
+~~~cpp
 constexpr int square(int x)
 {
     return x * x;
@@ -118,7 +118,7 @@ static_assert(a == 16);
 
 int n = read_from_socket();
 int b = square(n);           // ordinary runtime call
-```
+~~~
 
 The function is *eligible* for constant evaluation when the arguments and evaluation path satisfy the rules.
 
@@ -130,7 +130,7 @@ This distinction is central:
 
 C++20 introduced `consteval`:
 
-```cpp
+~~~cpp
 consteval int checked_power_of_two(unsigned bit)
 {
     if (bit >= 31)
@@ -138,16 +138,16 @@ consteval int checked_power_of_two(unsigned bit)
 
     return 1 << bit;
 }
-```
+~~~
 
 Every potentially evaluated call that is not inside an immediate-function context must produce a constant expression:
 
-```cpp
+~~~cpp
 constexpr int mask = checked_power_of_two(5); // OK
 
 int bit = read_from_socket();
 // int mask2 = checked_power_of_two(bit);      // error
-```
+~~~
 
 A `consteval` function is also a `constexpr` function in the language sense, but it has the stronger immediate-call restriction.
 
@@ -157,28 +157,28 @@ Use `consteval` when runtime fallback would violate the API contract, not merely
 
 C++20 also introduced `constinit`:
 
-```cpp
+~~~cpp
 constinit int request_count = 0;
-```
+~~~
 
 The object is mutable:
 
-```cpp
+~~~cpp
 ++request_count;
-```
+~~~
 
 What `constinit` requires is static initialization for a variable with static or thread storage duration.
 
 It is useful when you want to rule out dynamic initialization:
 
-```cpp
+~~~cpp
 constexpr int initial_capacity()
 {
     return 64;
 }
 
 constinit int capacity = initial_capacity();
-```
+~~~
 
 This helps avoid initialization-order problems across translation units.
 
@@ -195,13 +195,13 @@ It cannot be combined with `constexpr` in the same declaration.
 
 C++20 added:
 
-```cpp
+~~~cpp
 std::is_constant_evaluated()
-```
+~~~
 
 which reports whether the call occurs while evaluating a manifestly constant-evaluated expression or conversion.
 
-```cpp
+~~~cpp
 constexpr int algorithm(int x)
 {
     if (std::is_constant_evaluated())
@@ -209,32 +209,32 @@ constexpr int algorithm(int x)
 
     return optimized_runtime_square(x);
 }
-```
+~~~
 
 The same function may therefore use different implementations at compile time and runtime.
 
 The result is contextual:
 
-```cpp
+~~~cpp
 constexpr int a = algorithm(4); // constant-evaluated path
 int b = algorithm(4);           // normally runtime path
-```
+~~~
 
 ### C++23 `if consteval` is clearer than testing a boolean
 
 C++23 adds:
 
-```cpp
+~~~cpp
 if consteval {
     // constant-evaluation path
 } else {
     // runtime path
 }
-```
+~~~
 
 For example:
 
-```cpp
+~~~cpp
 consteval int compile_time_only(int x)
 {
     return x * x;
@@ -248,7 +248,7 @@ constexpr int square_dispatch(int x)
         return x * x;
     }
 }
-```
+~~~
 
 The `if consteval` branch is an immediate-function context, which makes it especially useful when a `constexpr` API needs to call a `consteval` helper only during constant evaluation.
 
@@ -258,7 +258,7 @@ It is not the same construct as `if constexpr`.
 
 Since C++17:
 
-```cpp
+~~~cpp
 template<class T>
 constexpr auto magnitude(T value)
 {
@@ -268,26 +268,26 @@ constexpr auto magnitude(T value)
         return value;
     }
 }
-```
+~~~
 
 The condition is resolved during template instantiation, and the discarded branch is not instantiated in the ordinary way.
 
 By contrast:
 
-```cpp
+~~~cpp
 if consteval
-```
+~~~
 
 asks whether the current invocation is being constant-evaluated.
 
 A useful comparison is:
 
-| Construct                      | Question                                              |
-|--------------------------------|-------------------------------------------------------|
-| `if`                           | Which branch executes at runtime/constant evaluation? |
-| `if constexpr`                 | Which branch belongs to this template specialization? |
-| `if consteval`                 | Is this invocation being constant-evaluated?          |
-| `std::is_constant_evaluated()` | Boolean query of the current evaluation context       |
+| Construct | Question |
+|---|---|
+| `if` | Which branch executes at runtime/constant evaluation? |
+| `if constexpr` | Which branch belongs to this template specialization? |
+| `if consteval` | Is this invocation being constant-evaluated? |
+| `std::is_constant_evaluated()` | Boolean query of the current evaluation context |
 
 ---
 
@@ -297,27 +297,27 @@ A useful comparison is:
 
 The position of `const` matters:
 
-```cpp
+~~~cpp
 int value = 0;
 
 const int* p1 = &value;       // pointer to const int
 int* const p2 = &value;       // const pointer to int
 const int* const p3 = &value; // const pointer to const int
-```
+~~~
 
 For `p1`:
 
-```cpp
+~~~cpp
 // *p1 = 1; // error
 p1 = nullptr; // OK
-```
+~~~
 
 For `p2`:
 
-```cpp
+~~~cpp
 *p2 = 1;      // OK
 // p2 = nullptr; // error
-```
+~~~
 
 A useful vocabulary is:
 
@@ -330,17 +330,17 @@ This distinction drives template deduction, overload resolution, and conversion 
 
 These are identical types:
 
-```cpp
+~~~cpp
 const int* p;
 int const* p;
-```
+~~~
 
 Some codebases prefer “east const”:
 
-```cpp
+~~~cpp
 int const* p;
 int* const p2 = ...;
-```
+~~~
 
 because reading declarators from the identifier outward can make pointer constness easier to parse.
 
@@ -350,33 +350,33 @@ The language makes no semantic distinction.
 
 A reference itself cannot be cv-qualified in the same way an object can:
 
-```cpp
+~~~cpp
 int x = 1;
 int& r = x;
 
 // int& const bad = x; // ill-formed
-```
+~~~
 
 The meaningful distinction is the referred-to type:
 
-```cpp
+~~~cpp
 int& r1 = x;
 const int& r2 = x;
-```
+~~~
 
 `r2` prevents mutation through that reference:
 
-```cpp
+~~~cpp
 // r2 = 3; // error
-```
+~~~
 
 but another non-const alias may still mutate the object.
 
 ### `const T&` can bind to temporaries
 
-```cpp
+~~~cpp
 const std::string& text = std::string("hello");
-```
+~~~
 
 The temporary's lifetime is extended to the lifetime of `text`.
 
@@ -384,12 +384,12 @@ But lifetime extension is contextual and does not magically propagate through ar
 
 This is still wrong:
 
-```cpp
+~~~cpp
 const std::string& bad()
 {
     return std::string("temporary");
 }
-```
+~~~
 
 The returned reference dangles.
 
@@ -399,22 +399,22 @@ Constness and lifetime are separate properties.
 
 This is a classic example:
 
-```cpp
+~~~cpp
 std::string_view bad()
 {
     return std::string("temporary");
 }
-```
+~~~
 
 `string_view` exposes characters as read-only through its interface, but it owns nothing.
 
 Likewise:
 
-```cpp
+~~~cpp
 std::span<const T>
 const T*
 const T&
-```
+~~~
 
 can all refer to storage whose lifetime has ended.
 
@@ -422,28 +422,28 @@ can all refer to storage whose lifetime has ended.
 
 ### `auto` drops top-level const when deducing by value
 
-```cpp
+~~~cpp
 const int value = 42;
 
 auto a = value;
 static_assert(std::is_same_v<decltype(a), int>);
-```
+~~~
 
 The new object `a` is independent, so the source object's top-level constness is not copied.
 
 Reference deduction preserves it:
 
-```cpp
+~~~cpp
 auto& b = value;
 static_assert(std::is_same_v<decltype(b), const int&>);
-```
+~~~
 
 Similarly:
 
-```cpp
+~~~cpp
 auto&& c = value;
 static_assert(std::is_same_v<decltype(c), const int&>);
-```
+~~~
 
 because forwarding-reference deduction and reference collapsing preserve the lvalue's cv-qualification.
 
@@ -451,26 +451,26 @@ because forwarding-reference deduction and reference collapsing preserve the lva
 
 Given:
 
-```cpp
+~~~cpp
 template<class T>
 void f(T value);
-```
+~~~
 
 and:
 
-```cpp
+~~~cpp
 const int x = 42;
 f(x);
-```
+~~~
 
 `T` deduces as `int`, not `const int`.
 
 For:
 
-```cpp
+~~~cpp
 template<class T>
 void g(T& value);
-```
+~~~
 
 `T` deduces as `const int` when called with `x`.
 
@@ -478,12 +478,12 @@ This is why forwarding/reference APIs preserve cv-ref information that by-value 
 
 ### `decltype` follows different rules from `auto`
 
-```cpp
+~~~cpp
 const int x = 42;
 
 decltype(x) a = x;   // const int
 decltype((x)) b = x; // const int&
-```
+~~~
 
 The unparenthesized id-expression form reports the declared type.
 
@@ -495,20 +495,20 @@ This difference is foundational in generic libraries.
 
 C++17 provides:
 
-```cpp
+~~~cpp
 std::as_const(object)
-```
+~~~
 
 which gives a const lvalue reference without copying:
 
-```cpp
+~~~cpp
 std::vector<int> values{1, 2, 3};
 
 auto& cv = std::as_const(values);
 static_assert(
     std::is_same_v<decltype(cv), const std::vector<int>&>
 );
-```
+~~~
 
 It is useful for intentionally selecting a const overload.
 
@@ -518,23 +518,23 @@ There is no rvalue overload because returning a const reference to a temporary t
 
 This can be legal:
 
-```cpp
+~~~cpp
 int x = 1;
 const int* p = &x;
 
 int* q = const_cast<int*>(p);
 *q = 2; // OK: original object is non-const
-```
+~~~
 
 This is undefined behavior:
 
-```cpp
+~~~cpp
 const int x = 1;
 const int* p = &x;
 
 int* q = const_cast<int*>(p);
 // *q = 2; // UB
-```
+~~~
 
 The key question is the dynamic object's actual constness, not merely the current access path.
 
@@ -542,30 +542,30 @@ The key question is the dynamic object's actual constness, not merely the curren
 
 ### `const` is shallow
 
-```cpp
+~~~cpp
 int value = 1;
 
 const std::vector<int*> pointers{&value};
 *pointers[0] = 2; // legal
-```
+~~~
 
 The vector cannot replace its element pointer through a const interface, but the pointed-to `int` is still mutable.
 
 Similarly:
 
-```cpp
+~~~cpp
 const std::shared_ptr<T> owner = ...;
 owner->mutate(); // may be legal
-```
+~~~
 
 The smart pointer object is const; the managed object is not automatically const.
 
 Deep immutability must be represented deliberately, for example with:
 
-```cpp
+~~~cpp
 std::shared_ptr<const T>
 std::vector<const T*> // where appropriate
-```
+~~~
 
 or with an API whose object graph does not expose mutation.
 
@@ -577,7 +577,7 @@ or with an API whose object graph does not expose mutation.
 
 Given:
 
-```cpp
+~~~cpp
 class counter
 {
 public:
@@ -589,15 +589,15 @@ public:
 private:
     int value_{};
 };
-```
+~~~
 
 inside `value() const`, the object is accessed as const.
 
 Conceptually, `this` behaves as a pointer to const `counter`:
 
-```cpp
+~~~cpp
 counter const*
-```
+~~~
 
 Therefore the function cannot ordinarily mutate non-`mutable` data members or call non-const member functions.
 
@@ -607,7 +607,7 @@ The important point is that trailing `const` qualifies the implicit object param
 
 A common accessor pair is:
 
-```cpp
+~~~cpp
 T& at(std::size_t i)
 {
     return data_[i];
@@ -617,7 +617,7 @@ const T& at(std::size_t i) const
 {
     return data_[i];
 }
-```
+~~~
 
 Calls through mutable objects select the mutable overload.
 
@@ -629,11 +629,11 @@ This is the basis of const-correct container interfaces.
 
 Since C++11:
 
-```cpp
+~~~cpp
 T& value() &;
 const T& value() const &;
 T value() &&;
-```
+~~~
 
 This distinguishes:
 
@@ -643,7 +643,7 @@ This distinguishes:
 
 Returning by value from the rvalue overload can avoid dangling references:
 
-```cpp
+~~~cpp
 class name
 {
 public:
@@ -653,7 +653,7 @@ public:
 private:
     std::string text_;
 };
-```
+~~~
 
 This is a powerful interaction between constness, value categories, and lifetime.
 
@@ -661,7 +661,7 @@ This is a powerful interaction between constness, value categories, and lifetime
 
 C++23 explicit object parameters (“deducing `this`”) can replace families of cv/ref overloads in supported compilers:
 
-```cpp
+~~~cpp
 struct box
 {
     int value_;
@@ -672,18 +672,18 @@ struct box
         return std::forward_like<Self>(self.value_);
     }
 };
-```
+~~~
 
 Now the return type follows the cv/ref category of the object:
 
-```cpp
+~~~cpp
 box b{1};
 const box cb{2};
 
 b.value();            // int&
 cb.value();           // const int&
 std::move(b).value(); // int&&
-```
+~~~
 
 This is one of the most important C++23 improvements for writing const-correct generic class interfaces without repeating four overloads.
 
@@ -691,7 +691,7 @@ This is one of the most important C++23 improvements for writing const-correct g
 
 A const member function cannot modify ordinary members, but `mutable` members are exempt:
 
-```cpp
+~~~cpp
 class lazy_value
 {
 public:
@@ -710,7 +710,7 @@ private:
     mutable int cache_{};
     mutable bool cached_{};
 };
-```
+~~~
 
 This supports **logical constness**:
 
@@ -727,7 +727,7 @@ Typical uses include:
 
 This is dangerous:
 
-```cpp
+~~~cpp
 int get() const
 {
     if (!cached_) {
@@ -736,7 +736,7 @@ int get() const
     }
     return cache_;
 }
-```
+~~~
 
 when multiple threads can call `get()` concurrently.
 
@@ -746,9 +746,9 @@ It provides no atomicity, locking, or happens-before relationship.
 
 A thread-safe logically const cache may need:
 
-```cpp
+~~~cpp
 mutable std::mutex mutex_;
-```
+~~~
 
 or atomics/other synchronization.
 
@@ -756,18 +756,18 @@ or atomics/other synchronization.
 
 An implementation may technically cast away constness if the underlying object is not truly const:
 
-```cpp
+~~~cpp
 auto* self = const_cast<widget*>(this);
-```
+~~~
 
 But using this to mutate cache state is usually inferior to declaring the cache `mutable`.
 
 More importantly, a const member function may be called on a genuinely const object:
 
-```cpp
+~~~cpp
 const widget w;
 w.inspect();
-```
+~~~
 
 Casting away const and modifying a non-`mutable` subobject of that truly const object is undefined behavior.
 
@@ -775,7 +775,7 @@ Casting away const and modifying a non-`mutable` subobject of that truly const o
 
 These do not override each other:
 
-```cpp
+~~~cpp
 struct base
 {
     virtual int value() const = 0;
@@ -785,7 +785,7 @@ struct derived : base
 {
     int value() override; // error: missing const
 };
-```
+~~~
 
 The cv/ref qualification of a non-static member function is part of the member-function type/signature relationship relevant to overriding.
 
@@ -795,33 +795,33 @@ Use `override` so the compiler catches accidental mismatches.
 
 A static member function has no `this` pointer:
 
-```cpp
+~~~cpp
 struct S
 {
     static int f();
 };
-```
+~~~
 
 Therefore trailing `const` is not meaningful:
 
-```cpp
+~~~cpp
 // static int f() const; // ill-formed
-```
+~~~
 
 Constness for static data members is ordinary variable constness:
 
-```cpp
+~~~cpp
 struct constants
 {
     static constexpr int width = 32;
 };
-```
+~~~
 
 Since C++17, a `constexpr` static data member is implicitly inline, which makes in-class definitions much easier to use from headers.
 
 ### Const member functions can still mutate external state
 
-```cpp
+~~~cpp
 struct handle
 {
     int* p{};
@@ -831,7 +831,7 @@ struct handle
         ++*p;
     }
 };
-```
+~~~
 
 The member `p` itself is not reseated through the const object, but the pointee is not a subobject of `handle`.
 
@@ -843,63 +843,63 @@ This illustrates why C++ constness is shallow and interface-oriented.
 
 ### A `constexpr` variable is implicitly const
 
-```cpp
+~~~cpp
 constexpr int answer = 42;
 
 static_assert(std::is_const_v<decltype(answer)>);
-```
+~~~
 
 A `constexpr` variable must be initialized in a way that satisfies constant-expression requirements.
 
 Unlike ordinary `const`:
 
-```cpp
+~~~cpp
 const int x = read_from_socket();     // OK
 // constexpr int y = read_from_socket(); // error
-```
+~~~
 
 ### A constexpr pointer is a const pointer, not necessarily a pointer to const
 
-```cpp
+~~~cpp
 static int value = 1;
 
 constexpr int* p = &value;
-```
+~~~
 
 The pointer object itself cannot be reseated:
 
-```cpp
+~~~cpp
 // p = nullptr; // error
-```
+~~~
 
 but its pointee is mutable:
 
-```cpp
+~~~cpp
 *p = 2; // legal
-```
+~~~
 
 This is analogous to:
 
-```cpp
+~~~cpp
 int* const p2 = &value;
-```
+~~~
 
 not:
 
-```cpp
+~~~cpp
 const int* p3 = &value;
-```
+~~~
 
 ### `constexpr` functions are implicitly inline
 
 A `constexpr` function is implicitly inline, which makes definitions in headers natural:
 
-```cpp
+~~~cpp
 constexpr int square(int x)
 {
     return x * x;
 }
-```
+~~~
 
 This is especially important for templates and header-only libraries.
 
@@ -911,7 +911,7 @@ C++11 `constexpr` function bodies were severely restricted.
 
 C++14 relaxed them to allow ordinary constructs such as:
 
-```cpp
+~~~cpp
 constexpr int factorial(int n)
 {
     int result = 1;
@@ -921,7 +921,7 @@ constexpr int factorial(int n)
 
     return result;
 }
-```
+~~~
 
 Modern `constexpr` code can often be written in ordinary imperative C++ rather than template-recursive metaprogramming.
 
@@ -937,14 +937,14 @@ The important restriction is conceptual:
 
 Using temporary dynamic storage while computing a constant result is useful:
 
-```cpp
+~~~cpp
 constexpr int compute()
 {
     // C++20-era constexpr-capable library code may allocate transiently.
     // The constant evaluation still has to satisfy lifetime/allocation rules.
     return 42;
 }
-```
+~~~
 
 This is why “constexpr supports allocation” does not mean “the compiler can persist arbitrary heap objects into the executable”.
 
@@ -952,7 +952,7 @@ This is why “constexpr supports allocation” does not mean “the compiler ca
 
 A class can participate in constant evaluation when its type and operations satisfy the relevant rules:
 
-```cpp
+~~~cpp
 struct point
 {
     double x;
@@ -970,7 +970,7 @@ struct point
 
 constexpr point p{3.0, 4.0};
 static_assert(p.norm2() == 25.0);
-```
+~~~
 
 The important observation is that class-level constness and constant evaluation compose:
 
@@ -983,7 +983,7 @@ The important observation is that class-level constness and constant evaluation 
 
 Since C++14:
 
-```cpp
+~~~cpp
 struct counter
 {
     int value{};
@@ -993,7 +993,7 @@ struct counter
         ++value;
     }
 };
-```
+~~~
 
 A non-const `constexpr` member function is valid.
 
@@ -1027,13 +1027,13 @@ For example, a runtime-only branch can contain operations that are not valid dur
 
 C++23 allows useful patterns such as constant local lookup tables:
 
-```cpp
+~~~cpp
 constexpr int lookup(unsigned index)
 {
     static constexpr int table[] = {10, 20, 30, 40};
     return table[index];
 }
-```
+~~~
 
 subject to the C++23 constant-expression rules and compiler support.
 
@@ -1057,7 +1057,7 @@ Good candidates include:
 
 Example:
 
-```cpp
+~~~cpp
 consteval unsigned port(unsigned value)
 {
     if (value == 0 || value > 65535)
@@ -1067,7 +1067,7 @@ consteval unsigned port(unsigned value)
 }
 
 constexpr auto http = port(80);
-```
+~~~
 
 The `throw` is not intended to execute successfully during constant evaluation; it makes invalid calls fail to form a constant expression.
 
@@ -1077,12 +1077,12 @@ This is subtle.
 
 Inside:
 
-```cpp
+~~~cpp
 consteval int f(int x)
 {
     return x;
 }
-```
+~~~
 
 calls to `f` must be constant-evaluated, but the parameter name `x` is still a function parameter.
 
@@ -1098,7 +1098,7 @@ They have parameter types, overload resolution, templates, return types, and nor
 
 For example:
 
-```cpp
+~~~cpp
 consteval std::size_t checked_size(int n)
 {
     if (n < 0)
@@ -1106,7 +1106,7 @@ consteval std::size_t checked_size(int n)
 
     return static_cast<std::size_t>(n);
 }
-```
+~~~
 
 The compile-time nature of the function does not bypass conversions, narrowing rules, or object lifetime rules.
 
@@ -1130,7 +1130,7 @@ For portable C++20/23 code, prefer straightforward structures and use the `__cpp
 
 This is one of the most useful additions:
 
-```cpp
+~~~cpp
 consteval int compile_time_impl(int x)
 {
     return x * 2;
@@ -1144,7 +1144,7 @@ constexpr int twice(int x)
         return x * 2;
     }
 }
-```
+~~~
 
 Without `if consteval`, mixing a runtime-capable `constexpr` wrapper with an immediate helper is more awkward.
 
@@ -1160,7 +1160,7 @@ The construct says precisely:
 
 Typical forms are:
 
-```cpp
+~~~cpp
 constinit int global_counter = 0;
 
 thread_local constinit int per_thread_counter = 0;
@@ -1169,16 +1169,16 @@ void f()
 {
     static constinit int local_static = 0;
 }
-```
+~~~
 
 It does not apply to an ordinary automatic local variable:
 
-```cpp
+~~~cpp
 void f()
 {
     // constinit int x = 0; // ill-formed
 }
-```
+~~~
 
 ### `constinit` prevents dynamic initialization
 
@@ -1193,22 +1193,22 @@ This is useful for avoiding the static initialization order fiasco when one glob
 
 ### `constinit` does not imply `const`
 
-```cpp
+~~~cpp
 constinit int calls = 0;
 
 void record_call()
 {
     ++calls;
 }
-```
+~~~
 
 This is the entire point of the facility: require safe early initialization without making later mutation illegal.
 
 You can combine it with ordinary `const`:
 
-```cpp
+~~~cpp
 constinit const int table_version = 3;
-```
+~~~
 
 if both properties are desired.
 
@@ -1216,9 +1216,9 @@ if both properties are desired.
 
 This is ill-formed:
 
-```cpp
+~~~cpp
 // constinit constexpr int x = 42;
-```
+~~~
 
 The facilities overlap but have different semantics.
 
@@ -1244,21 +1244,21 @@ This is a niche but real systems-level use.
 
 ### The function reports manifest constant evaluation
 
-```cpp
+~~~cpp
 constexpr int mode()
 {
     return std::is_constant_evaluated() ? 1 : 0;
 }
-```
+~~~
 
 Then:
 
-```cpp
+~~~cpp
 constexpr int compile_time = mode();
 static_assert(compile_time == 1);
 
 int runtime = mode(); // normally 0
-```
+~~~
 
 The question is not:
 
@@ -1274,9 +1274,9 @@ Optimization and constant evaluation are different concepts.
 
 A compiler may completely fold:
 
-```cpp
+~~~cpp
 int x = square(5);
-```
+~~~
 
 into a constant machine value while `std::is_constant_evaluated()` still reports false for the source-language evaluation context.
 
@@ -1286,19 +1286,19 @@ into a constant machine value while `std::is_constant_evaluated()` still reports
 
 This is not a meaningful test:
 
-```cpp
+~~~cpp
 static_assert(std::is_constant_evaluated());
-```
+~~~
 
 A `static_assert` condition is manifestly constant-evaluated, so the answer is necessarily true.
 
 Likewise, using it as the condition of `if constexpr` is almost certainly a conceptual mistake:
 
-```cpp
+~~~cpp
 if constexpr (std::is_constant_evaluated()) {
     // this condition is evaluated as a constant expression
 }
-```
+~~~
 
 Use ordinary `if` with `std::is_constant_evaluated()`, or use C++23 `if consteval`.
 
@@ -1314,7 +1314,7 @@ Do not use the function as a general mechanism for predicting startup order or d
 
 C++20:
 
-```cpp
+~~~cpp
 constexpr int f(int x)
 {
     if (std::is_constant_evaluated())
@@ -1322,11 +1322,11 @@ constexpr int f(int x)
 
     return runtime_path(x);
 }
-```
+~~~
 
 C++23:
 
-```cpp
+~~~cpp
 constexpr int f(int x)
 {
     if consteval {
@@ -1335,7 +1335,7 @@ constexpr int f(int x)
         return runtime_path(x);
     }
 }
-```
+~~~
 
 The latter more directly expresses the intent and supplies an immediate-function context in the consteval branch.
 
@@ -1345,7 +1345,7 @@ The latter more directly expresses the intent and supplies an immediate-function
 
 ### A constexpr function template can serve both compile-time and runtime callers
 
-```cpp
+~~~cpp
 template<class T>
 constexpr T square(T value)
 {
@@ -1356,7 +1356,7 @@ static_assert(square(5) == 25);
 
 double runtime = read_double();
 double result = square(runtime);
-```
+~~~
 
 Each specialization is checked according to the instantiated operations.
 
@@ -1368,7 +1368,7 @@ That is a major distinction from old template metaprogramming, where the type sy
 
 C++20 concepts make the contract clearer:
 
-```cpp
+~~~cpp
 template<std::integral T>
 constexpr T gcd(T a, T b)
 {
@@ -1382,13 +1382,13 @@ constexpr T gcd(T a, T b)
 }
 
 static_assert(gcd(48, 18) == 6);
-```
+~~~
 
 The `constexpr` keyword does not replace ordinary type constraints.
 
 ### A consteval function template creates a compile-time-only family
 
-```cpp
+~~~cpp
 template<std::unsigned_integral T>
 consteval T bit_mask(unsigned bit)
 {
@@ -1399,7 +1399,7 @@ consteval T bit_mask(unsigned bit)
 }
 
 constexpr auto mask = bit_mask<std::uint32_t>(7);
-```
+~~~
 
 Every selected specialization is an immediate function.
 
@@ -1407,7 +1407,7 @@ This is useful for APIs where accepting a runtime value would be semantically wr
 
 ### `if constexpr` is fundamental inside constexpr templates
 
-```cpp
+~~~cpp
 template<class T>
 constexpr auto normalized(T value)
 {
@@ -1419,7 +1419,7 @@ constexpr auto normalized(T value)
         return value;
     }
 }
-```
+~~~
 
 The discarded branches can contain code that would be invalid for another `T`.
 
@@ -1427,7 +1427,7 @@ This is a template-instantiation feature, not a guarantee that the function call
 
 ### Non-type template arguments require compile-time values
 
-```cpp
+~~~cpp
 template<std::size_t N>
 struct fixed_buffer
 {
@@ -1440,7 +1440,7 @@ consteval std::size_t packet_size()
 }
 
 fixed_buffer<packet_size()> packet;
-```
+~~~
 
 This is a natural place for `consteval`: the consumer already requires a constant expression.
 
@@ -1458,11 +1458,11 @@ For constness, the important connection is:
 
 Since C++14:
 
-```cpp
+~~~cpp
 template<class T>
 constexpr bool is_byte_like_v =
     std::is_same_v<std::remove_cv_t<T>, std::byte>;
-```
+~~~
 
 Variable templates combine naturally with `inline`/ODR rules in modern headers.
 
@@ -1470,9 +1470,9 @@ Standard type traits expose most of their convenient `_v` forms this way.
 
 ### C++20 abbreviated templates preserve constness according to parameter form
 
-```cpp
+~~~cpp
 void inspect(const auto& value);
-```
+~~~
 
 is an abbreviated function template.
 
@@ -1498,7 +1498,7 @@ Constant evaluation participates in determining whether certain template definit
 
 ### C++23 `if consteval` composes well with templates
 
-```cpp
+~~~cpp
 template<class T>
 constexpr T transform(T value)
 {
@@ -1508,7 +1508,7 @@ constexpr T transform(T value)
         return runtime_transform(value);
     }
 }
-```
+~~~
 
 This supports one generic API with two implementation strategies.
 
@@ -1518,17 +1518,17 @@ The compile-time branch may call immediate functions because it is an immediate-
 
 A generic algorithm often benefits from being usable in both modes:
 
-```cpp
+~~~cpp
 template<class T>
 constexpr T algorithm(T value);
-```
+~~~
 
 Changing it to:
 
-```cpp
+~~~cpp
 template<class T>
 consteval T algorithm(T value);
-```
+~~~
 
 eliminates runtime callers completely.
 
@@ -1544,15 +1544,15 @@ Use `constexpr` when dual-mode execution is useful.
 
 Avoid:
 
-```cpp
+~~~cpp
 const std::string make_name();
-```
+~~~
 
 Prefer:
 
-```cpp
+~~~cpp
 std::string make_name();
-```
+~~~
 
 The returned object is a new value owned by the caller.
 
@@ -1560,9 +1560,9 @@ Top-level const on a prvalue provides little useful protection and historically 
 
 The caller can choose:
 
-```cpp
+~~~cpp
 const auto name = make_name();
-```
+~~~
 
 if local immutability is desired.
 
@@ -1570,27 +1570,27 @@ if local immutability is desired.
 
 These declare the same function type for callers:
 
-```cpp
+~~~cpp
 void f(int value);
 void f(const int value);
-```
+~~~
 
 Inside the definition, marking the local copy const may document implementation intent:
 
-```cpp
+~~~cpp
 void f(const int value)
 {
     // value cannot be reassigned here
 }
-```
+~~~
 
 but the const does not belong in an API-level distinction.
 
 ### Prefer const references for non-owning read-only access when lifetime is clear
 
-```cpp
+~~~cpp
 void process(const large_object& value);
-```
+~~~
 
 is a common way to express:
 
@@ -1606,45 +1606,45 @@ Const-correctness is not a reason to mechanically pass everything by `const&`.
 
 A class may have a perfectly correct lvalue accessor:
 
-```cpp
+~~~cpp
 const std::string& name() const &;
-```
+~~~
 
 but this is dangerous if callable on a temporary and the reference escapes.
 
 Use ref qualification:
 
-```cpp
+~~~cpp
 const std::string& name() const &;
 std::string name() &&;
-```
+~~~
 
 or disable the rvalue overload if appropriate.
 
 ### Iterator constness has two different meanings
 
-```cpp
+~~~cpp
 std::vector<int>::const_iterator
-```
+~~~
 
 is an iterator that yields read-only element access.
 
-```cpp
+~~~cpp
 const std::vector<int>::iterator
-```
+~~~
 
 is a const iterator **object** that still denotes mutable elements.
 
 For example:
 
-```cpp
+~~~cpp
 std::vector<int> values{1, 2, 3};
 
 const std::vector<int>::iterator it = values.begin();
 
 *it = 9; // OK
 // ++it; // error: iterator object is const
-```
+~~~
 
 Top-level constness of the iterator and low-level constness of the element access are different.
 
@@ -1664,9 +1664,9 @@ Constness is an API/type-system tool, not a synchronization primitive.
 
 The qualifiers are orthogonal:
 
-```cpp
+~~~cpp
 volatile const std::uint32_t* status_register;
-```
+~~~
 
 may represent a read-only memory-mapped register.
 
@@ -1678,12 +1678,12 @@ Use atomics/mutexes for C++ concurrency.
 
 ### Constness does not provide ownership
 
-```cpp
+~~~cpp
 const T*
 const T&
 std::span<const T>
 std::string_view
-```
+~~~
 
 all say something about mutation through the interface.
 
@@ -1695,106 +1695,7 @@ Always ask separately:
 
 ---
 
-## Rules worth keeping in working memory
-
-### Choose the facility by the guarantee you want
-
-Use `const` when the guarantee is:
-
-> this object/access path must not modify the value.
-
-Use `constexpr` when the guarantee is:
-
-> this variable must be a constant-expression value, or this function should be usable during constant evaluation.
-
-Use `consteval` when the guarantee is:
-
-> calling this function at runtime is a programming error.
-
-Use `constinit` when the guarantee is:
-
-> this static/thread-local variable must not require dynamic initialization.
-
-Use `std::is_constant_evaluated()` when:
-
-> C++20 code genuinely needs to inspect its current evaluation mode.
-
-Use C++23 `if consteval` when:
-
-> the implementation has a distinct constant-evaluation branch, especially if it needs immediate functions.
-
-Use `if constexpr` when:
-
-> template structure depends on types/compile-time template conditions.
-
-### Review checklist
-
-When reviewing modern constness code, ask:
-
-| Question                                                                     | Why it matters                                                         |
-|------------------------------------------------------------------------------|------------------------------------------------------------------------|
-| Is `const` being confused with constant evaluation?                          | Runtime-initialized const objects are common.                          |
-| Is top-level const being lost through by-value deduction intentionally?      | `auto` and templates drop it by value.                                 |
-| Does a const reference/view outlive its owner?                               | Constness does not extend arbitrary lifetimes.                         |
-| Does a const member mutate cache state?                                      | Use `mutable` deliberately and consider thread safety.                 |
-| Is `const_cast` modifying a genuinely const object?                          | That is undefined behavior.                                            |
-| Is constness expected to be deep?                                            | C++ constness is generally shallow.                                    |
-| Should a function be `constexpr` or `consteval`?                             | Dual-mode versus compile-time-only is an API decision.                 |
-| Is `constinit` being mistaken for const?                                     | It controls initialization, not mutation.                              |
-| Is `is_constant_evaluated()` being used to predict optimization?             | It reports language evaluation mode, not optimizer folding.            |
-| Is `is_constant_evaluated()` used in `if constexpr`?                         | That is almost always conceptually wrong.                              |
-| Could C++23 `if consteval` express the intent better?                        | It directly models the mode branch.                                    |
-| Does a constexpr template assume all specializations are constant-evaluable? | Constant-evaluability depends on the instantiated operations and call. |
-| Is consteval unnecessarily blocking runtime use of a generic API?            | Prefer constexpr when both modes are valid.                            |
-| Can a temporary call a reference-returning member?                           | Ref qualifiers can prevent dangling.                                   |
-| Is a namespace/header constant ODR-safe?                                     | C++17 inline constexpr variables simplify this.                        |
-| Is a const method assumed to be thread-safe?                                 | Const is not synchronization.                                          |
-
-### Final mental model
-
-Modern C++ has several independent axes that happen to use similar words:
-
-```text
-type mutability
-    const / volatile
-
-constant-expression capability
-    constexpr
-
-mandatory immediate evaluation
-    consteval
-
-static initialization guarantee
-    constinit
-
-evaluation-mode detection
-    is_constant_evaluated / if consteval
-
-template structure selection
-    if constexpr
-```
-
-The most important habit is to stop asking:
-
-> “Is this constant?”
-
-and ask the more precise question:
-
-> “Constant in which sense: type, value, initialization phase, evaluation mode, or template instantiation?”
-
-Once those meanings are separated, most of C++ constness becomes systematic rather than mysterious.
-
----
-
----
-
-## Diagnostics and useful compiler settings
-
-TODO: complete the paragraph
-
----
-
-## Standards timeline
+## 10. Standards timeline through C++23
 
 ### C++98/03: runtime/type-system constness
 
@@ -1872,8 +1773,91 @@ The overall direction is toward writing one natural C++ function and allowing it
 
 ---
 
-## Further reading
+## 11. Practical decision guide
 
-TODO: complete the paragraph
+### Choose the facility by the guarantee you want
 
----
+Use `const` when the guarantee is:
+
+> this object/access path must not modify the value.
+
+Use `constexpr` when the guarantee is:
+
+> this variable must be a constant-expression value, or this function should be usable during constant evaluation.
+
+Use `consteval` when the guarantee is:
+
+> calling this function at runtime is a programming error.
+
+Use `constinit` when the guarantee is:
+
+> this static/thread-local variable must not require dynamic initialization.
+
+Use `std::is_constant_evaluated()` when:
+
+> C++20 code genuinely needs to inspect its current evaluation mode.
+
+Use C++23 `if consteval` when:
+
+> the implementation has a distinct constant-evaluation branch, especially if it needs immediate functions.
+
+Use `if constexpr` when:
+
+> template structure depends on types/compile-time template conditions.
+
+### Review checklist
+
+When reviewing modern constness code, ask:
+
+| Question                                                                     | Why it matters                                                         |
+|------------------------------------------------------------------------------|------------------------------------------------------------------------|
+| Is `const` being confused with constant evaluation?                          | Runtime-initialized const objects are common.                          |
+| Is top-level const being lost through by-value deduction intentionally?      | `auto` and templates drop it by value.                                 |
+| Does a const reference/view outlive its owner?                               | Constness does not extend arbitrary lifetimes.                         |
+| Does a const member mutate cache state?                                      | Use `mutable` deliberately and consider thread safety.                 |
+| Is `const_cast` modifying a genuinely const object?                          | That is undefined behavior.                                            |
+| Is constness expected to be deep?                                            | C++ constness is generally shallow.                                    |
+| Should a function be `constexpr` or `consteval`?                             | Dual-mode versus compile-time-only is an API decision.                 |
+| Is `constinit` being mistaken for const?                                     | It controls initialization, not mutation.                              |
+| Is `is_constant_evaluated()` being used to predict optimization?             | It reports language evaluation mode, not optimizer folding.            |
+| Is `is_constant_evaluated()` used in `if constexpr`?                         | That is almost always conceptually wrong.                              |
+| Could C++23 `if consteval` express the intent better?                        | It directly models the mode branch.                                    |
+| Does a constexpr template assume all specializations are constant-evaluable? | Constant-evaluability depends on the instantiated operations and call. |
+| Is consteval unnecessarily blocking runtime use of a generic API?            | Prefer constexpr when both modes are valid.                            |
+| Can a temporary call a reference-returning member?                           | Ref qualifiers can prevent dangling.                                   |
+| Is a namespace/header constant ODR-safe?                                     | C++17 inline constexpr variables simplify this.                        |
+| Is a const method assumed to be thread-safe?                                 | Const is not synchronization.                                          |
+
+### Final mental model
+
+Modern C++ has several independent axes that happen to use similar words:
+
+~~~text
+type mutability
+    const / volatile
+
+constant-expression capability
+    constexpr
+
+mandatory immediate evaluation
+    consteval
+
+static initialization guarantee
+    constinit
+
+evaluation-mode detection
+    is_constant_evaluated / if consteval
+
+template structure selection
+    if constexpr
+~~~
+
+The most important habit is to stop asking:
+
+> “Is this constant?”
+
+and ask the more precise question:
+
+> “Constant in which sense: type, value, initialization phase, evaluation mode, or template instantiation?”
+
+Once those meanings are separated, most of C++ constness becomes systematic rather than mysterious.

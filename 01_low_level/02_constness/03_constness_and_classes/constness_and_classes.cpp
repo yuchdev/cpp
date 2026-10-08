@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <version>
 
 namespace cpp {
 
@@ -231,6 +232,42 @@ static void deep_constness_demo()
     assert(x == 11);
 }
 
+// ---- 11) C++23 explicit object parameter ("deducing this") ------------------
+#if defined(__cpp_explicit_this_parameter) && __cpp_explicit_this_parameter >= 202110L && \
+    defined(__cpp_lib_forward_like) && __cpp_lib_forward_like >= 202207L
+struct ModernBox
+{
+    int value = 0;
+
+    template <class Self>
+    decltype(auto) get(this Self&& self)
+    {
+        // Propagate the constness and value category of the object to the member.
+        return std::forward_like<Self>(self.value);
+    }
+};
+
+static void explicit_object_parameter_demo()
+{
+    ModernBox b{7};
+    const ModernBox cb{9};
+
+    static_assert(std::is_same_v<decltype(b.get()), int&>);
+    static_assert(std::is_same_v<decltype(cb.get()), const int&>);
+    static_assert(std::is_same_v<decltype(std::move(b).get()), int&&>);
+
+    b.get() = 8;
+    assert(b.value == 8);
+}
+#else
+static void explicit_object_parameter_demo()
+{
+    // The repository baseline is C++20. This demonstration becomes active on
+    // a C++23 toolchain that implements explicit object parameters and
+    // std::forward_like.
+}
+#endif
+
 } // namespace cpp
 
 int main()
@@ -243,6 +280,7 @@ int main()
     cpp::ref_qualifier_pattern();
     cpp::forwarding_constness();
     cpp::deep_constness_demo();
+    cpp::explicit_object_parameter_demo();
 
     std::cout << "constness_and_classes.cpp: OK\n";
     return 0;
