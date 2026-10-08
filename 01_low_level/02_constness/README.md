@@ -1862,7 +1862,7 @@ and ask the more precise question:
 
 Once those meanings are separated, most of C++ constness becomes systematic rather than mysterious.
 
-## Diagnostics and useful compiler settings
+## Diagnostics, useful compiler settings and extensions
 
 TODO: complete the paragraph
 

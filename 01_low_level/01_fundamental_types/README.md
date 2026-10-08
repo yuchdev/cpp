@@ -308,7 +308,7 @@ and avoids the semantic abuse of `unsigned char`.
 | Compile-time usable | Yes            | Yes              | Yes (in type system) | Yes                        |
 | Common pitfall      | Promotions     | `NULL` confusion | Misuse as typeless   | Expecting integer behavior |
 
-## Diagnostics and useful compiler settings
+## Diagnostics, useful compiler settings and extensions
 
 TODO: complete the paragraph
 

@@ -2564,7 +2564,7 @@ When reviewing numerical C++ code, ask:
 
 ---
 
-## Diagnostics and useful compiler settings
+## Diagnostics, useful compiler settings and extensions
 
 TODO: complete the paragraph
 

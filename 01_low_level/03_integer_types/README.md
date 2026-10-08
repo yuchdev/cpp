@@ -1582,7 +1582,7 @@ If these questions have explicit answers, the code is usually operating at the r
 
 ---
 
-## Diagnostics and useful compiler settings
+## Diagnostics, useful compiler settings and extensions
 
 Many dangerous integer conversions are legal C++, so a clean default warning set is not enough. On GCC/Clang, useful warning groups often include:
 
