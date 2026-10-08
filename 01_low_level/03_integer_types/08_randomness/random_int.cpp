@@ -194,7 +194,7 @@ static void print_why_rand_is_bad()
     //
     // Still, the trends are usually consistent:
     // - rand() has global state and often produces few bits per call
-    // - “fixing” rand() range/bias costs extra work
+    // - "fixing" rand() range/bias costs extra work
     // - <random> gives you explicit state + better mapping
     // ---------------------------------------------------------------------
 

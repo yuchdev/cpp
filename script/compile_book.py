@@ -239,7 +239,9 @@ def relative_source(path: Path) -> str:
         return str(path.resolve())
 
 
-def compile_book(input_dir: Path, output_dir: Path, do_renumber: bool, do_check: bool) -> int:
+def compile_book(
+    input_dir: Path, output_dir: Path, do_renumber: bool, do_check: bool, book_title: str | None
+) -> int:
     chapters = find_chapters(input_dir)
     if not chapters:
         print(f"Error: no numbered chapter directories found in {input_dir}", file=sys.stderr)
@@ -305,7 +307,13 @@ def compile_book(input_dir: Path, output_dir: Path, do_renumber: bool, do_check:
         copied += 1
         print(f"{readme} -> {destination}")
 
-    book_name = f"{output_dir.name}.md"
+    raw_book_name = book_title if book_title is not None else output_dir.name
+    safe_book_name = filename_component(raw_book_name)
+    if not safe_book_name:
+        print("Error: book title produces an empty filename", file=sys.stderr)
+        return 1
+
+    book_name = f"{safe_book_name}.md"
     book_path = output_dir / book_name
     book_path.write_text("".join(book_chunks), encoding="utf-8")
 
@@ -436,7 +444,7 @@ def decompile_book(book_dir: Path) -> int:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         usage="%(prog)s OUTPUT_DIRECTORY [-h] [--compile | --decompile] [--check] [--renumber] "
-        "[--from-dir INPUT_DIRECTORY]",
+        "[--book-title BOOK_TITLE] [--from-dir INPUT_DIRECTORY]",
         description="Compile chapter README files into a Markdown book, or decompile it back."
     )
     mode = parser.add_mutually_exclusive_group()
@@ -467,6 +475,12 @@ def parse_args() -> argparse.Namespace:
         help="Input directory containing numbered chapter directories (default: current directory).",
     )
     parser.add_argument(
+        "--book-title",
+        type=str,
+        metavar="BOOK_TITLE",
+        help="Book title to use for the compiled markdown filename.",
+    )
+    parser.add_argument(
         "output_directory",
         type=Path,
         metavar="OUTPUT_DIRECTORY",
@@ -479,8 +493,11 @@ def main() -> int:
     args = parse_args()
 
     if args.decompile:
-        if args.check or args.renumber or args.from_dir is not None:
-            print("Error: --decompile is incompatible with --check, --renumber, and --from-dir", file=sys.stderr)
+        if args.check or args.renumber or args.from_dir is not None or args.book_title is not None:
+            print(
+                "Error: --decompile is incompatible with --check, --renumber, --from-dir, and --book-title",
+                file=sys.stderr,
+            )
             return 2
         book_dir = args.output_directory.expanduser().resolve()
         if not book_dir.is_dir():
@@ -494,7 +511,7 @@ def main() -> int:
         print(f"Error: input directory does not exist: {input_dir}", file=sys.stderr)
         return 1
 
-    return compile_book(input_dir, output_dir, args.renumber, args.check)
+    return compile_book(input_dir, output_dir, args.renumber, args.check, args.book_title)
 
 
 if __name__ == "__main__":

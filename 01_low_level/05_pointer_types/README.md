@@ -24,7 +24,7 @@ A pointer participates in several overlapping models:
 * concurrency and synchronization;
 * optimizer assumptions about provenance, lifetime, and aliasing.
 
-This chapter is aimed at experienced C++ developers. It concentrates on the places where “a pointer is just an address” is an actively misleading mental model.
+This chapter is aimed at experienced C++ developers. It concentrates on the places where "a pointer is just an address" is an actively misleading mental model.
 
 The examples in this directory are:
 
@@ -73,7 +73,7 @@ It also matters to optimizers even on ordinary x86-64.
 
 ## 1.1 Pointer categories are distinct
 
-C++ has several categories that programmers casually call “pointers”:
+C++ has several categories that programmers casually call "pointers":
 
 ~~~cpp
 int* object_pointer;
@@ -158,7 +158,7 @@ Do not turn that ABI convenience into a generic C++ assumption.
 
 If an API needs to carry a callback, use the appropriate function-pointer type, callable wrapper, or an API-defined opaque representation.
 
-## 1.4 Null pointer value does not mean “all bits zero” as a language rule
+## 1.4 Null pointer value does not mean "all bits zero" as a language rule
 
 `nullptr` produces a null pointer value when converted to a pointer type:
 
@@ -170,7 +170,7 @@ C++ specifies the semantic value, not a universal physical bit pattern.
 
 On mainstream systems, null object pointers are usually represented by zero bits. Portable serialization, memory initialization, and low-level protocols should not infer the language rule from that convention.
 
-For example, `calloc` zeroes bytes. The C++ language does not define “all-bits-zero object representation” as the universal representation of every null pointer type.
+For example, `calloc` zeroes bytes. The C++ language does not define "all-bits-zero object representation" as the universal representation of every null pointer type.
 
 ---
 
@@ -262,7 +262,7 @@ int* dangling;
 } // x dies here
 ~~~
 
-The first pointer explicitly represents “no object”.
+The first pointer explicitly represents "no object".
 
 The second retains a pointer value associated with an object whose lifetime has ended.
 
@@ -295,7 +295,7 @@ The increment is scaled by the pointed-to type:
 
 moves from one `int` element to the next `int` element.
 
-This does not mean “add `sizeof(int)` to an integer address” in the language model, even though that is the machine instruction a conventional implementation may ultimately use.
+This does not mean "add `sizeof(int)` to an integer address" in the language model, even though that is the machine instruction a conventional implementation may ultimately use.
 
 ## 3.1 A non-array object behaves like an array of one for limited pointer arithmetic
 
@@ -434,7 +434,7 @@ In many expressions, an array undergoes array-to-pointer conversion:
 int* p = a;
 ~~~
 
-so programmers casually say “an array is a pointer”.
+so programmers casually say "an array is a pointer".
 
 That shortcut causes bugs.
 
@@ -484,7 +484,7 @@ The `100` does not make the parameter carry a runtime or compile-time extent.
 
 If extent matters, modern C++ has better interfaces.
 
-## 4.4 Use `std::span` when the API means “contiguous sequence”
+## 4.4 Use `std::span` when the API means "contiguous sequence"
 
 C++20:
 
@@ -600,7 +600,7 @@ For pointer-like types, `pointer_traits` can participate.
 
 ## 5.2 Fancy pointers matter in allocators and specialized memory systems
 
-A “pointer” in generic library code may represent memory in:
+A "pointer" in generic library code may represent memory in:
 
 * shared memory;
 * GPU/device memory;
@@ -663,7 +663,7 @@ Relational comparison:
 px < py
 ~~~
 
-does not provide a portable “which numeric address is lower?” abstraction for unrelated complete objects. Depending on the relationship between the pointed-to objects, the standard's pointer comparison rules can leave the relational result unspecified.
+does not provide a portable "which numeric address is lower?" abstraction for unrelated complete objects. Depending on the relationship between the pointed-to objects, the standard's pointer comparison rules can leave the relational result unspecified.
 
 This is not the same thing as saying the expression is necessarily undefined behavior.
 
@@ -747,7 +747,7 @@ These types are optional.
 
 If the implementation cannot provide an integer type with the required pointer-conversion capability, it need not define them.
 
-## 7.1 `uintptr_t` is not “the pointer type without the star”
+## 7.1 `uintptr_t` is not "the pointer type without the star"
 
 This can be useful:
 
@@ -861,7 +861,7 @@ S array[100];
 
 are each correctly aligned.
 
-## 8.2 The class alignment need not be described as “exactly the largest member alignment”
+## 8.2 The class alignment need not be described as "exactly the largest member alignment"
 
 For an ordinary struct, the largest natural member alignment often determines the struct's alignment.
 
@@ -980,7 +980,7 @@ The first asks for one 16-byte-aligned aggregate.
 
 The second may force each individual scalar onto a 16-byte boundary, producing a much larger object.
 
-Alignment is a layout requirement, not a generic “make SIMD faster” switch.
+Alignment is a layout requirement, not a generic "make SIMD faster" switch.
 
 ---
 
@@ -1002,7 +1002,7 @@ You need to distinguish:
 
 Passing one condition does not automatically establish the others.
 
-## 9.1 Aligned byte storage does not automatically mean “live T”
+## 9.1 Aligned byte storage does not automatically mean "live T"
 
 ~~~cpp
 alignas(T) std::byte storage[sizeof(T)];
@@ -1075,7 +1075,7 @@ This appears in:
 
 Correctness depends on both the old and new object lifetimes, not merely storage capacity.
 
-## 9.4 `std::launder` is specialized, not a routine “make cast legal” tool
+## 9.4 `std::launder` is specialized, not a routine "make cast legal" tool
 
 C++17 introduced:
 
@@ -1092,7 +1092,7 @@ It is not:
 * a way to legalize arbitrary casts;
 * a substitute for beginning object lifetime.
 
-If you find yourself adding `std::launder` experimentally until code “works”, the lifetime model should be revisited first.
+If you find yourself adding `std::launder` experimentally until code "works", the lifetime model should be revisited first.
 
 ## 9.5 C++23 `std::start_lifetime_as` makes an important low-level operation explicit
 
@@ -1189,7 +1189,7 @@ std::memcpy(&bits, &f, sizeof bits);
 
 Compilers understand this idiom well and commonly optimize away the apparent memory copy.
 
-Do not replace a well-defined `memcpy` with undefined pointer punning merely because the latter looks “lower level”.
+Do not replace a well-defined `memcpy` with undefined pointer punning merely because the latter looks "lower level".
 
 ## 10.4 C++ and C aliasing folklore are not identical
 
@@ -1226,7 +1226,7 @@ std::endian::native
 
 from `<bit>`.
 
-But endianness describes the byte representation of multi-byte scalar values. It does not mean “pointers increment backwards” or otherwise alter ordinary array indexing.
+But endianness describes the byte representation of multi-byte scalar values. It does not mean "pointers increment backwards" or otherwise alter ordinary array indexing.
 
 ## 11.1 Network and file formats need explicit byte order
 
@@ -1291,7 +1291,7 @@ A raw pointer then usually means:
 
 This convention is not a language rule, but it dramatically improves readability.
 
-## 12.2 `unique_ptr` is not “a pointer with automatic delete”
+## 12.2 `unique_ptr` is not "a pointer with automatic delete"
 
 It is an ownership object with:
 
@@ -1336,7 +1336,7 @@ through `shared_ptr`, neither reference count reaches zero.
 
 `weak_ptr` represents a non-owning link into a shared ownership graph.
 
-The deeper lesson is not “always use smart pointers”. It is:
+The deeper lesson is not "always use smart pointers". It is:
 
 > model ownership topology explicitly.
 
@@ -1353,7 +1353,7 @@ Raw pointers remain appropriate for:
 * low-level serialization machinery;
 * explicit pointer arithmetic.
 
-“Modern C++” does not mean eliminating `T*`. It means not making `T*` carry ownership/lifetime semantics that a better type could express.
+"Modern C++" does not mean eliminating `T*`. It means not making `T*` carry ownership/lifetime semantics that a better type could express.
 
 ---
 
@@ -1476,7 +1476,7 @@ This is a good example of modern C++ adding a **pointer facility** without addin
 
 ---
 
-# 15. References are aliases, but “references are just const pointers” is wrong
+# 15. References are aliases, but "references are just const pointers" is wrong
 
 A reference is often implemented using an address internally, but the language semantics differ.
 
@@ -1533,7 +1533,7 @@ int& refs[10]; // array of references: ill-formed
 int&* p;       // pointer to reference: ill-formed
 ~~~
 
-Reference members and parameters may consume machine storage in an implementation, but `sizeof` does not expose a “reference object size”.
+Reference members and parameters may consume machine storage in an implementation, but `sizeof` does not expose a "reference object size".
 
 For:
 
@@ -1619,7 +1619,7 @@ Views are useful precisely because they are cheap and non-owning, but lifetime m
 
 # 17. Rvalue references: the declared type and expression category are different
 
-This remains one of C++'s most important “looks wrong until internalized” rules:
+This remains one of C++'s most important "looks wrong until internalized" rules:
 
 ~~~cpp
 T&& r = ...;
@@ -1843,7 +1843,7 @@ static_assert(
 
 Instead of handing you a syntactically usable dangling iterator, the algorithm can return a marker type.
 
-## 20.1 “Borrowed” does not mean ownership
+## 20.1 "Borrowed" does not mean ownership
 
 A borrowed range means, roughly, that iterators obtained from the range can remain valid independently of the lifetime of the range object itself.
 
@@ -1915,7 +1915,7 @@ The language/library is gradually gaining vocabulary for expressing those hazard
 
 ---
 
-# 23. C++23 explicit object parameters (“deducing this”) reduce cv/ref overload duplication
+# 23. C++23 explicit object parameters ("deducing this") reduce cv/ref overload duplication
 
 Traditional member APIs often need four overloads:
 
@@ -1936,7 +1936,7 @@ This is relevant to a pointer/reference chapter because much of advanced C++ ref
 * lvalue/rvalue category;
 * subobject lifetime relationships.
 
-The feature is not “pointer syntax”, but it directly affects how modern APIs return references and proxy objects.
+The feature is not "pointer syntax", but it directly affects how modern APIs return references and proxy objects.
 
 ---
 
@@ -1971,7 +1971,7 @@ decltype(*it) == T&
 
 Modern iterator concepts are designed with proxy references in mind.
 
-This is another reason “iterator == pointer” is too narrow a model.
+This is another reason "iterator == pointer" is too narrow a model.
 
 ---
 
@@ -2145,7 +2145,7 @@ Another thread can:
 2. remove another object;
 3. allocate/reinsert an object at address A.
 
-The first thread sees the same pointer bits and concludes “nothing changed”.
+The first thread sees the same pointer bits and concludes "nothing changed".
 
 That is the ABA problem.
 
@@ -2451,7 +2451,7 @@ The second performs a defined representation conversion under `bit_cast`'s const
 
 This pattern applies throughout systems C++:
 
-> when the operation is “copy representation”, use a representation-copy facility; do not fake it as pointer aliasing.
+> when the operation is "copy representation", use a representation-copy facility; do not fake it as pointer aliasing.
 
 ---
 
@@ -2557,7 +2557,7 @@ do_something_that_throws();
 
 stack unwinding destroys the `unique_ptr`.
 
-This is why RAII is more fundamental than “smart pointers are convenient”.
+This is why RAII is more fundamental than "smart pointers are convenient".
 
 RAII couples resource lifetime to an object lifetime that the language already unwinds correctly.
 
@@ -2572,7 +2572,7 @@ The same principle applies to:
 
 ---
 
-# 40. C++ sequencing rules: avoid the obsolete phrase “evaluation order is undefined”
+# 40. C++ sequencing rules: avoid the obsolete phrase "evaluation order is undefined"
 
 Older explanations often say:
 
@@ -2680,7 +2680,7 @@ T* const
 
 makes the pointer itself non-reseatable, not the pointee const.
 
-C++ constness is applied to types/expressions, not as a universal graph-wide “everything reachable is immutable” property.
+C++ constness is applied to types/expressions, not as a universal graph-wide "everything reachable is immutable" property.
 
 This matters in API design and concurrency reasoning.
 
@@ -2756,7 +2756,7 @@ ownership/lifetime duration?
 
 ---
 
-# 45. C++ “byte” is not guaranteed to be 8 bits
+# 45. C++ "byte" is not guaranteed to be 8 bits
 
 Pointer arithmetic on:
 
@@ -2788,7 +2788,7 @@ is measured in C++ bytes, not necessarily octets.
 
 Protocols defined in 8-bit octets need explicit-width representation assumptions.
 
-This is particularly important when educational material says “pointer advances N bytes” and silently equates byte with octet.
+This is particularly important when educational material says "pointer advances N bytes" and silently equates byte with octet.
 
 ---
 
@@ -2948,7 +2948,7 @@ struct Node {
 
 The pointer has finite size independent of the complete size of the eventual node object.
 
-This is one of the fundamental structural reasons pointers exist beyond “dynamic allocation”.
+This is one of the fundamental structural reasons pointers exist beyond "dynamic allocation".
 
 ---
 
@@ -3186,7 +3186,7 @@ Notable additions include:
 * `std::forward_like`;
 * `std::reference_constructs_from_temporary`;
 * `std::reference_converts_from_temporary`;
-* explicit object parameters (“deducing this”);
+* explicit object parameters ("deducing this");
 * continued ranges/view improvements.
 
 ---
@@ -3253,4 +3253,4 @@ For systems C++, pointer expertise is therefore less about remembering where to 
 3. **Is this access type/alignment/bounds-correct?**
 4. **Who guarantees the object's lifetime and eventual cleanup?**
 
-If those four answers are explicit, most pointer code becomes straightforward. If they are not, even code that prints the “right address” can already be wrong.
+If those four answers are explicit, most pointer code becomes straightforward. If they are not, even code that prints the "right address" can already be wrong.

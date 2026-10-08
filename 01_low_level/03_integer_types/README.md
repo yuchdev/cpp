@@ -77,7 +77,7 @@ static_assert(sizeof(char) == 1);
 std::cout << CHAR_BIT;
 ```
 
-The standard requires `CHAR_BIT >= 8` in modern C++, but unusual machines have existed with 9-, 12-, 16-, 24-, and other-width addressable units. This matters to code that equates “byte count” with “octet count.”
+The standard requires `CHAR_BIT >= 8` in modern C++, but unusual machines have existed with 9-, 12-, 16-, 24-, and other-width addressable units. This matters to code that equates "byte count" with "octet count."
 
 For example:
 
@@ -107,7 +107,7 @@ auto sum = a + b;
 
 On ordinary implementations where `int` can represent all values of `unsigned char`, `sum` is an `int` with value `300`, not an `unsigned char` containing `44`.
 
-This is an important theme for the rest of the chapter: **the declared type of an operand is not necessarily the type in which an expression is evaluated**.
+This is an important theme for the rest of the chapter: **the declared type of operand is not necessarily the type in which an expression is evaluated**.
 
 ### `char8_t`, `char16_t`, and `char32_t` are code-unit types
 
@@ -119,7 +119,7 @@ auto b = u'ß';         // char16_t
 auto c = U'🍌';        // char32_t
 ```
 
-These types do not mean “one human-readable character.” Unicode distinguishes code units, code points, grapheme clusters, and rendered glyphs. A visible character can require several code points, and UTF-16 may require a surrogate pair for one code point.
+These types do not mean "one human-readable character." Unicode distinguishes code units, code points, grapheme clusters, and rendered glyphs. A visible character can require several code points, and UTF-16 may require a surrogate pair for one code point.
 
 `char8_t` is especially important for overload resolution and API migration. Before C++20 a UTF-8 string literal had an array type based on `char`; in C++20 it is based on `char8_t`:
 
@@ -220,13 +220,13 @@ long long
 
 plus their unsigned counterparts. Their minimum widths are conventionally summarized as:
 
-| Type | Minimum width |
-|---|---:|
-| `signed char` | 8 bits |
-| `short` | 16 bits |
-| `int` | 16 bits |
-| `long` | 32 bits |
-| `long long` | 64 bits |
+| Type          | Minimum width |
+|---------------|--------------:|
+| `signed char` |        8 bits |
+| `short`       |       16 bits |
+| `int`         |       16 bits |
+| `long`        |       32 bits |
+| `long long`   |       64 bits |
 
 The size ordering is guaranteed:
 
@@ -263,14 +263,14 @@ An optimizer may still assume that a well-defined execution never performs signe
 
 ### Data models explain why `long` is a portability trap
 
-The common data models are more useful than vague statements such as “`long` is 32 bits”:
+The common data models are more useful than vague statements such as "`long` is 32 bits":
 
-| Model | `int` | `long` | pointer | Typical environment |
-|---|---:|---:|---:|---|
-| ILP32 | 32 | 32 | 32 | 32-bit Unix/Windows |
-| LP64 | 32 | 64 | 64 | 64-bit Linux/macOS/most Unix |
-| LLP64 | 32 | 32 | 64 | 64-bit Windows |
-| ILP64 | 64 | 64 | 64 | rare specialized systems |
+| Model | `int` | `long` | pointer | Typical environment          |
+|-------|------:|-------:|--------:|------------------------------|
+| ILP32 |    32 |     32 |      32 | 32-bit Unix/Windows          |
+| LP64  |    32 |     64 |      64 | 64-bit Linux/macOS/most Unix |
+| LLP64 |    32 |     32 |      64 | 64-bit Windows               |
+| ILP64 |    64 |     64 |      64 | rare specialized systems     |
 
 The practical consequence is that `long` is **64-bit on ordinary 64-bit Unix-like systems but remains 32-bit on Win64**.
 
@@ -294,13 +294,13 @@ Changing a public function parameter from `int` to `long` can be an ABI change e
 auto n = sizeof(object); // type: std::size_t
 ```
 
-A pointer also has an implementation-defined representation. On mainstream flat-address-space ABIs, `sizeof(size_t)` and `sizeof(void*)` usually match, but C++ does not define `size_t` as “the pointer integer type.” Capability machines, segmented systems, and other non-flat architectures are reasons not to encode that assumption into generic code.
+A pointer also has an implementation-defined representation. On mainstream flat-address-space ABIs, `sizeof(size_t)` and `sizeof(void*)` usually match, but C++ does not define `size_t` as "the pointer integer type." Capability machines, segmented systems, and other non-flat architectures are reasons not to encode that assumption into generic code.
 
 For pointer differences, the standard library exposes the signed `std::ptrdiff_t`.
 
 ### Integer literals have types before they ever meet a variable
 
-The type of an integer literal depends on its **base, value, and suffix**.
+The type of integer literal depends on its **base, value, and suffix**.
 
 For an unsuffixed decimal literal, the implementation tries, in order:
 
@@ -343,7 +343,7 @@ auto m = std::numeric_limits<int>::min();
 
 This avoids relying on the positive token first fitting some wider candidate type.
 
-### Endianness is a property of multi-byte object representation
+### Endianness is a property of multibyte object representation
 
 The example walks the bytes of an `unsigned long long` through an `unsigned char*`. That is a legitimate way to inspect the object representation.
 
@@ -448,7 +448,7 @@ unsigned char a{42};   // fine
 
 This makes braces especially useful at boundaries where a value is being committed to a narrower representation.
 
-### “Uniform initialization” is not actually uniform
+### "Uniform initialization" is not actually uniform
 
 Braces solve some problems and create another: constructors taking `std::initializer_list` receive special preference.
 
@@ -479,7 +479,7 @@ auto b = {99}; // std::initializer_list<int>
 
 Before the N3922 rule change, `auto a{99}` was deduced as `std::initializer_list<int>`. The corrected rule was incorporated into the C++17-era language and implemented by major compilers earlier as a defect-resolution behavior.
 
-For experienced developers maintaining code across old toolchains, this is a reminder that some “language-version” differences arrive through defect reports and compiler backports rather than a clean `-std=` boundary.
+For experienced developers maintaining code across old toolchains, this is a reminder that some "language-version" differences arrive through defect reports and compiler backports rather than a clean `-std=` boundary.
 
 Direct-list `auto` must have one element:
 
@@ -531,7 +531,7 @@ produces zero. This is particularly useful for local variables and aggregates be
 int x; // indeterminate value if not otherwise initialized
 ```
 
-Do not generalize this into “braces always mean zero,” however. The result depends on the initialized type and its constructors.
+Do not generalize this into "braces always mean zero," however. The result depends on the initialized type and its constructors.
 
 ### Narrowing checks do not replace runtime range checks
 
@@ -556,7 +556,7 @@ C++20's `std::in_range` makes generic checked conversions easier and avoids sign
 
 ---
 
-## 4. Unsigned integers: modular arithmetic, not “non-negative integers”
+## 4. Unsigned integers: modular arithmetic, not "non-negative integers"
 
 Unsigned types are often described as integers that cannot be negative. That description is mathematically incomplete and encourages bad API design. A better model is:
 
@@ -585,7 +585,7 @@ That property is useful for:
 * hardware registers;
 * modular arithmetic by design.
 
-It is dangerous when the programmer only meant “this quantity should never be negative.”
+It is dangerous when the programmer only meant "this quantity should never be negative."
 
 ### Unsigned subtraction can turn a simple predicate into a huge value
 
@@ -615,7 +615,7 @@ if (i >= j + 4) {
 }
 ```
 
-The second form itself requires care if `j + 4` can wrap. Range reasoning cannot be avoided just by changing syntax.
+The second form itself requires care if `j + 4` can wrap. Range reasoning cannot be avoided just by changing the syntax.
 
 ### Mixed signed/unsigned comparison invokes the usual arithmetic conversions
 
@@ -630,7 +630,7 @@ bool b = j < i;
 
 On an ordinary implementation where both have the same rank, `j` is converted to `unsigned int`. The value `-1` becomes `UINT_MAX`, so the comparison is false.
 
-The surprising part is not “unsigned wins” as a universal rule. The actual usual arithmetic conversion rules consider:
+The surprising part is not "unsigned wins" as a universal rule. The actual usual arithmetic conversion rules consider:
 
 1. integral promotions;
 2. signedness;
@@ -762,7 +762,7 @@ auto y = static_cast<std::uint8_t>(~x);
 
 ### Use unsigned for modular semantics, not merely domain validation
 
-An unsigned type does not enforce “must be non-negative” at an API boundary:
+An unsigned type does not enforce "must be non-negative" at an API boundary:
 
 ```cpp
 void set_count(unsigned n);
@@ -777,11 +777,11 @@ If negative input is a contract violation, validation or a stronger domain type 
 
 ## 5. Integral promotions: the invisible rewrite before arithmetic
 
-Integral promotions are among the most important “invisible” rules in C++. They happen before many operators, and because they preserve the numeric value they are ranked better than ordinary conversions during overload resolution.
+Integral promotions are among the most important "invisible" rules in C++. They happen before many operators, and because they preserve the numeric value they are ranked better than ordinary conversions during overload resolution.
 
 ### Promotion is not synonymous with widening
 
-A promotion is a specific language category. For ordinary narrow integer types, the destination is selected by rule, not simply by “next larger type.”
+A promotion is a specific language category. For ordinary narrow integer types, the destination is selected by rule, not simply by "next larger type."
 
 For `char`, `signed char`, `unsigned char`, `short`, and `unsigned short`, the basic rule is:
 
@@ -796,7 +796,7 @@ auto x = +uc;
 static_assert(std::is_same_v<decltype(x), int>); // typical 32-bit-int ABI
 ```
 
-This corrects a common misconception that “unsigned small types promote to unsigned int.” They often do not.
+This corrects a common misconception that "unsigned small types promote to unsigned int." They often do not.
 
 The distinction becomes observable in expressions:
 
@@ -820,7 +820,7 @@ char c = 0;
 f(c); // f(int): promotion beats char -> short conversion
 ```
 
-This can matter when seemingly harmless overloads are added to an established API. The “closest width” overload is not necessarily the best conversion sequence.
+This can matter when seemingly harmless overloads are added to an established API. The "closest width" overload is not necessarily the best conversion sequence.
 
 ### Unary operators reveal promotions cleanly
 
@@ -854,14 +854,14 @@ unsigned long long
 
 On a typical system, `char32_t` can represent values up to `0xffffffff`, so it commonly promotes to `unsigned int`, not `int`.
 
-Therefore code such as:
+Therefore, code such as:
 
 ```cpp
 char32_t c = U'🍌';
 int x = c;
 ```
 
-should not be mentally modeled as “`char32_t` promotes to `int`.” The expression may promote to `unsigned int`, after which the initialization of `x` performs a separate integral conversion.
+should not be mentally modeled as "`char32_t` promotes to `int`." The expression may promote to `unsigned int`, after which the initialization of `x` performs a separate integral conversion.
 
 ### Enums are another promotion boundary
 
@@ -886,7 +886,7 @@ auto raw = std::to_underlying(Mode::A);
 
 ### Bit-fields have their own promotion corner cases
 
-Bit-fields are one of the places where “declared type” and “expression type” diverge most sharply.
+Bit-fields are one of the places where "declared type" and "expression type" diverge most sharply.
 
 ```cpp
 struct Flags {
@@ -910,7 +910,7 @@ lvalue-to-rvalue
     -> perform operation
 ```
 
-This explains many “impossible” bugs. The code you wrote might show `short` and `unsigned short`, but the CPU-level arithmetic selected by the language may be `int`, `unsigned int`, `long`, or another common type.
+This explains many "impossible" bugs. The code you wrote might show `short` and `unsigned short`, but the CPU-level arithmetic selected by the language may be `int`, `unsigned int`, `long`, or another common type.
 
 **Engineering takeaway:** when an integer expression surprises you, inspect the promoted operand types before inspecting the destination variable. The destination is usually too late to explain what happened.
 
@@ -961,7 +961,7 @@ auto y = static_cast<std::uint8_t>(x); // low 8 bits: 0x78
 
 The fact that behavior is defined says nothing about whether it was intended.
 
-A good code-review question is therefore not merely “is this UB?” but:
+A good code-review question is therefore not merely "is this UB?" but:
 
 > Is this conversion value-preserving for all inputs allowed by the surrounding contract?
 
@@ -989,7 +989,7 @@ The integer comparison helpers `std::cmp_less`, `std::cmp_greater`, and friends 
 
 ### `uint8_t` has an API/IO identity crisis
 
-On implementations that provide `std::uint8_t`, it is typically a typedef of `unsigned char`, because C++ does not have a separate built-in “exactly 8-bit arithmetic type.”
+On implementations that provide `std::uint8_t`, it is typically a typedef of `unsigned char`, because C++ does not have a separate built-in "exactly 8-bit arithmetic type."
 
 That means overload resolution treats it as a character type:
 
@@ -1039,7 +1039,7 @@ A robust boundary usually checks:
 
 ### Integer-to-floating conversion can lose integer identity
 
-IEEE-754 binary64 (`double` on mainstream systems) has 53 bits of significand precision. Therefore every integer up to `2^53` is exactly representable, but not every integer above it is.
+IEEE-754 binary64 (`double` on mainstream systems) has 53 bits of significand precision. Therefore, every integer up to `2^53` is exactly representable, but not every integer above it is.
 
 ```cpp
 std::uint64_t a = (1ULL << 53);
@@ -1089,14 +1089,14 @@ Color c = static_cast<Color>(250);
 
 Whether a particular integer-to-enum conversion is well-defined depends on the enum's representable range and the language rules, but even a representable result may be **semantically invalid** because no enumerator has that value.
 
-Therefore deserialization needs two checks:
+Therefore, deserialization needs two checks:
 
 1. can the raw value be represented in the underlying type / enum domain?
 2. is it one of the values accepted by the protocol or application?
 
 Casts solve neither policy question.
 
-### Do not “fix” average overflow with a formula that changes rounding accidentally
+### Do not "fix" average overflow with a formula that changes rounding accidentally
 
 A classic overflow-safe average trick is:
 
@@ -1141,9 +1141,9 @@ Real systems may prefer `std::expected`, assertions, error codes, saturating con
 
 ---
 
-## 7. `<cstdint>`: exact width, least width, fast width, and pointer-sized integers
+## 7. `<cstdint>`: exact width, the least width, fast width, and pointer-sized integers
 
-`<cstdint>` is often taught as “the header that gives us `int32_t`.” Its actual design is more nuanced: it provides several different families because “exactly N bits,” “at least N bits,” “smallest such type,” and “fastest such type” are different requirements.
+`<cstdint>` is often taught as "the header that gives us `int32_t`." Its actual design is more nuanced: it provides several different families because "exactly N bits," "at least N bits," "smallest such type," and "fastest such type" are different requirements.
 
 ### `intN_t` and `uintN_t` are optional exact-width types
 
@@ -1197,7 +1197,7 @@ This creates a non-obvious tradeoff:
 * larger arrays increase cache footprint and memory bandwidth;
 * ABI choices may preserve an old definition even after CPU performance characteristics evolve.
 
-So “fast” does not mean “provably fastest for your workload in 2026.” It means the implementation selected a type for that role.
+So "fast" does not mean "provably fastest for your workload in 2026." It means the implementation selected a type for that role.
 
 For dense arrays, data-oriented code often prefers exact or least-width storage and promotes to a convenient arithmetic type when loading values.
 
@@ -1211,7 +1211,7 @@ using std::uint8_t = unsigned char; // conceptually
 
 A typedef preserves type identity. This is why `uint8_t` can choose character overloads and why `std::cout << uint8_t{65}` may print `A`.
 
-If you need a strong semantic “8-bit number” type, a typedef cannot provide it; use a wrapper type or another stronger abstraction.
+If you need a strong semantic "8-bit number" type, a typedef cannot provide it; use a wrapper type or another stronger abstraction.
 
 ### `intptr_t` and `uintptr_t` are for pointer round-trips, not pointer arithmetic
 
@@ -1233,7 +1233,7 @@ For ordinary pointer arithmetic, keep the value as a pointer or use `std::ptrdif
 
 `std::intmax_t` and `std::uintmax_t` are maximum-width standard-library integer types intended to represent very wide integer values available through the standard integer model.
 
-They are useful for generic formatting/parsing bridges and macros, but they are often a poor choice for hot data structures: “widest” generally means more storage and potentially different calling conventions.
+They are useful for generic formatting/parsing bridges and macros, but they are often a poor choice for hot data structures: "widest" generally means more storage and potentially different calling conventions.
 
 ### Literal macros solve a pre-type problem
 
@@ -1251,7 +1251,7 @@ In modern generic C++ these macros are less visible than in C interoperability c
 
 C++26 adds macros such as `INT32_WIDTH`, `INT_FAST32_WIDTH`, `INT_LEAST32_WIDTH`, `INTMAX_WIDTH`, and their unsigned counterparts where the corresponding types exist.
 
-These report bit width directly and are preferable to reverse-engineering it from `sizeof(T) * CHAR_BIT` when padding/value-bit distinctions matter.
+These report the bit width directly and are preferable to reverse-engineering it from `sizeof(T) * CHAR_BIT` when padding/value-bit distinctions matter.
 
 For code targeting older standards, `std::numeric_limits<T>::digits` remains important:
 
@@ -1264,20 +1264,20 @@ std::numeric_limits<std::int32_t>::digits  // 31 sign-excluding value bits
 
 A useful decision table is:
 
-| Requirement | Typical choice |
-|---|---|
-| Natural arithmetic/local counter | `int`, sometimes `long long` |
-| Container size/index API | container `size_type` / `std::size_t` |
-| Signed index/difference | `std::ptrdiff_t`, `std::ssize` result |
-| Exactly N-bit wire/storage field | `std::uintN_t` / `std::intN_t` if available |
-| At least N bits, compact | `std::uint_leastN_t` |
-| At least N bits, implementation-selected fast type | `std::uint_fastN_t` |
-| Integer representation of pointer when supported | `std::uintptr_t` / `std::intptr_t` |
-| Raw storage bytes | `std::byte` / `unsigned char` |
+| Requirement                                        | Typical choice                              |
+|----------------------------------------------------|---------------------------------------------|
+| Natural arithmetic/local counter                   | `int`, sometimes `long long`                |
+| Container size/index API                           | container `size_type` / `std::size_t`       |
+| Signed index/difference                            | `std::ptrdiff_t`, `std::ssize` result       |
+| Exactly N-bit wire/storage field                   | `std::uintN_t` / `std::intN_t` if available |
+| At least N bits, compact                           | `std::uint_leastN_t`                        |
+| At least N bits, implementation-selected fast type | `std::uint_fastN_t`                         |
+| Integer representation of pointer when supported   | `std::uintptr_t` / `std::intptr_t`          |
+| Raw storage bytes                                  | `std::byte` / `unsigned char`               |
 
 The goal is not to replace every `int` with `int32_t`. The goal is to make the **contract** explicit where width or representation is part of correctness.
 
-**Engineering takeaway:** `<cstdint>` offers families because there is no single notion of “the right fixed integer.” Exact width, minimum width, speed, storage density, pointer representation, and ABI stability are different design axes.
+**Engineering takeaway:** `<cstdint>` offers families because there is no single notion of "the right fixed integer." Exact width, minimum width, speed, storage density, pointer representation, and ABI stability are different design axes.
 
 ---
 
@@ -1289,7 +1289,7 @@ Random integer generation is a useful final example because it combines many of 
 * modulo arithmetic;
 * exact result domains;
 * reproducibility across implementations;
-* implicit assumptions about bit width;
+* implicit assumptions about the bit width;
 * performance tradeoffs that are not obvious from syntax.
 
 ### `rand()` is a legacy compatibility API, not a modern C++ RNG abstraction
@@ -1340,7 +1340,7 @@ The example implements the right basic idea: discard generator outputs from the 
 
 A subtle implementation detail is that the source domain has `RAND_MAX + 1` values, not `RAND_MAX` values. Expressions involving that quantity must avoid overflow when `RAND_MAX` is itself the maximum value of the chosen unsigned type.
 
-This is a good example of why seemingly “statistical” code still needs precise integer reasoning.
+This is a good example of why seemingly "statistical" code still needs precise integer reasoning.
 
 ### `<random>` separates engines from distributions
 
@@ -1378,7 +1378,7 @@ This is an advanced but important portability trap.
 
 A standard engine such as `std::mt19937` has specified behavior. But the standard does not require every implementation of `std::uniform_int_distribution` to use the same mapping algorithm internally.
 
-Therefore this can be reproducible on one standard library and produce a different integer sequence on another:
+Therefore, this can be reproducible on one standard library and produce a different integer sequence on another:
 
 ```cpp
 std::mt19937 eng(12345);
@@ -1408,7 +1408,7 @@ For deterministic tests, the correct seed is usually a literal constant recorded
 
 It is normally used to seed a PRNG rather than as the high-throughput generator itself.
 
-This means code should not infer “cryptographically secure” merely from the class name `random_device`.
+This means code should not infer "cryptographically secure" merely from the class name `random_device`.
 
 ### Time-based seeding is often worse than it looks
 
@@ -1479,15 +1479,15 @@ which of course requires `n != 0`.
 
 For generic code, the empty case and the possible width of `n - 1` should be handled before constructing the distribution.
 
-**Engineering takeaway:** random integer generation is not “take random bits and apply `%`.” Generator state, range mapping, seeding, reproducibility, statistical quality, concurrency, and security are separate concerns.
+**Engineering takeaway:** random integer generation is not "take random bits and apply `%`." Generator state, range mapping, seeding, reproducibility, statistical quality, concurrency, and security are separate concerns.
 
 ---
 
-## Cross-cutting rules worth keeping in working memory
+## Rules worth keeping in working memory
 
 The eight examples point to a small set of rules that explain a surprisingly large fraction of integer bugs in production C++.
 
-### 1. Expression type matters more than destination type
+### 1. Expression type matters more than the destination type
 
 ```cpp
 long long x = 1 << 40;
@@ -1517,11 +1517,11 @@ is not governed by the same rule as converting an out-of-range unsigned integer 
 
 ### 4. Unsigned means modulo arithmetic
 
-Use it deliberately. It is not a runtime validator for “must be >= 0.”
+Use it deliberately. It is not a runtime validator for "must be >= 0."
 
 ### 5. Exact-width typedefs are conditional
 
-`std::uint32_t` means exactly 32 bits if it exists. It is not “the next type at least 32 bits.” That job belongs to the `least` and `fast` families.
+`std::uint32_t` means exactly 32 bits if it exists. It is not "the next type at least 32 bits." That job belongs to the `least` and `fast` families.
 
 ### 6. A typedef does not make a new type
 
@@ -1531,7 +1531,7 @@ If `uint8_t` aliases `unsigned char`, overload resolution and I/O see `unsigned 
 
 Do not serialize native structs by dumping their bytes unless the ABI, padding, endianness, alignment, type widths, and versioning are all explicitly part of the format.
 
-### 8. “Defined behavior” is weaker than “correct behavior”
+### 8. "Defined behavior" is weaker than "correct behavior"
 
 Unsigned wraparound and narrowing integer conversion can be perfectly defined and completely wrong for the application.
 
@@ -1551,11 +1551,38 @@ std::to_underlying                   // C++23
 std::byteswap                        // C++23
 ```
 
-These facilities do not eliminate the need to understand the rules, but they reduce the amount of hand-written code that must reimplement them correctly.
+These facilities do not eliminate the need to understand the rules, but they reduce the amount of handwritten code that must reimplement them correctly.
+
+### 10. Follow the review checklist for integer code
+
+When reviewing integer-heavy C++, ask the following questions:
+
+1. What are the **actual expression types after promotion**?
+2. Can any intermediate operation overflow before assignment to a wider destination?
+3. Are signed and unsigned operands mixed?
+4. Is unsigned wraparound intended, or merely possible?
+5. Is a narrowing conversion guaranteed to preserve all valid inputs?
+6. Does the code rely on a particular data model such as LP64 or LLP64?
+7. Does it assume `CHAR_BIT == 8`?
+8. Is native endianness leaking into an external format?
+9. Is code inspecting bytes through a permitted aliasing type?
+10. Is union type punning being mistaken for portable C++?
+11. Does `uint8_t` accidentally select a character overload?
+12. Is an integer literal itself already unsigned or wider than expected?
+13. Is a shift performed in the intended width, with a valid shift count?
+14. Is floating-to-integer conversion range-checked before the cast?
+15. Is integer-to-floating conversion allowed to lose identity above the exact-precision limit?
+16. Is an enum value only representable, or also semantically valid?
+17. Is random range mapping unbiased and overflow-safe?
+18. Does deterministic RNG behavior need to survive a change of standard-library implementation?
+19. Is the chosen `<cstdint>` family expressing exact width, the least width, or arithmetic preference correctly?
+20. Would `std::in_range`, `std::cmp_*`, `std::midpoint`, `std::endian`, or `std::byteswap` express the rule more directly?
+
+If these questions have explicit answers, the code is usually operating at the right level of rigor for systems, finance, embedded, networking, serialization, and other domains where integer mistakes become expensive.
 
 ---
 
-## Diagnostics and compiler settings for integer-heavy code
+## Diagnostics and useful compiler settings
 
 Many dangerous integer conversions are legal C++, so a clean default warning set is not enough. On GCC/Clang, useful warning groups often include:
 
@@ -1588,45 +1615,59 @@ The strongest approach is layered: types and APIs that express intent, compiler 
 
 ---
 
-## Review checklist for integer code
+## Standards timeline
 
-When reviewing integer-heavy C++, ask the following questions:
+### C++98/03: core integer model and promotions
 
-1. What are the **actual expression types after promotion**?
-2. Can any intermediate operation overflow before assignment to a wider destination?
-3. Are signed and unsigned operands mixed?
-4. Is unsigned wraparound intended, or merely possible?
-5. Is a narrowing conversion guaranteed to preserve all valid inputs?
-6. Does the code rely on a particular data model such as LP64 or LLP64?
-7. Does it assume `CHAR_BIT == 8`?
-8. Is native endianness leaking into an external format?
-9. Is code inspecting bytes through a permitted aliasing type?
-10. Is union type punning being mistaken for portable C++?
-11. Does `uint8_t` accidentally select a character overload?
-12. Is an integer literal itself already unsigned or wider than expected?
-13. Is a shift performed in the intended width, with a valid shift count?
-14. Is floating-to-integer conversion range-checked before the cast?
-15. Is integer-to-floating conversion allowed to lose identity above the exact-precision limit?
-16. Is an enum value only representable, or also semantically valid?
-17. Is random range mapping unbiased and overflow-safe?
-18. Does deterministic RNG behavior need to survive a change of standard-library implementation?
-19. Is the chosen `<cstdint>` family expressing exact width, least width, or arithmetic preference correctly?
-20. Would `std::in_range`, `std::cmp_*`, `std::midpoint`, `std::endian`, or `std::byteswap` express the rule more directly?
+The language already specified fundamental integer behavior that still matters:
 
-If these questions have explicit answers, the code is usually operating at the right level of rigor for systems, finance, embedded, networking, serialization, and other domains where integer mistakes become expensive.
+* the fundamental integer type set and relative rank (`char`, `short`, `int`, `long`, ...);
+* integral promotions and the usual arithmetic conversions;
+* `sizeof(char) == 1` and the role of `CHAR_BIT` (byte width vs. octet);
+* the emphasis on minimum ranges and relative ordering rather than universal bit widths.
 
----
+### C++11: exact-width typedefs and Unicode code units
 
-## Standard-version notes used by this chapter
+C++11 introduced key facilities used by modern integer code:
 
-The examples span idioms from older C++ through modern C++. Several integer rules have changed materially over time:
+* `long long` and the `<cstdint>` typedefs (exact/least/fast widths);
+* `char16_t` and `char32_t` for UTF-16/UTF-32 code units;
+* `<random>` and other numeric utilities that surface integer pitfalls;
+* list initialization (which affects narrowing and deduction in generic code).
 
-* **C++11**: `long long` standardized in C++, `<cstdint>`, scoped enums, `char16_t`, `char32_t`, `<random>`, list initialization.
-* **C++14**: binary literals and digit separators.
-* **C++17**: `std::byte`; direct-list `auto` rules are part of the modern post-N3922 model used by implementations.
-* **C++20**: `char8_t`, two's-complement signed representation, revised signed integer-conversion behavior, arithmetic right shift of negative signed values, `std::bit_cast`, `std::endian`, `std::cmp_*`, `std::in_range`, `std::midpoint`, `std::ssize`.
-* **C++23**: `z`/`Z` integer literal suffixes, `std::to_underlying`, `std::byteswap`.
-* **C++26**: `<cstdint>` width macros such as `INT32_WIDTH` and corresponding least/fast/max/pointer width macros.
+### C++14: literal conveniences
+
+C++14 added developer ergonomics for literals:
+
+* binary integer literals (0b...);
+* digit separators (`'`) for more readable large literals.
+
+### C++17: explicit byte type and deduction fixes
+
+C++17 clarified byte and deduction semantics:
+
+* `std::byte` as a non-arithmetic byte-storage type;
+* corrected `auto` direct-list/deduction rules (post-N3922 behavior implemented by compilers).
+
+### C++20: representation guarantees and conversion helpers
+
+C++20 brought several semantic and library changes important to integer code:
+
+* two's-complement signed representation for ordinary signed integers;
+* revised integer-conversion behavior (defined modulo semantics for out-of-range conversions);
+* `char8_t` for UTF-8 code units;
+* `std::bit_cast`, `std::endian`, `std::in_range`, `std::midpoint`, `std::ssize` for safe bit/size/endian and range utilities.
+
+### C++23: ergonomics and enum/helpers
+
+C++23 added useful helpers:
+
+* `z`/`Z` integer-literal suffixes producing `std::size_t`/signed-size equivalents;
+* `std::to_underlying` and `std::byteswap` for enums and byte-order operations.
+
+### C++26: width macros
+
+C++26 is expected to standardize named width macros in `<cstdint>` (e.g. `INT32_WIDTH`) and corresponding least/fast/pointer-width macros.
 
 When maintaining code that supports multiple language modes, comment the **version dependency**, not merely the observed behavior of the current compiler.
 

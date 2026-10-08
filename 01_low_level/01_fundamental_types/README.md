@@ -135,12 +135,12 @@
 
 ---
 
-# 3. `void`
+## 3. `void`
 
 `void` is a **fundamental type with no values**.
 It represents *absence of a value*, not a zero, not null, not false.
 
-## Core facts
+### Core facts
 
 * `void` has no values and no objects
 
@@ -196,7 +196,7 @@ void* p;
   (void)side_effect(); // explicitly discard result
   ```
 
-## `std::void_t`
+### `std::void_t`
 
 `std::void_t` is a type-trait utility (available since C++17), defined roughly as:
 
@@ -223,7 +223,7 @@ If it does not, the substitution fails and the primary template is used instead.
 This lets generic code detect optional members or expressions at compile time
 without making the program ill-formed.
 
-## Pitfalls
+### Pitfalls
 
 * `void*` arithmetic is **not allowed** in C++
 
@@ -240,11 +240,11 @@ without making the program ill-formed.
 
 ---
 
-# 4. `std::byte` (optional but strongly recommended)
+## 4. `std::byte` (optional but strongly recommended)
 
 > **Note:** `std::byte` is *not* a fundamental type, but it exists specifically to avoid abusing integers for raw memory.
 
-## Why it belongs here
+### Why it belongs here
 
 `std::byte` fills the conceptual gap between:
 
@@ -253,7 +253,7 @@ without making the program ill-formed.
 
 and avoids the semantic abuse of `unsigned char`.
 
-## Core facts
+### Core facts
 
 * `std::byte` represents raw memory, **not a number**
 
@@ -287,7 +287,7 @@ and avoids the semantic abuse of `unsigned char`.
   std::byte* raw = reinterpret_cast<std::byte*>(&obj);
   ```
 
-## Why it matters
+### Why it matters
 
 * Prevents accidental arithmetic on raw memory
 * Communicates intent better than `unsigned char`
@@ -295,7 +295,9 @@ and avoids the semantic abuse of `unsigned char`.
 
 ---
 
-## Mental Model Summary
+## Rules worth keeping in working memory
+
+### Mental Model Summary
 
 | Feature             | `bool`         | `nullptr_t`      | `void`               | `std::byte`                |
 |---------------------|----------------|------------------|----------------------|----------------------------|
@@ -306,4 +308,14 @@ and avoids the semantic abuse of `unsigned char`.
 | Compile-time usable | Yes            | Yes              | Yes (in type system) | Yes                        |
 | Common pitfall      | Promotions     | `NULL` confusion | Misuse as typeless   | Expecting integer behavior |
 
----
+## Diagnostics and useful compiler settings
+
+TODO: complete the paragraph
+
+## Standards timeline
+
+TODO: complete the paragraph
+
+## Further reading
+
+TODO: complete the paragraph

@@ -2,7 +2,7 @@
 
 Floating-point arithmetic is one of the places where code can be perfectly valid C++ and still behave very differently from the mathematical notation it resembles.
 
-The familiar explanation — “`0.1` cannot be represented exactly in binary” — is only the beginning. For experienced C++ developers, the more important questions are:
+The familiar explanation — "`0.1` cannot be represented exactly in binary" — is only the beginning. For experienced C++ developers, the more important questions are:
 
 * what the C++ language actually guarantees about `float`, `double`, and `long double`;
 * when IEEE 754 assumptions are justified and when they are not;
@@ -13,7 +13,7 @@ The familiar explanation — “`0.1` cannot be represented exactly in binary”
 * how rounding modes, fused operations, excess precision, and compiler flags can change results;
 * why some apparently clever representation tricks are undefined behavior in standard C++;
 * why converting a floating-point value to an integer can itself be undefined behavior;
-* and why “fast math” optimizations change semantics, not merely speed.
+* and why "fast math" optimizations change semantics, not merely speed.
 
 This chapter follows the seven examples in this directory:
 
@@ -39,18 +39,18 @@ The first example visualizes the bit representation of `float` and `double` valu
 
 C++ provides three standard floating-point types:
 
-~~~cpp
+```cpp
 float
 double
 long double
-~~~
+```
 
 Their size ordering is guaranteed:
 
-~~~cpp
+```cpp
 sizeof(float) <= sizeof(double)
 sizeof(double) <= sizeof(long double)
-~~~
+```
 
 but exact sizes are not.
 
@@ -66,48 +66,48 @@ Do not encode the first two rows as language guarantees.
 
 A useful compile-time check is:
 
-~~~cpp
+```cpp
 #include <limits>
 
 static_assert(std::numeric_limits<double>::is_iec559);
-~~~
+```
 
 `is_iec559` tells you whether the implementation claims the IEC 559 / IEEE-754 properties required by `std::numeric_limits`.
 
 Even then, check the exact properties you rely on:
 
-~~~cpp
+```cpp
 using limits = std::numeric_limits<double>;
 
 static_assert(limits::radix == 2);
 static_assert(limits::digits == 53);
 static_assert(sizeof(double) == 8);
-~~~
+```
 
-That is much better than silently assuming “all doubles are IEEE binary64”.
+That is much better than silently assuming "all doubles are IEEE binary64".
 
 ### `FLT_RADIX` need not be 2
 
 Most modern general-purpose machines use binary floating point, but the C and C++ floating-point model allows another radix.
 
-~~~cpp
+```cpp
 #include <cfloat>
 
 std::cout << FLT_RADIX;
-~~~
+```
 
 Code that assumes a binary significand should make that assumption explicit.
 
 This matters particularly for algorithms derived from the bit layout. A numerical algorithm written only in terms of `+`, `-`, `*`, `/`, `frexp`, `ldexp`, and `numeric_limits` is much more portable than one that assumes:
 
-~~~text
+```text
 1 sign bit
 8 exponent bits
 23 stored fraction bits
 bias 127
-~~~
+```
 
-Those numbers describe binary32, not “C++ float” in general.
+Those numbers describe binary32, not "C++ float" in general.
 
 ### `long double` is one of the least portable fundamental types
 
@@ -118,23 +118,23 @@ Common implementations include:
 * the same representation as `double` on MSVC targets;
 * x87 80-bit extended precision, often stored in 12 or 16 bytes, on many x86 Unix-like ABIs;
 * IEEE binary128 on some architectures and toolchains;
-* “double-double” representations on some PowerPC environments.
+* "double-double" representations on some PowerPC environments.
 
 Therefore:
 
-~~~cpp
+```cpp
 sizeof(long double)
-~~~
+```
 
 does not directly tell you its effective precision.
 
 Use:
 
-~~~cpp
+```cpp
 std::numeric_limits<long double>::digits
 std::numeric_limits<long double>::digits10
 std::numeric_limits<long double>::max_digits10
-~~~
+```
 
 when the property you actually care about is precision.
 
@@ -142,13 +142,13 @@ when the property you actually care about is precision.
 
 C++23 introduced `<stdfloat>` and optional aliases such as:
 
-~~~cpp
+```cpp
 std::float16_t
 std::float32_t
 std::float64_t
 std::float128_t
 std::bfloat16_t
-~~~
+```
 
 These are available only if the implementation supports the corresponding extended floating-point types.
 
@@ -156,11 +156,11 @@ A subtle point: unlike `std::uint32_t`, `std::float32_t` is not simply a portabl
 
 So this is not a universal replacement for:
 
-~~~cpp
+```cpp
 float
 double
 long double
-~~~
+```
 
 It is a facility for code that specifically needs one of the standardized extended formats and whose implementation supplies it.
 
@@ -168,23 +168,23 @@ It is a facility for code that specifically needs one of the standardized extend
 
 For normal IEEE binary32 values:
 
-~~~text
+```text
 value = (-1)^sign × (1.fraction) × 2^(exponent - 127)
-~~~
+```
 
 The leading `1` is implicit for normal values, so 23 stored fraction bits provide 24 bits of precision.
 
 For binary64:
 
-~~~text
+```text
 value = (-1)^sign × (1.fraction) × 2^(exponent - 1023)
-~~~
+```
 
 with 52 stored fraction bits and 53 bits of precision.
 
 This is why binary floating point has enormous range but only a fixed number of significant binary digits.
 
-The decimal point is not really “floating”. The **binary exponent** changes the scale of a fixed-precision significand.
+The decimal point is not really "floating". The **binary exponent** changes the scale of a fixed-precision significand.
 
 ### Floating-point spacing is not uniform
 
@@ -194,9 +194,9 @@ Floating-point values are not.
 
 Near `1.0`, adjacent binary64 numbers are separated by roughly:
 
-~~~text
+```text
 2^-52
-~~~
+```
 
 Near `2.0`, the spacing is twice as large.
 
@@ -210,9 +210,9 @@ The spacing between adjacent representable values is often described in ULPs —
 
 For a binary format with precision `p`, normal values around exponent `e` have spacing approximately:
 
-~~~text
+```text
 2^(e - (p - 1))
-~~~
+```
 
 Crossing a power-of-two boundary changes the ULP size.
 
@@ -220,17 +220,17 @@ Crossing a power-of-two boundary changes the ULP size.
 
 For a floating-point type `T`:
 
-~~~cpp
+```cpp
 std::numeric_limits<T>::epsilon()
-~~~
+```
 
 is the difference between `1` and the next representable value greater than `1`.
 
 For IEEE binary64:
 
-~~~text
+```text
 epsilon = 2^-52 ≈ 2.220446049250313e-16
-~~~
+```
 
 This is **not**:
 
@@ -244,27 +244,27 @@ Under round-to-nearest, the maximum relative rounding error of one correctly rou
 
 ### `min()` is a famous trap
 
-For integer types, programmers often expect `min()` to mean “most negative”.
+For integer types, programmers often expect `min()` to mean "most negative".
 
 For floating-point types:
 
-~~~cpp
+```cpp
 std::numeric_limits<double>::min()
-~~~
+```
 
 is the **smallest positive normal** value.
 
 The most negative finite value is:
 
-~~~cpp
+```cpp
 std::numeric_limits<double>::lowest()
-~~~
+```
 
 The smallest positive subnormal, if subnormals are supported, is:
 
-~~~cpp
+```cpp
 std::numeric_limits<double>::denorm_min()
-~~~
+```
 
 For generic numeric code, confusing `min()` and `lowest()` is an easy way to write a range bug.
 
@@ -276,12 +276,12 @@ After that, representable integers start skipping values.
 
 For example on binary32:
 
-~~~cpp
+```cpp
 float a = 16'777'216.0f; // 2^24
 float b = 16'777'217.0f;
 
 assert(a == b);
-~~~
+```
 
 `16,777,217` rounds to `16,777,216`.
 
@@ -304,25 +304,25 @@ A `double` has a huge numeric range, but it does **not** have 64 bits of integer
 
 `0.5` is exact in binary:
 
-~~~text
+```text
 0.1₂
-~~~
+```
 
 `0.125` is exact:
 
-~~~text
+```text
 0.001₂
-~~~
+```
 
 But decimal `0.1` has an infinite repeating binary expansion.
 
 That means:
 
-~~~cpp
+```cpp
 double x = 0.1;
-~~~
+```
 
-stores the nearest representable binary approximation, not “decimal one tenth”.
+stores the nearest representable binary approximation, not "decimal one tenth".
 
 This is not a flaw in IEEE 754. Decimal floating-point formats have the mirror-image problem: many binary fractions cannot be represented exactly in decimal formats either.
 
@@ -334,11 +334,11 @@ For money, integer minor units or decimal arithmetic may be more appropriate tha
 
 Three precision constants are easy to confuse:
 
-~~~cpp
+```cpp
 std::numeric_limits<T>::digits
 std::numeric_limits<T>::digits10
 std::numeric_limits<T>::max_digits10
-~~~
+```
 
 For an IEEE binary64 `double`:
 
@@ -348,11 +348,11 @@ For an IEEE binary64 `double`:
 
 For diagnostic serialization:
 
-~~~cpp
+```cpp
 std::cout << std::setprecision(
     std::numeric_limits<double>::max_digits10
 ) << value;
-~~~
+```
 
 If exact textual round-trip matters, `max_digits10` is usually the relevant property.
 
@@ -362,30 +362,30 @@ For machine-readable interchange, `std::to_chars` / `std::from_chars` are attrac
 
 The representation example contains a classic historical technique:
 
-~~~cpp
+```cpp
 auto p = reinterpret_cast<std::uint32_t*>(&f);
 std::cout << *p;
-~~~
+```
 
 The intent is understandable, but dereferencing an unrelated pointer type can violate the C++ aliasing rules.
 
 In C++20, prefer:
 
-~~~cpp
+```cpp
 #include <bit>
 #include <cstdint>
 
 static_assert(sizeof(float) == sizeof(std::uint32_t));
 
 std::uint32_t bits = std::bit_cast<std::uint32_t>(f);
-~~~
+```
 
 Before C++20, `std::memcpy` is the portable idiom:
 
-~~~cpp
+```cpp
 std::uint32_t bits;
 std::memcpy(&bits, &f, sizeof bits);
-~~~
+```
 
 `std::bit_cast` expresses exactly what is wanted: copy the object representation into another trivially copyable type of the same size without creating an aliasing violation.
 
@@ -401,25 +401,25 @@ The component-extraction example illustrates the classic IEEE layout, but it als
 
 For a normal binary32 value with fields:
 
-~~~text
+```text
 s | exponent | fraction
-~~~
+```
 
 the value is:
 
-~~~text
+```text
 (-1)^s × 1.fraction × 2^(exponent - 127)
-~~~
+```
 
 For example:
 
-~~~text
+```text
 1.5 = 0 01111111 10000000000000000000000
-~~~
+```
 
 The stored fraction is `0.5`, but the actual significand is `1.5` because the leading `1` is implicit.
 
-This “hidden bit” buys one extra bit of precision.
+This "hidden bit" buys one extra bit of precision.
 
 ### Subnormal values do not use the implicit leading one
 
@@ -427,15 +427,15 @@ Exponent field zero is special.
 
 For binary32 subnormals:
 
-~~~text
+```text
 value = (-1)^s × 0.fraction × 2^-126
-~~~
+```
 
 not:
 
-~~~text
+```text
 (-1)^s × 1.fraction × 2^-127
-~~~
+```
 
 Two differences matter:
 
@@ -452,10 +452,10 @@ For IEEE formats, the maximum encoded exponent is reserved.
 
 For binary32:
 
-~~~text
+```text
 exponent = 255, fraction = 0     -> infinity
 exponent = 255, fraction != 0    -> NaN
-~~~
+```
 
 Therefore a decoder must distinguish at least:
 
@@ -467,7 +467,7 @@ Therefore a decoder must distinguish at least:
 
 The portable library already exposes this classification:
 
-~~~cpp
+```cpp
 switch (std::fpclassify(x)) {
 case FP_ZERO:
 case FP_SUBNORMAL:
@@ -476,43 +476,43 @@ case FP_INFINITE:
 case FP_NAN:
     break;
 }
-~~~
+```
 
 ### Signed zero is a real floating-point value
 
 IEEE floating point has both:
 
-~~~cpp
+```cpp
 +0.0
 -0.0
-~~~
+```
 
 They compare equal:
 
-~~~cpp
+```cpp
 assert(+0.0 == -0.0);
-~~~
+```
 
 but they are not semantically interchangeable in all operations:
 
-~~~cpp
+```cpp
 1.0 / +0.0 // +infinity on IEC 559 implementations
 1.0 / -0.0 // -infinity
-~~~
+```
 
 Use:
 
-~~~cpp
+```cpp
 std::signbit(x)
-~~~
+```
 
 when the sign of zero matters.
 
 A comparison like:
 
-~~~cpp
+```cpp
 x < 0
-~~~
+```
 
 does not detect negative zero.
 
@@ -535,7 +535,7 @@ Optimizers, arithmetic operations, conversions, and libraries may canonicalize N
 
 A common C idiom is:
 
-~~~cpp
+```cpp
 union {
     float f;
     std::uint32_t i;
@@ -543,15 +543,15 @@ union {
 
 u.f = value;
 auto bits = u.i;
-~~~
+```
 
 In portable C++, reading a different inactive union member is not the general-purpose type-punning mechanism.
 
 Prefer `std::bit_cast`:
 
-~~~cpp
+```cpp
 auto bits = std::bit_cast<std::uint32_t>(value);
-~~~
+```
 
 This distinction matters in optimized builds because aliasing and object-lifetime rules are part of the optimizer's assumptions.
 
@@ -559,13 +559,13 @@ This distinction matters in optimized builds because aliasing and object-lifetim
 
 It is tempting to write:
 
-~~~cpp
+```cpp
 struct FloatBits {
     unsigned fraction : 23;
     unsigned exponent : 8;
     unsigned sign : 1;
 };
-~~~
+```
 
 and bit-cast a `float` into it.
 
@@ -573,42 +573,42 @@ That is not portable either. Bit-field allocation order, packing, and alignment 
 
 If you have established that the representation is IEEE binary32, masking an integer bit pattern is clearer:
 
-~~~cpp
+```cpp
 const std::uint32_t bits = std::bit_cast<std::uint32_t>(value);
 
 const auto sign     = bits >> 31;
 const auto exponent = (bits >> 23) & 0xffu;
 const auto fraction = bits & 0x7fffffu;
-~~~
+```
 
 ### Generic IEEE decoders must not reuse binary32 constants for binary64
 
-A subtle failure mode is to “template” the code while leaving constants such as:
+A subtle failure mode is to "template" the code while leaving constants such as:
 
-~~~text
+```text
 8 exponent bits
 bias 127
 23 fraction bits
-~~~
+```
 
 inside the implementation.
 
 Binary64 uses:
 
-~~~text
+```text
 11 exponent bits
 bias 1023
 52 stored fraction bits
-~~~
+```
 
 A generic decoder needs a complete traits description, not just a wider integer type.
 
 It should also use exact-width unsigned integer storage types when the layout itself is the subject:
 
-~~~cpp
+```cpp
 std::uint32_t
 std::uint64_t
-~~~
+```
 
 rather than `long`, whose width differs between LP64 and LLP64 ABIs.
 
@@ -618,28 +618,28 @@ If the goal is not serialization or bit-level teaching, do not decode IEEE field
 
 `std::frexp` decomposes a floating-point value numerically:
 
-~~~cpp
+```cpp
 int exponent;
 double significand = std::frexp(x, &exponent);
 
 // x == significand * 2^exponent
 // |significand| is in [0.5, 1.0) for finite nonzero x
-~~~
+```
 
 `std::ldexp` composes it again:
 
-~~~cpp
+```cpp
 double x2 = std::ldexp(significand, exponent);
-~~~
+```
 
 Related functions include:
 
-~~~cpp
+```cpp
 std::ilogb(x)
 std::logb(x)
 std::scalbn(x, n)
 std::scalbln(x, n)
-~~~
+```
 
 These describe numeric scale without assuming a particular object representation.
 
@@ -651,8 +651,8 @@ If instead you inspect the object byte-by-byte, endianness becomes visible.
 
 This distinction is useful:
 
-* shifts/masks answer “which encoded bits are set?”;
-* byte inspection answers “how is this object laid out in memory?”.
+* shifts/masks answer "which encoded bits are set?";
+* byte inspection answers "how is this object laid out in memory?".
 
 Do not confuse network byte order with IEEE field order.
 
@@ -660,7 +660,7 @@ Do not confuse network byte order with IEEE field order.
 
 ---
 
-## 3. Comparing floating-point values: “use epsilon” is incomplete advice
+## 3. Comparing floating-point values: "use epsilon" is incomplete advice
 
 The comparison example correctly highlights that exact equality between independently calculated approximations is often inappropriate. The deeper lesson is that there is no universal floating-point equality predicate.
 
@@ -670,11 +670,11 @@ The correct comparison depends on what the numbers mean.
 
 This is perfectly valid:
 
-~~~cpp
+```cpp
 if (x == 0.0) {
     ...
 }
-~~~
+```
 
 when `x` comes from an operation for which exact zero is part of the algorithmic contract.
 
@@ -687,7 +687,7 @@ Exact comparison is also appropriate for:
 * checking infinities;
 * state-machine values that happen to use a floating type.
 
-The rule should not be “never use `==` with floating point”.
+The rule should not be "never use `==` with floating point".
 
 The rule should be:
 
@@ -697,9 +697,9 @@ The rule should be:
 
 This common test is usually wrong:
 
-~~~cpp
+```cpp
 std::fabs(a - b) < std::numeric_limits<double>::epsilon()
-~~~
+```
 
 At magnitude `1e100`, one ULP is vastly larger than `epsilon()`.
 
@@ -712,7 +712,7 @@ Therefore comparison normally needs two ideas:
 
 A common structure is:
 
-~~~cpp
+```cpp
 bool nearly_equal(
     double a,
     double b,
@@ -733,7 +733,7 @@ bool nearly_equal(
 
     return diff <= std::max(abs_tol, rel_tol * scale);
 }
-~~~
+```
 
 The important design question is not the formula. It is **where `rel_tol` and `abs_tol` come from**.
 
@@ -752,32 +752,32 @@ Multiplying machine epsilon by an arbitrary constant is sometimes fine for a ver
 
 Suppose:
 
-~~~text
+```text
 a = 1e-300
 b = 2e-300
-~~~
+```
 
 Their absolute difference is tiny, but their relative difference is 50%.
 
-Whether they should compare “close” is a domain question.
+Whether they should compare "close" is a domain question.
 
 Now compare zero with the smallest subnormal. A relative tolerance based on:
 
-~~~cpp
+```cpp
 max(abs(a), abs(b))
-~~~
+```
 
 can become too strict or underflow during its own calculation.
 
-That is why the absolute tolerance term is not optional in a general-purpose “near zero” comparison.
+That is why the absolute tolerance term is not optional in a general-purpose "near zero" comparison.
 
 ### Absolute-only comparison fails across scale
 
 A tolerance such as:
 
-~~~cpp
+```cpp
 fabs(a - b) < 1e-9
-~~~
+```
 
 may be reasonable for values measured in meters in one application.
 
@@ -791,9 +791,9 @@ At a scale of `1e-15`, it may classify wildly different values as equal.
 
 `std::nextafter` gives the adjacent representable value in a direction:
 
-~~~cpp
+```cpp
 double y = std::nextafter(x, std::numeric_limits<double>::infinity());
-~~~
+```
 
 This is extremely useful for:
 
@@ -824,28 +824,28 @@ It does **not** answer:
 
 For a NaN value `q`:
 
-~~~cpp
+```cpp
 q == q // false
 q < q  // false
 q > q  // false
-~~~
+```
 
 More generally, every ordinary comparison with NaN is false except `!=`.
 
 Use:
 
-~~~cpp
+```cpp
 std::isnan(q)
 std::isunordered(a, b)
-~~~
+```
 
 when NaN is part of the domain.
 
 Since C++20, the three-way comparison of floating-point values has partial-order semantics:
 
-~~~cpp
+```cpp
 auto r = a <=> b;
-~~~
+```
 
 The result can be unordered.
 
@@ -870,15 +870,15 @@ IEEE 754 defines total-order concepts, but the ordinary C++ relational operators
 
 ### Signed zero also matters to ordering policies
 
-~~~cpp
+```cpp
 -0.0 == +0.0
-~~~
+```
 
 is true, but:
 
-~~~cpp
+```cpp
 std::signbit(-0.0) != std::signbit(+0.0)
-~~~
+```
 
 If a serialization, cache key, total order, or reproducibility test distinguishes their representations, equality alone is not enough.
 
@@ -890,9 +890,9 @@ Again, the right choice comes from semantics, not from a universal floating-poin
 
 Floating-point addition is generally not associative:
 
-~~~cpp
+```cpp
 (a + b) + c != a + (b + c)
-~~~
+```
 
 For example, if `a` is huge and `b` is tiny relative to `a`, `a + b` can round back to `a` before `c` is added.
 
@@ -915,9 +915,9 @@ For large reductions, consider:
 
 Consider:
 
-~~~cpp
+```cpp
 double x = a - b;
-~~~
+```
 
 when `a` and `b` are nearly equal large values.
 
@@ -939,15 +939,15 @@ The `fp_functions.cpp` example surveys the floating-point library. Many function
 
 ### The rounding functions form several different families
 
-These functions do not all mean “round”.
+These functions do not all mean "round".
 
 #### `floor`, `ceil`, and `trunc`
 
-~~~cpp
+```cpp
 std::floor(x) // toward -infinity
 std::ceil(x)  // toward +infinity
 std::trunc(x) // toward zero
-~~~
+```
 
 They return floating-point values.
 
@@ -955,35 +955,35 @@ Their direction is defined independently of the current floating-point rounding 
 
 #### `round`
 
-~~~cpp
+```cpp
 std::round(x)
-~~~
+```
 
 rounds to the nearest integer value, with halfway cases **away from zero**.
 
 Thus:
 
-~~~text
+```text
 round( 2.5) =  3
 round(-2.5) = -3
-~~~
+```
 
 It also ignores the current floating-point rounding mode.
 
 #### `rint`
 
-~~~cpp
+```cpp
 std::rint(x)
-~~~
+```
 
 uses the current rounding mode.
 
 With the usual `FE_TONEAREST` mode on IEC-559 systems, halfway cases are typically rounded to even:
 
-~~~text
+```text
 rint(2.5) = 2
 rint(3.5) = 4
-~~~
+```
 
 `std::rint` may raise `FE_INEXACT` when rounding occurs.
 
@@ -1008,12 +1008,12 @@ Out-of-range integer results are not something to ignore. These functions have s
 
 This surprises people who have just learned `fesetround`.
 
-~~~cpp
+```cpp
 std::fesetround(FE_UPWARD);
 
 double x = 1.2;
 int i = static_cast<int>(x);
-~~~
+```
 
 `i` is still `1`.
 
@@ -1023,17 +1023,17 @@ Use the rounding functions when another policy is required.
 
 ### `std::fma` can be both more accurate and observably different
 
-~~~cpp
+```cpp
 std::fma(a, b, c)
-~~~
+```
 
 computes the mathematical `a*b+c` as if with infinite intermediate precision and rounds only once to the result type.
 
 A separate expression:
 
-~~~cpp
+```cpp
 a * b + c
-~~~
+```
 
 may round once after multiplication and again after addition.
 
@@ -1054,33 +1054,33 @@ This is one reason optimized numerical results can change when moving between:
 
 For very small `x`:
 
-~~~cpp
+```cpp
 std::log(1.0 + x)
-~~~
+```
 
 can lose `x` entirely because `1.0 + x` rounds to `1.0`.
 
 Use:
 
-~~~cpp
+```cpp
 std::log1p(x)
-~~~
+```
 
 which computes `log(1+x)` using an algorithm designed for accuracy near zero.
 
 Likewise:
 
-~~~cpp
+```cpp
 std::exp(x) - 1.0
-~~~
+```
 
 can lose precision for small `x`.
 
 Use:
 
-~~~cpp
+```cpp
 std::expm1(x)
-~~~
+```
 
 These functions are classic examples of a broader rule:
 
@@ -1090,15 +1090,15 @@ These functions are classic examples of a broader rule:
 
 Instead of:
 
-~~~cpp
+```cpp
 std::sqrt(x * x + y * y)
-~~~
+```
 
 prefer:
 
-~~~cpp
+```cpp
 std::hypot(x, y)
-~~~
+```
 
 A good implementation scales its arguments to reduce unnecessary overflow and underflow.
 
@@ -1108,32 +1108,32 @@ The standard-library function communicates intent and gives the implementation a
 
 ### `frexp` / `ldexp` are preferable to multiplying by powers manually
 
-~~~cpp
+```cpp
 int e;
 double m = std::frexp(x, &e);
 double back = std::ldexp(m, e);
-~~~
+```
 
 These operations work in the floating-point radix and avoid several avoidable intermediate problems associated with:
 
-~~~cpp
+```cpp
 x * std::pow(2.0, n)
-~~~
+```
 
 For scaling by powers of the implementation radix, also consider:
 
-~~~cpp
+```cpp
 std::scalbn(x, n)
-~~~
+```
 
 ### `fmod` and `remainder` are not synonyms
 
 For floating-point remainder calculations:
 
-~~~cpp
+```cpp
 std::fmod(x, y)
 std::remainder(x, y)
-~~~
+```
 
 use different quotient-selection rules.
 
@@ -1158,14 +1158,14 @@ It is false for:
 
 The complete classification API is:
 
-~~~cpp
+```cpp
 std::fpclassify(x)
 std::isfinite(x)
 std::isinf(x)
 std::isnan(x)
 std::isnormal(x)
 std::signbit(x)
-~~~
+```
 
 Use the predicate that expresses the actual precondition.
 
@@ -1175,19 +1175,19 @@ Use the predicate that expresses the actual precondition.
 
 Since C++20:
 
-~~~cpp
+```cpp
 #include <numbers>
 
 double pi = std::numbers::pi;
 float pif = std::numbers::pi_v<float>;
-~~~
+```
 
 For generic numerical code:
 
-~~~cpp
+```cpp
 template<class T>
 constexpr T pi = std::numbers::pi_v<T>;
-~~~
+```
 
 is more expressive than converting a macro-defined `double`.
 
@@ -1195,19 +1195,19 @@ is more expressive than converting a macro-defined `double`.
 
 Instead of depending on macros:
 
-~~~cpp
+```cpp
 INFINITY
 NAN
 HUGE_VAL
-~~~
+```
 
 generic C++ can use:
 
-~~~cpp
+```cpp
 auto inf = std::numeric_limits<T>::infinity();
 auto qnan = std::numeric_limits<T>::quiet_NaN();
 auto snan = std::numeric_limits<T>::signaling_NaN();
-~~~
+```
 
 after checking the corresponding support properties if portability to non-IEC-559 implementations matters.
 
@@ -1217,7 +1217,7 @@ Subnormals preserve gradual underflow, allowing values below the normal range to
 
 Historically, some processors handled subnormal arithmetic much more slowly than normal arithmetic.
 
-Modern performance is architecture- and instruction-dependent; do not assume a universal “10x” or “100x” penalty.
+Modern performance is architecture- and instruction-dependent; do not assume a universal "10x" or "100x" penalty.
 
 Performance-sensitive systems sometimes enable hardware modes such as:
 
@@ -1238,25 +1238,25 @@ If reproducibility matters, FP control state must be treated as part of program 
 
 The `fp_errors.cpp` example demonstrates `<cfenv>`, hardware traps, and status flags. This area contains several terminology traps.
 
-### A floating-point “exception” is usually not a C++ exception
+### A floating-point "exception" is usually not a C++ exception
 
 The standard floating-point status flags include, where supported:
 
-~~~cpp
+```cpp
 FE_DIVBYZERO
 FE_INEXACT
 FE_INVALID
 FE_OVERFLOW
 FE_UNDERFLOW
-~~~
+```
 
 These are typically **sticky status flags** in the floating-point environment.
 
 They do not imply:
 
-~~~cpp
+```cpp
 throw std::exception{};
-~~~
+```
 
 and ordinary floating-point division by zero does not normally enter a C++ `catch` block.
 
@@ -1270,11 +1270,11 @@ That includes an enormous fraction of useful floating-point work.
 
 Therefore:
 
-~~~cpp
+```cpp
 fetestexcept(FE_INEXACT)
-~~~
+```
 
-returning nonzero does not mean “the computation failed”.
+returning nonzero does not mean "the computation failed".
 
 For most applications, inexact rounding is the expected operating mode of floating-point arithmetic.
 
@@ -1284,24 +1284,24 @@ Once raised, an exception flag usually remains set until explicitly cleared or t
 
 Therefore this pattern is wrong if you want to attribute an error to one operation:
 
-~~~cpp
+```cpp
 do_work();
 if (std::fetestexcept(FE_OVERFLOW)) {
     ...
 }
-~~~
+```
 
 unless you first established a clean baseline.
 
 The usual structure is:
 
-~~~cpp
+```cpp
 std::feclearexcept(FE_ALL_EXCEPT);
 
 do_work();
 
 const int raised = std::fetestexcept(FE_ALL_EXCEPT);
-~~~
+```
 
 ### The floating-point environment is thread-local, not one global process variable
 
@@ -1317,27 +1317,27 @@ Nevertheless, compiler assumptions are a separate issue: the compiler must also 
 
 C++ exposes:
 
-~~~cpp
+```cpp
 std::fegetround()
 std::fesetround()
-~~~
+```
 
 with modes such as:
 
-~~~cpp
+```cpp
 FE_TONEAREST
 FE_DOWNWARD
 FE_UPWARD
 FE_TOWARDZERO
-~~~
+```
 
 But simply calling `fesetround` does not force every compiler optimization to become rounding-mode aware.
 
 The floating-point environment is meaningful only when the implementation honors floating-environment access. The C/C++ mechanism is associated with:
 
-~~~cpp
+```cpp
 #pragma STDC FENV_ACCESS ON
-~~~
+```
 
 Compiler support is uneven.
 
@@ -1353,9 +1353,9 @@ Constant-expression floating-point evaluation is not a runtime FPU instruction.
 
 Code such as:
 
-~~~cpp
+```cpp
 constexpr double x = ...;
-~~~
+```
 
 is evaluated by the compiler's constant-evaluation machinery.
 
@@ -1378,21 +1378,21 @@ On GCC, `-ffast-math` enables a collection of options that can assume or permit 
 * a non-observable dynamic rounding mode;
 * faster excess-precision choices.
 
-Therefore `-ffast-math` is not just “enable faster floating-point instructions”.
+Therefore `-ffast-math` is not just "enable faster floating-point instructions".
 
 It tells the optimizer that it may violate assumptions relied upon by strict IEEE-style numerical code.
 
 Examples of transformations that become possible include effectively treating:
 
-~~~cpp
+```cpp
 (a + b) + c
-~~~
+```
 
 like:
 
-~~~cpp
+```cpp
 a + (b + c)
-~~~
+```
 
 even though floating-point addition is not associative.
 
@@ -1400,7 +1400,7 @@ It may also invalidate code that intentionally tests for NaN, signed zero, or fl
 
 Use it only when the algorithm's numerical contract explicitly permits those transformations.
 
-### Excess precision can make “the same type” produce different intermediates
+### Excess precision can make "the same type" produce different intermediates
 
 Historically, x87 calculations were often performed in 80-bit registers even when variables were nominally `double`.
 
@@ -1419,13 +1419,13 @@ Never assume that every intermediate is rounded exactly to the nominal source ty
 
 If one build computes:
 
-~~~cpp
+```cpp
 a * b + c
-~~~
+```
 
 as two rounded operations and another uses one fused multiply-add, the results can differ by an ULP or more in cancellation-heavy cases.
 
-Neither build is necessarily “wrong”.
+Neither build is necessarily "wrong".
 
 For deterministic numerical software, record:
 
@@ -1453,21 +1453,21 @@ Real systems use facilities such as:
 
 This is why trap-enabling code is inherently platform code.
 
-### `SIGFPE` is not “the floating-point exception signal”
+### `SIGFPE` is not "the floating-point exception signal"
 
 Despite its name, `SIGFPE` can represent several arithmetic faults, including integer faults on POSIX systems.
 
 The detailed reason may be exposed through values such as:
 
-~~~text
+```text
 FPE_INTDIV
 FPE_FLTDIV
 FPE_FLTOVF
 FPE_FLTINV
 ...
-~~~
+```
 
-Do not infer “floating-point” merely from the signal name.
+Do not infer "floating-point" merely from the signal name.
 
 ### Recovering from a hardware FP trap is much harder than catching a C++ exception
 
@@ -1490,9 +1490,9 @@ Library code should be very cautious about leaving a changed rounding mode or ex
 
 A function that calls:
 
-~~~cpp
+```cpp
 std::fesetround(FE_DOWNWARD);
-~~~
+```
 
 and forgets to restore the previous mode has modified thread-local execution state for its caller.
 
@@ -1522,14 +1522,14 @@ The `integer_cast.cpp` example contains historical fast-conversion tricks. Moder
 
 ### Built-in floating-to-integer conversion truncates toward zero
 
-~~~cpp
+```cpp
 static_cast<int>( 9.99) ==  9
 static_cast<int>(-9.99) == -9
-~~~
+```
 
 The current floating-point rounding mode does not change this rule.
 
-This corresponds naturally to instructions such as x86 `cvttss2si` / `cvttsd2si`, where the “tt” denotes truncation.
+This corresponds naturally to instructions such as x86 `cvttss2si` / `cvttsd2si`, where the "tt" denotes truncation.
 
 ### Out-of-range floating-to-integer conversion is undefined behavior
 
@@ -1552,7 +1552,7 @@ A safe conversion needs an explicit range policy.
 
 For example:
 
-~~~cpp
+```cpp
 std::optional<int> to_int(double x)
 {
     if (!std::isfinite(x)) {
@@ -1568,7 +1568,7 @@ std::optional<int> to_int(double x)
 
     return static_cast<int>(t);
 }
-~~~
+```
 
 For types whose integer endpoints are not exactly representable in the floating source type, the boundary check itself needs additional care. Generic conversion utilities should be designed and tested around those exact endpoint cases.
 
@@ -1576,7 +1576,7 @@ For types whose integer endpoints are not exactly representable in the floating 
 
 Integer-to-integer conversion to unsigned types has modulo-style semantics.
 
-Floating-to-unsigned conversion does **not** mean “truncate and wrap modulo `2^N`”.
+Floating-to-unsigned conversion does **not** mean "truncate and wrap modulo `2^N`".
 
 If the truncated value cannot be represented in the unsigned destination type, behavior is undefined.
 
@@ -1586,10 +1586,10 @@ That distinction is easy to miss.
 
 The reverse conversion is not automatically exact:
 
-~~~cpp
+```cpp
 std::uint64_t n = ...;
 double d = n;
-~~~
+```
 
 A binary64 `double` has only 53 bits of precision.
 
@@ -1613,9 +1613,9 @@ The resulting `double` remains finite but rounds to a nearby representable value
 
 Range and precision are separate properties.
 
-This is why “double can represent numbers up to about `1e308`” says almost nothing about which integers near `1e18` it represents exactly.
+This is why "double can represent numbers up to about `1e308`" says almost nothing about which integers near `1e18` it represents exactly.
 
-### Historical “magic number” conversion tricks depend on many assumptions
+### Historical "magic number" conversion tricks depend on many assumptions
 
 The classic fast conversion in the example relies on details such as:
 
@@ -1644,9 +1644,9 @@ A hand-written bit trick can therefore be:
 
 Code such as:
 
-~~~cpp
+```cpp
 int i = *reinterpret_cast<int*>(&x);
-~~~
+```
 
 has the same aliasing problem discussed earlier.
 
@@ -1656,36 +1656,36 @@ For numeric conversion, use numeric conversion.
 
 These are different operations:
 
-~~~cpp
+```cpp
 std::bit_cast<std::uint32_t>(f) // copy representation bits
 static_cast<int>(f)             // convert numeric value
-~~~
+```
 
 Confusing the two is at the heart of many historical floating-point hacks.
 
 ### Rounding functions are safer when the rounding policy is part of the requirement
 
-If the requirement is “nearest integer, ties away from zero”:
+If the requirement is "nearest integer, ties away from zero":
 
-~~~cpp
+```cpp
 std::lround(x)
-~~~
+```
 
 expresses that.
 
-If the requirement is “respect the active rounding mode”:
+If the requirement is "respect the active rounding mode":
 
-~~~cpp
+```cpp
 std::lrint(x)
-~~~
+```
 
 expresses that.
 
 If the requirement is truncation:
 
-~~~cpp
+```cpp
 std::trunc(x)
-~~~
+```
 
 makes the policy explicit before any range-checked integer conversion.
 
@@ -1695,12 +1695,12 @@ Do not select a conversion technique based only on which instruction you expect 
 
 Some domains want:
 
-~~~text
+```text
 NaN        -> 0
 +infinity  -> INT_MAX
 -infinity  -> INT_MIN
 too large  -> nearest endpoint
-~~~
+```
 
 Others want an error.
 
@@ -1716,9 +1716,9 @@ C++'s built-in cast does not provide saturating semantics. If saturation is requ
 
 The famous Quake-style inverse-square-root algorithm computes an approximation of:
 
-~~~text
+```text
 1 / sqrt(x)
-~~~
+```
 
 using an integer transformation of the floating-point bit pattern followed by Newton-Raphson refinement.
 
@@ -1730,23 +1730,23 @@ For an IEEE-like positive floating-point value, the integer interpretation of it
 
 The transformation:
 
-~~~cpp
+```cpp
 i = magic - (i >> 1);
-~~~
+```
 
 therefore creates a rough approximation to:
 
-~~~text
+```text
 -1/2 * log2(x)
-~~~
+```
 
 in the encoded domain.
 
 Reinterpreting those bits back as a float gives an initial approximation to:
 
-~~~text
+```text
 x^-1/2
-~~~
+```
 
 The famous constant is tuned to reduce approximation error over the intended range.
 
@@ -1754,9 +1754,9 @@ The famous constant is tuned to reduce approximation error over the intended ran
 
 Once an initial estimate `y` exists, the iteration:
 
-~~~cpp
+```cpp
 y = y * (1.5f - 0.5f * x * y * y);
-~~~
+```
 
 is Newton-Raphson applied to inverse square root.
 
@@ -1777,11 +1777,11 @@ A union or pointer reinterpretation is historically common in implementations of
 
 Modern C++ should use `std::bit_cast` when it genuinely wants the representation:
 
-~~~cpp
+```cpp
 std::uint32_t i = std::bit_cast<std::uint32_t>(x);
 i = 0x5f3759dfu - (i >> 1);
 float y = std::bit_cast<float>(i);
-~~~
+```
 
 Even this is only meaningful after establishing the binary32 representation assumptions.
 
@@ -1803,14 +1803,14 @@ A serious implementation should make its platform assumptions explicit.
 
 What should happen for:
 
-~~~text
+```text
 x = +0
 x = -0
 x < 0
 x = +infinity
 x = NaN
 x = subnormal
-~~~
+```
 
 ?
 
@@ -1820,13 +1820,13 @@ A reusable numeric function cannot leave those cases implicit.
 
 Compare that with:
 
-~~~cpp
+```cpp
 1.0f / std::sqrt(x)
-~~~
+```
 
 whose behavior is integrated with the implementation's math library, floating-point environment, and special-value handling.
 
-### “Fewer instructions” does not mean “faster”
+### "Fewer instructions" does not mean "faster"
 
 Modern processors may provide:
 
@@ -1840,9 +1840,9 @@ The cost model is completely different from late-1990s hardware.
 
 A hand-written historical hack may lose to code as simple as:
 
-~~~cpp
+```cpp
 1.0f / std::sqrt(x)
-~~~
+```
 
 or to target-specific intrinsics selected by a tuned library.
 
@@ -1870,22 +1870,22 @@ A fast approximation is only meaningful relative to an accuracy target.
 
 Useful error measures include:
 
-~~~text
+```text
 absolute error
 relative error
 maximum ULP error
 RMS error over the tested domain
 worst-case error near boundaries
-~~~
+```
 
 ### Approximation APIs should advertise approximation
 
 If an application really benefits from a reciprocal-square-root approximation, encode the contract in the API:
 
-~~~cpp
+```cpp
 float rsqrt_estimate(float x);
 float rsqrt_refined(float x);
-~~~
+```
 
 This is clearer than silently substituting an approximation for a mathematically named exact-looking function.
 
@@ -1904,10 +1904,10 @@ The core arithmetic model did not suddenly become different in C++20 or C++23, b
 
 Before C++20, low-level code commonly used:
 
-~~~cpp
+```cpp
 float f = 1.0f;
 auto bits = *reinterpret_cast<std::uint32_t*>(&f);
-~~~
+```
 
 or inactive union members.
 
@@ -1915,10 +1915,10 @@ Those techniques are not the portable C++ object-model solution.
 
 C++20 adds:
 
-~~~cpp
+```cpp
 std::uint32_t bits =
     std::bit_cast<std::uint32_t>(f);
-~~~
+```
 
 This is especially important in floating-point code because representation inspection is common in:
 
@@ -1944,12 +1944,12 @@ If a `float` is known to be IEEE binary32, bit positions in the `std::uint32_t` 
 
 Modern code can write:
 
-~~~cpp
+```cpp
 #include <numbers>
 
 double pi = std::numbers::pi;
 float pif = std::numbers::pi_v<float>;
-~~~
+```
 
 rather than relying on implementation macros such as `M_PI`.
 
@@ -1957,29 +1957,29 @@ The standard constants include `e`, `pi`, `sqrt2`, `sqrt3`, `phi`, logarithmic c
 
 The variable-template form matters in generic code because it obtains the constant directly in the target floating type:
 
-~~~cpp
+```cpp
 template<std::floating_point T>
 T circle_area(T r)
 {
     return std::numbers::pi_v<T> * r * r;
 }
-~~~
+```
 
 ### C++20: `std::midpoint` is not just prettier syntax
 
 Naively computing:
 
-~~~cpp
+```cpp
 (a + b) / 2
-~~~
+```
 
 can overflow even when the mathematical midpoint is representable.
 
 C++20 provides:
 
-~~~cpp
+```cpp
 std::midpoint(a, b)
-~~~
+```
 
 For floating-point arguments, the specification is designed so that at most one inexact operation occurs.
 
@@ -1989,17 +1989,17 @@ This makes `midpoint` useful not just for integers but also for numerically care
 
 The obvious formula:
 
-~~~cpp
+```cpp
 a + t * (b - a)
-~~~
+```
 
 looks trivial, but extreme values can expose overflow and monotonicity problems.
 
 C++20 adds:
 
-~~~cpp
+```cpp
 std::lerp(a, b, t)
-~~~
+```
 
 with useful guarantees such as exact endpoint behavior for `t == 0` and `t == 1`, and finite results for finite endpoints when `t` lies in the interpolation interval.
 
@@ -2011,13 +2011,13 @@ For integers, three-way comparison naturally produces a strong ordering.
 
 Floating point cannot do that because NaN is unordered.
 
-~~~cpp
+```cpp
 double nan = std::numeric_limits<double>::quiet_NaN();
 
 auto result = nan <=> 1.0;
 
 assert(result == std::partial_ordering::unordered);
-~~~
+```
 
 This is an important type-system acknowledgement of IEEE-style comparison semantics.
 
@@ -2029,17 +2029,17 @@ If NaNs can appear in sortable data, define an explicit total-order policy.
 
 C++20 adds:
 
-~~~cpp
+```cpp
 template<class T>
 concept std::floating_point;
-~~~
+```
 
 This is useful for constraining generic numerical APIs:
 
-~~~cpp
+```cpp
 template<std::floating_point T>
 T relative_error(T a, T b);
-~~~
+```
 
 But satisfying `std::floating_point` does **not** imply:
 
@@ -2055,20 +2055,20 @@ Use concepts for type-category constraints and `std::numeric_limits` for numeric
 
 Since C++20, floating-point specializations of `std::atomic` provide operations such as:
 
-~~~cpp
+```cpp
 std::atomic<double> total{0.0};
 
 total.fetch_add(1.25);
 total.fetch_sub(0.25);
-~~~
+```
 
 This has an obscure but important numerical caveat: the floating-point environment used by the atomic operation may differ from the calling thread's floating-point environment.
 
 So code must not assume that setting:
 
-~~~cpp
+```cpp
 std::fesetround(FE_DOWNWARD);
-~~~
+```
 
 necessarily makes an atomic floating-point addition follow the same runtime rounding environment.
 
@@ -2093,10 +2093,10 @@ For machine interchange, however, decide explicitly whether you need:
 
 C++23 adds `std::byteswap` for integer types:
 
-~~~cpp
+```cpp
 std::uint32_t bits = std::bit_cast<std::uint32_t>(value);
 bits = std::byteswap(bits);
-~~~
+```
 
 This is useful when a binary format specifies a byte order different from the host.
 
@@ -2111,33 +2111,33 @@ The sequence deliberately expresses two separate operations:
 
 C++23 adds optional aliases:
 
-~~~cpp
+```cpp
 std::float16_t
 std::float32_t
 std::float64_t
 std::float128_t
 std::bfloat16_t
-~~~
+```
 
 with corresponding implementation macros:
 
-~~~cpp
+```cpp
 __STDCPP_FLOAT16_T__
 __STDCPP_FLOAT32_T__
 __STDCPP_FLOAT64_T__
 __STDCPP_FLOAT128_T__
 __STDCPP_BFLOAT16_T__
-~~~
+```
 
 and literal suffixes such as:
 
-~~~cpp
+```cpp
 0.5f16
 0.5f32
 0.5f64
 0.5f128
 0.5bf16
-~~~
+```
 
 when the corresponding optional type is supported.
 
@@ -2159,9 +2159,9 @@ This is deliberately different from fixed-width integers.
 
 If `std::float32_t` exists, it names an **extended floating-point type**. It is not permitted to be merely:
 
-~~~cpp
+```cpp
 using float32_t = float;
-~~~
+```
 
 Likewise, `std::float64_t` is not simply a standardized spelling of `double`.
 
@@ -2179,11 +2179,11 @@ Consequences show up in:
 
 Before extended standard-width types became first-class, the familiar hierarchy was mostly:
 
-~~~text
+```text
 long double
 double
 float
-~~~
+```
 
 C++23 formalizes **floating-point conversion rank** and **conversion subrank**.
 
@@ -2199,7 +2199,7 @@ These rules affect:
 * overload resolution;
 * common floating type selection in math functions.
 
-This is an advanced but important consequence of `<stdfloat>`: “same width” does not mean “same type semantics”.
+This is an advanced but important consequence of `<stdfloat>`: "same width" does not mean "same type semantics".
 
 ### C++23 common math overloads account for extended floating types
 
@@ -2209,9 +2209,9 @@ That means generic code should prefer the standard overload set rather than manu
 
 The old habit:
 
-~~~cpp
+```cpp
 return std::sqrt(static_cast<double>(x));
-~~~
+```
 
 can needlessly throw away range or precision when extended floating types are involved.
 
@@ -2219,9 +2219,9 @@ can needlessly throw away range or precision when extended floating types are in
 
 Where the fixed-width floating type exists, the variable-template constants can be instantiated for it:
 
-~~~cpp
+```cpp
 std::numbers::pi_v<std::float32_t>
-~~~
+```
 
 This is another reason to prefer the typed `_v<T>` form in generic code.
 
@@ -2229,29 +2229,29 @@ This is another reason to prefer the typed `_v<T>` form in generic code.
 
 Before C++23:
 
-~~~cpp
+```cpp
 0.1f  // float
 0.1   // double
 0.1L  // long double
-~~~
+```
 
 were the standard choices.
 
 With supported C++23 extended types:
 
-~~~cpp
+```cpp
 0.1f32
 0.1f64
 0.1bf16
-~~~
+```
 
 construct values directly in the intended extended type.
 
 That matters because writing:
 
-~~~cpp
+```cpp
 std::float32_t x = 0.1;
-~~~
+```
 
 first creates a `double` literal and then converts it.
 
@@ -2290,12 +2290,12 @@ The examples above point to several broader rules that apply throughout numerica
 
 These transformations are not generally semantics-preserving:
 
-~~~text
+```text
 (a + b) + c  <=>  a + (b + c)
 (a * b) / b  <=>  a
 x - x        <=>  0
 x * 0        <=>  0
-~~~
+```
 
 Why?
 
@@ -2311,17 +2311,17 @@ Because of:
 
 For example:
 
-~~~cpp
+```cpp
 double x = std::numeric_limits<double>::infinity();
 
 x - x // NaN, not 0
-~~~
+```
 
 and with NaN:
 
-~~~cpp
+```cpp
 x * 0
-~~~
+```
 
 need not be zero.
 
@@ -2329,7 +2329,7 @@ These details explain why strict floating-point rules limit optimizer algebra.
 
 ### Floating-point values are a finite discrete set
 
-Thinking “approximate real number” is useful at a high level, but at low level a floating-point type is a finite set of representable values plus special encodings.
+Thinking "approximate real number" is useful at a high level, but at low level a floating-point type is a finite set of representable values plus special encodings.
 
 `std::nextafter` exposes this directly.
 
@@ -2346,15 +2346,15 @@ This model helps explain:
 
 For sufficiently large `x`:
 
-~~~cpp
+```cpp
 x + tiny == x
-~~~
+```
 
 If a loop repeatedly does:
 
-~~~cpp
+```cpp
 x += tiny;
-~~~
+```
 
 and each addition individually rounds back to `x`, repeating the operation does not eventually accumulate hidden fractional state. The lost amount is gone after each rounded operation.
 
@@ -2439,36 +2439,11 @@ Sometimes fixed-point or integer arithmetic is the simpler engineering solution.
 
 ---
 
-## 10. Practical inspection checklist
-
-When reviewing numerical C++ code, ask:
-
-| Question | Why it matters |
-|---|---|
-| Is IEEE 754 being assumed? | C++ does not universally guarantee the common layouts. |
-| Is `long double` crossing an ABI or serialization boundary? | Its format is highly platform-dependent. |
-| Is `epsilon()` being used as a universal tolerance? | It describes spacing near 1, not arbitrary computation error. |
-| Does a comparison work near zero and at very large magnitude? | Relative-only and absolute-only tests each have failure regions. |
-| Can NaN or infinity enter the calculation? | They change comparison and algebraic behavior. |
-| Does signed zero matter? | `+0.0 == -0.0` but some operations distinguish them. |
-| Is type punning done with pointer casts or inactive union members? | Prefer `std::bit_cast` / `std::memcpy`. |
-| Does code depend on a runtime rounding mode? | Compiler options and `FENV_ACCESS` become part of correctness. |
-| Is `-ffast-math` enabled? | It permits semantic transformations, not just faster instructions. |
-| Can a float-to-int conversion be out of range or receive NaN? | Built-in conversion can be undefined behavior. |
-| Are large integers passed through `double`? | Integer identity is lost beyond the precision boundary. |
-| Does summation order change? | Floating-point addition is not associative. |
-| Could `log(1+x)`, `exp(x)-1`, or `sqrt(x*x+y*y)` be unstable? | Specialized library functions exist. |
-| Are subnormals possible? | They affect precision, performance, and FTZ/DAZ behavior. |
-| Is bitwise reproducibility required? | ISA, compiler, FMA, reduction order, and FP state must be controlled. |
-| Is a historical bit hack being used for performance? | Benchmark the modern straightforward implementation first. |
-
----
-
-## 11. Useful standard-library tools
+## Useful standard-library tools
 
 For low-level and numerical floating-point work, the most useful facilities include:
 
-~~~cpp
+```cpp
 // Representation / properties
 std::numeric_limits<T>
 std::bit_cast
@@ -2533,19 +2508,20 @@ std::numbers::pi_v<T>
 // Locale-independent text conversion
 std::to_chars
 std::from_chars
-~~~
+```
 
 The important habit is to use these facilities according to their semantic purpose rather than reimplementing the behavior with bit tricks or algebraically similar formulas.
 
+
 ---
 
-## Final mental model
+## Rules worth keeping in working memory
 
 A useful way to reason about floating point is:
 
 > A floating-point type is a finite, nonuniformly spaced set of values with a scale-dependent resolution, plus special values and a stateful arithmetic environment.
 
-From that model, most of the “surprising” behavior follows naturally:
+From that model, most of the "surprising" behavior follows naturally:
 
 * decimal fractions often round;
 * large values have coarse spacing;
@@ -2561,3 +2537,42 @@ From that model, most of the “surprising” behavior follows naturally:
 * and representation tricks are not automatically portable just because they work on x86.
 
 Floating point is not random or unreliable. It is highly structured. The difficulty comes from applying real-number intuition to a finite machine-number system without accounting for the structure.
+
+
+### Practical inspection checklist
+
+When reviewing numerical C++ code, ask:
+
+| Question                                                           | Why it matters                                                        |
+|--------------------------------------------------------------------|-----------------------------------------------------------------------|
+| Is IEEE 754 being assumed?                                         | C++ does not universally guarantee the common layouts.                |
+| Is `long double` crossing an ABI or serialization boundary?        | Its format is highly platform-dependent.                              |
+| Is `epsilon()` being used as a universal tolerance?                | It describes spacing near 1, not arbitrary computation error.         |
+| Does a comparison work near zero and at very large magnitude?      | Relative-only and absolute-only tests each have failure regions.      |
+| Can NaN or infinity enter the calculation?                         | They change comparison and algebraic behavior.                        |
+| Does signed zero matter?                                           | `+0.0 == -0.0` but some operations distinguish them.                  |
+| Is type punning done with pointer casts or inactive union members? | Prefer `std::bit_cast` / `std::memcpy`.                               |
+| Does code depend on a runtime rounding mode?                       | Compiler options and `FENV_ACCESS` become part of correctness.        |
+| Is `-ffast-math` enabled?                                          | It permits semantic transformations, not just faster instructions.    |
+| Can a float-to-int conversion be out of range or receive NaN?      | Built-in conversion can be undefined behavior.                        |
+| Are large integers passed through `double`?                        | Integer identity is lost beyond the precision boundary.               |
+| Does summation order change?                                       | Floating-point addition is not associative.                           |
+| Could `log(1+x)`, `exp(x)-1`, or `sqrt(x*x+y*y)` be unstable?      | Specialized library functions exist.                                  |
+| Are subnormals possible?                                           | They affect precision, performance, and FTZ/DAZ behavior.             |
+| Is bitwise reproducibility required?                               | ISA, compiler, FMA, reduction order, and FP state must be controlled. |
+| Is a historical bit hack being used for performance?               | Benchmark the modern straightforward implementation first.            |
+
+---
+
+## Diagnostics and useful compiler settings
+
+TODO: complete the paragraph
+
+## Standards timeline
+
+TODO: complete the paragraph
+
+## Further reading
+
+TODO: complete the paragraph
+
