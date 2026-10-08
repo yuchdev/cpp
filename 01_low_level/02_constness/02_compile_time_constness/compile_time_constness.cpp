@@ -7,6 +7,7 @@
 #include <iostream>
 #include <limits>
 #include <type_traits>
+#include <utility>
 
 namespace cpp {
 
@@ -111,7 +112,6 @@ static void literal_types()
 
 // ---- 6) is_constant_evaluated: different behavior at compile-time vs runtime -
 #if __cpp_lib_is_constant_evaluated >= 201811L
-#include <utility>
 constexpr int tricky(int x)
 {
     // You can branch based on evaluation mode.

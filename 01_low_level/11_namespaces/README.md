@@ -323,7 +323,7 @@ Developers coming from **Java, Python, C#, JavaScript, Go** should note:
 ## Namespaces Facts
 
 * Use namespaces to express logical structure; 14.3.1
-* The inline specifies that the nested namespace is the default meaning of sub-namespace. This could be useful for the namespace versionig
+* The inline specifies that the nested namespace is the default meaning of sub-namespace. This could be useful for the namespace versioning
 * A name that can be used in translation units different from the one in which it was defined is said to have external linkage
 * A name that can be referred to only in the translation unit in which it is defined is said to have internal linkage
 * By default, const objects (7.5), constexpr objects (10.4), type aliases (6.5), and anything declared static (6.3.4) 
@@ -337,11 +337,3 @@ Developers coming from **Java, Python, C#, JavaScript, Go** should note:
 * We can specify a linkage convention to be used in an extern declaration
 * This construct, commonly called a linkage block, can be used to enclose a complete C header to make a header suitable for C++ use
 
-### At-Exit Functions
-
-* The quick_exit() function is like exit() except that it does not invoke any destructors
-* Register functions to be invoked by quick_exit() using at_quick_exit()
-* Exit possibilities
-  * std::_Exit (abort): doesn't execute static destructors or flush critical IO and soes not call handler
-  * std::exit: executes static destructors and flushes critical IO and call handler if exists
-  * std::quick_exit: doesn't execute static destructors, but does flush critical IO and call handler if exists

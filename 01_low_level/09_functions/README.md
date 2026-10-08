@@ -1844,7 +1844,16 @@ Small compile-time toggles can be appropriate, especially in embedded, or when y
 
 ---
 
-## 19. Function evolution timeline
+## 19. At-Exit Functions
+
+* The quick_exit() function is like exit() except that it does not invoke any destructors
+* Register functions to be invoked by quick_exit() using at_quick_exit()
+* Exit possibilities
+  * std::_Exit (abort): doesn't execute static destructors or flush critical IO and soes not call handler
+  * std::exit: executes static destructors and flushes critical IO and call handler if exists
+  * std::quick_exit: doesn't execute static destructors, but does flush critical IO and call handler if exists
+
+## Function evolution timeline
 
 | Standard | Features                                         |
 |----------|--------------------------------------------------|
@@ -1856,7 +1865,7 @@ Small compile-time toggles can be appropriate, especially in embedded, or when y
 
 ---
 
-## 20. Migration note for Java / Python / C# developers
+## Migration note for Java / Python / C# developers
 
 In Java, Python, and similar languages, functions are:
 

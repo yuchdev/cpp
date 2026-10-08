@@ -188,6 +188,7 @@ void atomic_floating_point_cxx20()
 {
     std::cout << "\nC++20 atomic floating-point specialization\n";
 
+#if defined(__cpp_lib_atomic_float) && __cpp_lib_atomic_float >= 201711L
     std::atomic<double> total{1.5};
     const double old = total.fetch_add(0.25, std::memory_order_relaxed);
 
@@ -200,6 +201,9 @@ void atomic_floating_point_cxx20()
     // A subtle standard rule: the floating-point environment used by the atomic
     // operation may differ from the calling thread's environment. Do not use an
     // atomic FP operation as a way to enforce a particular rounding-mode policy.
+#else
+    std::cout << "Atomic floating-point arithmetic is unavailable in this standard library.\n";
+#endif
 }
 
 #ifdef _MSC_VER
