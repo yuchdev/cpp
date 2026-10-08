@@ -10,20 +10,21 @@ Well, even after learning C++ on a decent level, a lot of just interesting, or b
 or sometimes even critical for avoiding common mistakes facts remain unknown, until you stumble into it by receiving a surprising bug.
 
 This course offers *Advanced* C++ level, not only by providing all necessary theories, but always by example.
-How to compare pointers to make it safe on any platform? 
-Why are most architectures little-endian?
-How (and why) to design your own memory allocator?
-How to crash a program by adding non-virtual destructor?
-How to break encapsulation using templates?
-How to deal with CPU caches synchronization in multithreaded application?
 
-Every example has short but solid theoretical reference from C++ language Standard,
+* How to compare pointers to make it safe on any platform? 
+* Why are most architectures little-endian?
+* How (and why) to design your own memory allocator?
+* How to crash a program by adding non-virtual destructor?
+* How to break encapsulation using templates?
+* How to deal with CPU caches synchronization in a multithreaded application?
+
+Every example has a short but solid theoretical reference from C++ language Standard,
 and if necessary other documents (like IEEE standards).
 Every theoretical reference features a mind map for better understanding
 the structure of material.
 
 All chapters and examples are numbered, to understand the direction of exploring the course.
-However, as it assumes some descent level of C++, you can skip and chapter entirely or start exploring from any chapter.
+However, as it assumes some decent level of C++, you can skip and chapter entirely or start exploring from any chapter.
 
 ### IMPORTANT NOTE
 
