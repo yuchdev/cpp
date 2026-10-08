@@ -37,13 +37,13 @@ class Heading:
     line: int
 
 
-def warn(chapter: Path | str, message: str) -> None:
+def warn(chapter: Union[Path, str], message: str):
     print(f"WARNING: {chapter}: {message}", file=sys.stderr)
 
 
 def iter_markdown_lines(text: str):
     """Yield (line_number, line, heading_match) while ignoring fenced code."""
-    fence_char: str | None = None
+    fence_char: Optional[str] = None
     fence_length = 0
 
     for line_number, line in enumerate(text.splitlines(), start=1):
@@ -70,7 +70,7 @@ def parse_headings(text: str) -> list[Heading]:
     for line_number, _line, match in iter_markdown_lines(text):
         if match:
             headings.append(
-                Heading(len(match.group("marks")), match.group("title").strip(), line_number)
+                Heading(level=len(match.group("marks")), title=match.group("title").strip(), line=line_number)
             )
     return headings
 
@@ -97,17 +97,17 @@ def filename_component(title: str) -> str:
     return "".join(pieces).strip("_")
 
 
-def numeric_prefix(heading: Heading) -> tuple[int, ...] | None:
+def numeric_prefix(heading: Heading) -> Optional[tuple[int, ...]]:
     match = NUMBER_PREFIX_RE.match(heading.title)
     if not match:
         return None
     return tuple(int(part) for part in match.group("number").split("."))
 
 
-def validate_headings(label: Path | str, chapter_number: int, headings: list[Heading]) -> int:
+def validate_headings(label: Union[Path, str], chapter_number: int, headings: list[Heading]) -> int:
     warnings = 0
 
-    def issue(message: str) -> None:
+    def issue(message: str):
         nonlocal warnings
         warnings += 1
         warn(label, message)
@@ -435,6 +435,8 @@ def decompile_book(book_dir: Path) -> int:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
+        usage="%(prog)s OUTPUT_DIRECTORY [-h] [--compile | --decompile] [--check] [--renumber] "
+        "[--from-dir INPUT_DIRECTORY]",
         description="Compile chapter README files into a Markdown book, or decompile it back."
     )
     mode = parser.add_mutually_exclusive_group()
@@ -459,11 +461,16 @@ def parse_args() -> argparse.Namespace:
         help="Remove existing heading numbers and renumber the compiled chapters before --check.",
     )
     parser.add_argument(
-        "paths",
-        nargs="+",
+        "--from-dir",
         type=Path,
-        metavar="PATH",
-        help="Compile: INPUT_DIRECTORY OUTPUT_DIRECTORY. Decompile: OUTPUT_DIRECTORY.",
+        metavar="INPUT_DIRECTORY",
+        help="Input directory containing numbered chapter directories (default: current directory).",
+    )
+    parser.add_argument(
+        "output_directory",
+        type=Path,
+        metavar="OUTPUT_DIRECTORY",
+        help="Output directory for compiled files, or compiled book directory for --decompile.",
     )
     return parser.parse_args()
 
@@ -472,27 +479,17 @@ def main() -> int:
     args = parse_args()
 
     if args.decompile:
-        if args.check or args.renumber:
-            print("Error: --decompile is incompatible with --check and --renumber", file=sys.stderr)
+        if args.check or args.renumber or args.from_dir is not None:
+            print("Error: --decompile is incompatible with --check, --renumber, and --from-dir", file=sys.stderr)
             return 2
-        if len(args.paths) != 1:
-            print("Error: --decompile requires exactly one OUTPUT_DIRECTORY", file=sys.stderr)
-            return 2
-        book_dir = args.paths[0].expanduser().resolve()
+        book_dir = args.output_directory.expanduser().resolve()
         if not book_dir.is_dir():
             print(f"Error: book directory does not exist: {book_dir}", file=sys.stderr)
             return 1
         return decompile_book(book_dir)
 
-    if len(args.paths) != 2:
-        print(
-            "Error: --compile requires INPUT_DIRECTORY and OUTPUT_DIRECTORY",
-            file=sys.stderr,
-        )
-        return 2
-
-    input_dir = args.paths[0].expanduser().resolve()
-    output_dir = args.paths[1].expanduser().resolve()
+    input_dir = (args.from_dir or Path.cwd()).expanduser().resolve()
+    output_dir = args.output_directory.expanduser().resolve()
     if not input_dir.is_dir():
         print(f"Error: input directory does not exist: {input_dir}", file=sys.stderr)
         return 1

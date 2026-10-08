@@ -1,4 +1,4 @@
-# 07. C++ Enums - Advanced Facts, Pitfalls, and Evolution (C++98 → C++20)
+# 07. Enums in Modern C++
 
 ---
 

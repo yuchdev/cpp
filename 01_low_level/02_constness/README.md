@@ -1,4 +1,4 @@
-# 02. Constness facts (C++98 to C++17)
+# 02. Constness Concept in Modern C++
 
 ## Runtime vs. compile-time constness
 

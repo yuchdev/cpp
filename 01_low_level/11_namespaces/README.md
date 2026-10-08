@@ -1,4 +1,4 @@
-# 11. Namespaces (C++98 → C++20)
+# 11. Namespaces in Modern C++
 
 > Logical structure. Name lookup. Linkage interaction.
 > Namespaces are not modules, not packages, and not a visibility mechanism.

@@ -1,4 +1,4 @@
-# 12. C/C++ Compatibility (Advanced) - C89/C99/C11 ↔ C++98 → C++20
+# 12. C/C++ Compatibility
 
 This chapter focuses on **principal language and toolchain differences** that matter when you:
 - build mixed C/C++ projects

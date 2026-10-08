@@ -3,9 +3,9 @@
 The *Advanced C++ by example* course is designed for Junior-to-Mid level C++ developers, students who completed C++ university course, teachers going to improve their course content.
 It assumes basic knowledge of all main C++ subjects: work with variables and program execution flow, work with pointers and memory,
 classes and OOP, templates and generic programming, Standard Library containers and algorithms, multithreading, 
-because any of chapters may refer any other chapter.
+because any of the chapters may refer any other chapter.
 
-This may raise a question, what do we study, if a learner supposed to know *all* C++?
+This may raise a question, what do we study if a learner supposed to know *all* C++?
 Well, even after learning C++ on a decent level, a lot of just interesting, or beneficial for you work, 
 or sometimes even critical for avoiding common mistakes facts remain unknown, until you stumble into it by receiving a surprising bug.
 
@@ -24,7 +24,7 @@ Every theoretical reference features a mind map for better understanding
 the structure of material.
 
 All chapters and examples are numbered, to understand the direction of exploring the course.
-However, as it assumes some decent level of C++, you can skip and chapter entirely or start exploring from any chapter.
+However, as it assumes some decent level of C++, you can skip any chapter entirely or start exploring from any chapter.
 
 ### IMPORTANT NOTE
 

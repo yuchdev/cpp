@@ -1,4 +1,4 @@
-# 13. Undefined Behavior (UB) in C and C++ - Advanced Guide
+# 13. Undefined Behavior in C and C++
 
 This chapter is dedicated to Undefined Behavior (UB) - one of the most misunderstood,
 dangerous, and performance‑critical aspects of C and C++.
