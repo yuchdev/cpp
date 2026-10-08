@@ -1,6 +1,7 @@
 #include <array>
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <iostream>
 #include <iterator>
 #include <ranges>
@@ -98,8 +99,8 @@ static void span_cpp20()
 
     std::span<int, 4> fixed{raw};
     static_assert(decltype(fixed)::extent == 4);
-    static_assert(sizeof(fixed) == sizeof(int*),
-                  "A static-extent span need not store a runtime size");
+    // The extent is part of the span type. The standard does not require a
+    // particular object size/layout for the span implementation.
 
     std::span<int> dynamic{wrapped};
     assert(dynamic.size() == 4);
