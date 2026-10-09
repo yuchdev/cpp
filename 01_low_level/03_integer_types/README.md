@@ -1482,208 +1482,207 @@ For generic code, the empty case and the possible width of `n - 1` should be han
 **Engineering takeaway:** random integer generation is not "take random bits and apply `%`." Generator state, range mapping, seeding, reproducibility, statistical quality, concurrency, and security are separate concerns.
 
 ---
+---
 
 ## Rules worth keeping in working memory
 
-The eight examples point to a small set of rules that explain a surprisingly large fraction of integer bugs in production C++.
+The central distinction in integer types and conversions is between what the C++ type system guarantees, what the implementation commonly does, and what an API merely assumes. Carrying that distinction from declarations through operations avoids most of the surprises discussed above.
 
-### 1. Expression type matters more than the destination type
+> A valid low-level operation needs a language-level contract, not just a machine-level outcome that looks plausible.
 
-```cpp
-long long x = 1 << 40;
-```
+### Core rules
 
-The left shift is selected and evaluated before conversion to `long long`. A wide destination does not widen earlier intermediate arithmetic.
+The following rules condense the chapter into reviewable decisions:
 
-Type the operands, not merely the result.
+1. **Distinguish integer rank, width, signedness, and representable range.**
+2. **Remember that promotions occur before many arithmetic operators.**
+3. **Treat mixed signed/unsigned expressions as conversion problems, not mere warnings.**
+4. **Check input domains before converting and select integer distributions deliberately.**
 
-### 2. Promotions happen before usual arithmetic conversions
 
-Small integer types frequently disappear from the expression before the operator executes.
+### Pitfalls at a glance
 
-```cpp
-std::uint8_t a = 200, b = 100;
-auto x = a + b; // usually int
-```
+These recurring failures are particularly useful to recognize in code review because each starts from a plausible but insufficient assumption.
 
-### 3. Signed overflow and signed conversion are different rules
+| Pitfall | What happens | Do instead |
+|---|---|---|
+| `unsigned` assumed safe for all arithmetic | Wraparound may hide underflow | Use explicit bounds and `std::cmp_*` |
+| Signed overflow | Undefined behavior | Check preconditions or use a wider representation |
+| Narrow conversion | High bits/value may be lost | Use `std::in_range` or checked conversions |
 
-```cpp
-int x = INT_MAX;
-++x; // undefined arithmetic overflow
-```
+Each safer alternative makes an implicit precondition visible either in the type or in the code that checks it.
 
-is not governed by the same rule as converting an out-of-range unsigned integer to a signed integer. Since C++20, the latter uses modulo-congruence semantics.
+### Mental model summary
 
-### 4. Unsigned means modulo arithmetic
+The underlying distinction is consistent across the subject: a language guarantee is portable; an implementation choice must be checked; a domain requirement must be stated by the program.
 
-Use it deliberately. It is not a runtime validator for "must be >= 0."
+| Question | Language guarantee | Implementation detail | Application responsibility |
+|---|---|---|---|
+| What may this operation assume? | Specified preconditions and types | ABI, representation, optimizer strategy | Select the appropriate contract |
+| What happens at an edge case? | Specified result or behavior category | Diagnostics and machine reaction | Validate inputs and lifetimes |
+| Can this cross an interface? | Only what types and linkage guarantee | Toolchain and platform compatibility | Document conversions and ownership |
 
-### 5. Exact-width typedefs are conditional
+The third column cannot substitute for the first, and the fourth is where domain-specific requirements belong.
 
-`std::uint32_t` means exactly 32 bits if it exists. It is not "the next type at least 32 bits." That job belongs to the `least` and `fast` families.
+### Review checklist
 
-### 6. A typedef does not make a new type
+Use this checklist when changing integer types and conversions code or reviewing low-level interfaces:
 
-If `uint8_t` aliases `unsigned char`, overload resolution and I/O see `unsigned char`.
-
-### 7. Binary representation is not a portable object schema
-
-Do not serialize native structs by dumping their bytes unless the ABI, padding, endianness, alignment, type widths, and versioning are all explicitly part of the format.
-
-### 8. "Defined behavior" is weaker than "correct behavior"
-
-Unsigned wraparound and narrowing integer conversion can be perfectly defined and completely wrong for the application.
-
-### 9. Prefer library facilities that encode the difficult rule
-
-Modern C++ contains useful integer-safety tools:
-
-```cpp
-std::numeric_limits<T>
-std::cmp_less / std::cmp_equal       // C++20
-std::in_range<T>                     // C++20
-std::midpoint                        // C++20
-std::endian                          // C++20
-std::bit_cast                        // C++20
-std::ssize                           // C++20
-std::to_underlying                   // C++23
-std::byteswap                        // C++23
-```
-
-These facilities do not eliminate the need to understand the rules, but they reduce the amount of handwritten code that must reimplement them correctly.
-
-### 10. Follow the review checklist for integer code
-
-When reviewing integer-heavy C++, ask the following questions:
-
-1. What are the **actual expression types after promotion**?
-2. Can any intermediate operation overflow before assignment to a wider destination?
-3. Are signed and unsigned operands mixed?
-4. Is unsigned wraparound intended, or merely possible?
-5. Is a narrowing conversion guaranteed to preserve all valid inputs?
-6. Does the code rely on a particular data model such as LP64 or LLP64?
-7. Does it assume `CHAR_BIT == 8`?
-8. Is native endianness leaking into an external format?
-9. Is code inspecting bytes through a permitted aliasing type?
-10. Is union type punning being mistaken for portable C++?
-11. Does `uint8_t` accidentally select a character overload?
-12. Is an integer literal itself already unsigned or wider than expected?
-13. Is a shift performed in the intended width, with a valid shift count?
-14. Is floating-to-integer conversion range-checked before the cast?
-15. Is integer-to-floating conversion allowed to lose identity above the exact-precision limit?
-16. Is an enum value only representable, or also semantically valid?
-17. Is random range mapping unbiased and overflow-safe?
-18. Does deterministic RNG behavior need to survive a change of standard-library implementation?
-19. Is the chosen `<cstdint>` family expressing exact width, the least width, or arithmetic preference correctly?
-20. Would `std::in_range`, `std::cmp_*`, `std::midpoint`, `std::endian`, or `std::byteswap` express the rule more directly?
-
-If these questions have explicit answers, the code is usually operating at the right level of rigor for systems, finance, embedded, networking, serialization, and other domains where integer mistakes become expensive.
+- [ ] Have we distinguished language guarantees from platform-specific observations?
+- [ ] Are all input domains and conversion or lifetime preconditions explicit?
+- [ ] Can the relevant edge cases be tested without executing undefined behavior?
+- [ ] Does the chosen API encode as much of the intended contract as practical?
 
 ---
 
 ## Diagnostics, useful compiler settings and extensions
 
-Many dangerous integer conversions are legal C++, so a clean default warning set is not enough. On GCC/Clang, useful warning groups often include:
+Compilers can diagnose many suspicious uses of integer types and conversions, but they cannot infer every application invariant. A clean warning build is useful evidence, not proof: tools can recognize some invalid expressions statically and others only when particular paths execute.
 
-```text
--Wall -Wextra -Wconversion -Wsign-conversion -Wshadow
-```
+### Warnings
 
-Depending on the codebase, `-Wconversion` and `-Wsign-conversion` can be noisy, especially around legacy APIs. That is not a reason to ignore them; it is a reason to introduce them deliberately, possibly per target or after cleaning the highest-value code paths.
+Start with high-signal diagnostics and add specialized checks where the chapter's failure modes justify them.
 
-Useful sanitizers include:
+| Compiler | Flags | What they reveal |
+|---|---|---|
+| GCC | `-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion` | Suspicious conversions, extensions, and common type mistakes |
+| Clang | `-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion` | Similar mistakes, with different analysis coverage |
+| MSVC | `/W4 /permissive-` | Common warnings and nonconforming language extensions |
 
-```text
--fsanitize=undefined
-```
+### Sanitizers and runtime checks
 
-for many classes of integer UB, including signed overflow and invalid shifts. Clang also provides integer-focused sanitizer options beyond the strict ISO-UB set, which can be useful for detecting suspicious unsigned wraparound or implicit truncation during testing.
+Runtime instrumentation can expose executed failures but does not validate every semantic assumption.
 
-For intentional wraparound, avoid globally disabling diagnostics if a narrower suppression or an explicit unsigned operation can document the intent.
+| Tool | Setting | Best use |
+|---|---|---|
+| AddressSanitizer | `-fsanitize=address` or MSVC `/fsanitize=address` | Invalid object lifetime and memory access when applicable |
+| UndefinedBehaviorSanitizer | `-fsanitize=undefined` (GCC/Clang) | Instrumented undefined operations; coverage is incomplete |
+| clang-tidy / static analysis | Selected checks and `/analyze` (MSVC) | Suspicious contracts, conversions, and API use |
 
-Static analysis tools can also catch:
+### Semantics-changing options
 
-* narrowing assignments;
-* suspicious signed/unsigned comparisons;
-* shifts by invalid widths;
-* lossy enum conversion;
-* `char` passed directly to `<cctype>` functions;
-* serialization assumptions tied to native layout.
+Language mode, optimizer assumptions, and vendor extensions can affect which source expressions are accepted and how they are interpreted. The following controls deserve deliberate treatment rather than being regarded as speed settings alone.
 
-The strongest approach is layered: types and APIs that express intent, compiler warnings, sanitizers, static analysis, and targeted tests at numeric boundaries.
+| Option | Effect | Recommendation |
+|---|---|---|
+| `-std=gnu++20` vs `-std=c++20` | GNU mode may accept non-standard constructs | Prefer ISO mode when teaching portable rules |
+| `-fno-strict-aliasing` | Weakens some alias-based optimization assumptions, not object-lifetime rules | Never use it to justify invalid accesses |
+| `-fwrapv` (GCC/Clang) | Gives signed overflow wrapping semantics under that compiler option | Use only under a documented toolchain contract |
+| `-ffast-math` (GCC/Clang) | Permits FP transformations inconsistent with strict numerical assumptions | Avoid for reproducibility and FP environment examples |
+
+These options affect different topics to different degrees; only enable a topic-specific workaround when it addresses a known and measured requirement.
+
+### Compiler extensions
+
+Vendor builtins can improve diagnostics or performance, but they are not portable substitutes for a standard language rule.
+
+| Extension | Compilers | Use | Portable approach |
+|---|---|---|---|
+| `__builtin_assume` / `__assume` | Clang / MSVC | Gives optimizer an unchecked precondition | Validate invariants; use `[[assume]]` only where C++23 is supported |
+| `__builtin_object_size` | GCC/Clang | Estimates available object storage | Carry an explicit extent in APIs |
+| `__attribute__` / `__declspec` attributes | GCC/Clang / MSVC | Vendor-specific linkage/layout hints | Prefer standard attributes where applicable |
+
+Keep extensions behind small wrappers, prefer `__cpp_*`/feature tests over compiler versions, and use `-pedantic-errors` or `/permissive-` when checking standard conformance.
+
+### Libraries and tooling beyond the standard
+
+The C++ Core Guidelines and the static analyzers built around them can help express and review preconditions that a raw type cannot encode.
+
+| Tool | Purpose | When useful |
+|---|---|---|
+| clang-tidy / cppcheck | Static analysis | Reviewing conversion, lifetime, and interface contracts |
+| Microsoft GSL | Non-owning and bounds-oriented vocabulary | Modernizing raw-pointer/size interfaces |
+| Compiler Explorer | Compare generated code | Verifying performance assumptions against actual toolchains |
+
+The best defense is layered: expressive types and APIs first, then warnings, targeted tests, runtime checking, and narrowly isolated extensions.
 
 ---
 
 ## Standards timeline
 
-### C++98/03: core integer model and promotions
+The core model of integer types and conversions evolved incrementally; newer standards add safer vocabulary without retroactively rewriting all legacy expressions. The milestones below separate changes to the language from changes to available library interfaces.
 
-The language already specified fundamental integer behavior that still matters:
+### C++98/03: The original model
 
-* the fundamental integer type set and relative rank (`char`, `short`, `int`, `long`, ...);
-* integral promotions and the usual arithmetic conversions;
-* `sizeof(char) == 1` and the role of `CHAR_BIT` (byte width vs. octet);
-* the emphasis on minimum ranges and relative ordering rather than universal bit widths.
+Integer promotions, data-model-dependent widths, and integral conversion rules are long-standing.
 
-### C++11: exact-width typedefs and Unicode code units
+### C++11: Stronger types and interfaces
 
-C++11 introduced key facilities used by modern integer code:
+Fixed-width integer aliases, scoped enums, and uniform initialization improve expressiveness.
 
-* `long long` and the `<cstdint>` typedefs (exact/least/fast widths);
-* `char16_t` and `char32_t` for UTF-16/UTF-32 code units;
-* `<random>` and other numeric utilities that surface integer pitfalls;
-* list initialization (which affects narrowing and deduction in generic code).
+### C++14: Incremental refinement
 
-### C++14: literal conveniences
+Binary literals and digit separators make bit-oriented constants more readable.
 
-C++14 added developer ergonomics for literals:
+### C++17: Library and deduction evolution
 
-* binary integer literals (0b...);
-* digit separators (`'`) for more readable large literals.
+No wholesale replacement for promotion rules; standard facilities expand safe generic operations.
 
-### C++17: explicit byte type and deduction fixes
+### C++20: Modern vocabulary
 
-C++17 clarified byte and deduction semantics:
+Two's-complement signed representation, `std::cmp_*`, and `std::in_range` improve portable reasoning.
 
-* `std::byte` as a non-arithmetic byte-storage type;
-* corrected `auto` direct-list/deduction rules (post-N3922 behavior implemented by compilers).
+### C++23: Further standard facilities
 
-### C++20: representation guarantees and conversion helpers
+`std::byteswap` supports integer representation handling.
 
-C++20 brought several semantic and library changes important to integer code:
+### C++26: Emerging improvements
 
-* two's-complement signed representation for ordinary signed integers;
-* revised integer-conversion behavior (defined modulo semantics for out-of-range conversions);
-* `char8_t` for UTF-8 code units;
-* `std::bit_cast`, `std::endian`, `std::in_range`, `std::midpoint`, `std::ssize` for safe bit/size/endian and range utilities.
+Checked arithmetic facilities are evolving; do not assume them available before verifying library support.
 
-### C++23: ergonomics and enum/helpers
+When documenting a facility, state its required language/library version rather than inferring support from the compiler's branding.
 
-C++23 added useful helpers:
+---
 
-* `z`/`Z` integer-literal suffixes producing `std::size_t`/signed-size equivalents;
-* `std::to_underlying` and `std::byteswap` for enums and byte-order operations.
+## Migration note for Java / Python / C# developers
 
-### C++26: width macros
+Readers familiar with managed runtimes often expect integer types and conversions to come with runtime metadata, automatic lifetime management, or checked failures. In C++, some of those services come from a chosen library type, while raw language mechanisms may deliberately expose more responsibility to the caller. The important translation is from a *runtime guarantee* in one language to a *type, contract, and lifetime guarantee* in C++.
 
-C++26 is expected to standardize named width macros in `<cstdint>` (e.g. `INT32_WIDTH`) and corresponding least/fast/pointer-width macros.
+### Where intuition transfers and where it breaks
 
-When maintaining code that supports multiple language modes, comment the **version dependency**, not merely the observed behavior of the current compiler.
+The same apparent operation may have a different failure mode or storage model in each language.
+
+| Concept | Java | Python | C# | C++ reality |
+|---|---|---|---|---|
+| int | checked or arbitrary precision integers | `int` / `long`, specified wraparound behavior | Unbounded `int` | checked/unchecked arithmetic contexts |
+| Invalid access/operation | Usually throws or is checked | Usually raises an exception | Often throws in safe code | May be ill-formed, defined, unspecified, or undefined depending on the operation |
+| Lifetime | Managed object reachability | Reference counting / GC | Managed GC | Automatic, dynamic, and explicitly borrowed lifetimes coexist |
+
+The distinction matters at API boundaries: a familiar surface syntax does not imply familiar failure behavior.
+
+### Common wrong assumptions
+
+One tempting assumption is that a successful local test demonstrates that an operation is safe. For the low-level C++ rules in this chapter, a test can demonstrate behavior of one build, but cannot establish portability or rule out undefined behavior. Another is that an object is kept alive by every handle referring to it; non-owning pointers, references, and views do not do that. Finally, a managed-language exception should not be presumed to exist at an equivalent C++ failure point.
+
+### Idiomatic C++ replacement
+
+The following mappings help make intent explicit without imitating a managed runtime mechanically.
+
+| Habit from managed languages | Idiomatic C++ |
+|---|---|
+| Integer counters | Use a type with an explicit range and check conversion boundaries |
+| Unsigned indices | Compare carefully with signed offsets and container `size_type` |
+| Expect automatic runtime bounds/lifetime checks | Select an owning container or checked API; validate preconditions explicitly |
+
+Use these choices because they express the program's requirements, not merely because they resemble familiar constructs from another language.
 
 ---
 
 ## Further reading
 
-Useful standard-library and language-reference entry points:
+These references document the underlying language rules and library contracts. They are starting points for checking precise preconditions; the chapter's examples explain how the rules interact.
 
-* C++ fundamental types: <https://en.cppreference.com/w/cpp/language/types>
-* Implicit conversions and promotions: <https://en.cppreference.com/w/cpp/language/implicit_conversion>
-* Arithmetic and shift operators: <https://en.cppreference.com/w/cpp/language/operator_arithmetic>
-* Integer literals: <https://en.cppreference.com/w/cpp/language/integer_literal>
-* Fixed-width integer types: <https://en.cppreference.com/w/cpp/types/integer>
-* Safe integer comparisons: <https://en.cppreference.com/w/cpp/utility/intcmp>
-* `std::in_range`: <https://en.cppreference.com/w/cpp/utility/in_range>
-* Random number generation: <https://en.cppreference.com/w/cpp/numeric/random>
-* `std::random_device`: <https://en.cppreference.com/w/cpp/numeric/random/random_device>
+### Standard and language reference
 
+* [language/types](https://en.cppreference.com/w/cpp/language/types)
+* [language/implicit_conversion](https://en.cppreference.com/w/cpp/language/implicit_conversion)
+* [utility/intcmp](https://en.cppreference.com/w/cpp/utility/intcmp)
+* <https://en.cppreference.com/w/cpp/language/types>
+* <https://en.cppreference.com/w/cpp/language/implicit_conversion>
+* <https://en.cppreference.com/w/cpp/language/operator_arithmetic>
+* <https://en.cppreference.com/w/cpp/language/integer_literal>
+* <https://en.cppreference.com/w/cpp/types/integer>
+* <https://en.cppreference.com/w/cpp/utility/intcmp>
+* <https://en.cppreference.com/w/cpp/utility/in_range>
+* <https://en.cppreference.com/w/cpp/numeric/random>
+* <https://en.cppreference.com/w/cpp/numeric/random/random_device>
