@@ -399,58 +399,192 @@ extern "C" {...}
 
 ---
 
-## How Linking Differs from "Imports" in Other Languages
+---
 
-Developers coming from **Java, Python, C#, JavaScript, Go**, or similar languages often expect linking to behave like importing a package or module.
+## Rules worth keeping in working memory
 
-That mental model does **not** apply to C++.
+The controlling distinction for linkage and translation units is between the portable language contract and the behavior of a particular compilation environment. C++ gives programmers the ability to build close to system boundaries, but also requires those boundaries to be specified rather than guessed.
 
-### Other languages
+> A source declaration states a C++ contract; neither a plausible runtime result nor a successful build can silently strengthen that contract.
 
-* Imports are:
+### Core rules
 
-  * Runtime or VM-managed
-  * Name-based
-  * Order-independent
-  * Dependency-resolved automatically
-* Symbols are:
+These rules are a compact form of the chapter's essential reasoning:
 
-  * Objects
-  * Namespaced
-  * Dynamically discoverable
-* Initialization order is defined and managed by the runtime
+1. **Keep one non-inline definition where the ODR requires it.**
+2. **Separate name lookup from linkage and symbol visibility.**
+3. **Control non-local initialization dependencies explicitly.**
+4. **Treat `extern "C"` as a linkage mechanism, not universal ABI safety.**
 
-### C++
+### Pitfalls at a glance
 
-* Linking is:
+Both failures below are attractive shortcuts precisely because they may seem to work on one toolchain.
 
-  * A **build-time** process
-  * Based on **object files**, not source files
-  * Sensitive to compilation units and order
-* Symbols are:
+| Pitfall | What happens | Do instead |
+|---|---|---|
+| Multiple definitions in headers | ODR violation or linker conflict | Use inline definitions or single-source definitions |
+| Global initialization order dependencies | May use an object before it is initialized | Prefer constant initialization or local statics |
 
-  * Raw linker symbols
-  * ABI-encoded
-  * Often invisible or duplicated unless controlled
-* Initialization order:
+Neither local behavior nor a compiler warning replaces a defined API and lifetime contract.
 
-  * Partially undefined
-  * Toolchain- and platform-dependent
-  * The programmer's responsibility
+### Mental model summary
 
-> In C++, there is no package loader, no module registry, and no runtime safety net.
-> Linking is **mechanical**, **static**, and **unforgiving** - by design.
+The following comparison makes clear which properties are supplied by the language and which must be established in your project.
+
+| Concern | Language | Toolchain/platform | Application |
+|---|---|---|---|
+| Names and types | Lookup, declarations, type rules | ABI encoding and diagnostic quality | Stable interface design |
+| Runtime behavior | Specified behavior categories | Execution mechanism | Input validation and ownership |
+| Portability | Requirements of chosen C++ edition | Vendor extensions and build mode | Testing supported configurations |
+
+The application column is where external requirements become enforceable preconditions.
+
+### Review checklist
+
+Before publishing or refactoring linkage and translation units code, ask:
+
+- [ ] Have we stated the preconditions and the relevant lifetime or linkage rules?
+- [ ] Can another translation unit or toolchain use this interface without undocumented assumptions?
+- [ ] Have we distinguished a guaranteed rule from an implementation observation?
+- [ ] Are relevant boundary and negative cases represented in tests?
 
 ---
 
-## Toolchain Notes
+## Diagnostics, useful compiler settings and extensions
 
-Useful compiler / linker flags:
+The compiler can identify many malformed uses of linkage and translation units, while some errors only surface at a link step, in a different build configuration, or along an executed path. Diagnostics complement, but cannot replace, correct declarations and contracts.
 
-* `-c` – compile only
-* `-Wl,-Map=map.txt` – link map
-* `-fno-common` – catch tentative definitions
-* `-ffunction-sections -Wl,--gc-sections` – dead stripping
-* `-flto` – link-time optimization
+### Warnings
+
+Start with standard conformance and conversion diagnostics; enable more targeted checks when a specific problem class appears.
+
+| Compiler | Flags | Catches |
+|---|---|---|
+| GCC/Clang | `-Wall -Wextra -Wpedantic -Wconversion` | Common suspicious declarations, conversions, and extensions |
+| MSVC | `/W4 /permissive- /analyze` | Language conformance and many statically recognizable mistakes |
+
+### Sanitizers and runtime checks
+
+Instrumentation can expose faults in executed code. It cannot certify that every program path is portable or free of undefined behavior.
+
+| Tool | Setting | Detects |
+|---|---|---|
+| AddressSanitizer | `-fsanitize=address` or `/fsanitize=address` | Many invalid memory accesses and lifetime mistakes |
+| UndefinedBehaviorSanitizer | `-fsanitize=undefined` | Selected undefined operations, not all UB |
+| Static analyzer | clang-tidy, cppcheck, MSVC `/analyze` | Suspicious contracts and data-flow defects |
+
+### Semantics-changing options
+
+These switches affect how the compiler may interpret source or optimize assumptions; they are not merely performance presets.
+
+| Option | Effect | Recommendation |
+|---|---|---|
+| `-std=gnu++20` instead of `-std=c++20` | Permits selected GNU extensions | Prefer ISO C++ mode to validate portable examples |
+| `-fno-strict-aliasing` | Restricts optimizer alias assumptions | Does not legalize invalid object access |
+| `-fwrapv` | Compiler-specific signed overflow behavior | Do not assume the ISO language guarantees it |
+| `-flto` | Cross-unit optimization exposes additional visibility/ODR assumptions | Test both LTO and non-LTO if supported |
+
+### Compiler extensions
+
+Extensions can provide essential platform services, but should not escape into a chapter's portable rule statements.
+
+| Extension | Compilers | Purpose | Portable treatment |
+|---|---|---|---|
+| `__attribute__((visibility))` | GCC/Clang | Symbol exports and visibility | Isolate behind build-specific macros |
+| `__declspec(dllexport)` | MSVC | DLL exports | Use a project export macro |
+| `__builtin_assume` / `__assume` | Clang/MSVC | Optimization assumptions | Check preconditions rather than asserting false invariants |
+
+Prefer the standard facility where one exists, keep extensions behind wrappers, test with feature macros such as `__has_builtin` and `__cpp_*`, and run `-pedantic-errors` or `/permissive-` to find unintentional nonstandard dependencies.
+
+### Libraries and tooling beyond the standard
+
+Some failure modes belong to the build graph, analyzer, or instrumentation rather than a language feature.
+
+| Tool | Purpose | Typical use |
+|---|---|---|
+| clang-tidy / cppcheck | Static analysis | Detect suspicious constructs missed by compiler defaults |
+| Compiler Explorer | Inspect generated code | Compare compiler assumptions and ABI choices |
+| Linker map / `nm` / `dumpbin` | Symbol inspection | Diagnose linkage, exports, and object-file contents |
+
+The layered strategy is a clear type/API contract, strict warnings, sanitizers, platform-specific options kept behind wrappers, static analysis, and targeted tests.
 
 ---
+
+## Standards timeline
+
+The standards preserve the core rules of linkage and translation units while expanding ways to state interfaces more precisely. The milestones matter when modernizing an older codebase across several compiler modes.
+
+### C++98/03: Original model
+
+Linkage, translation units, and ODR were fundamental.
+
+### C++11: New language vocabulary
+
+No material change to the core linker model.
+
+### C++14: Incremental refinement
+
+No material change to the core linker model.
+
+### C++17: Library evolution
+
+Inline variables simplify shared header constants.
+
+### C++20: Modern interfaces
+
+Modules provide explicit compiled interfaces but retain ABI/linkage concerns.
+
+### C++23: Broader facilities
+
+Module integration improves without eliminating platform linkers.
+
+### C++26: Forthcoming support
+
+Expect evolving module-toolchain interoperability; check build-system support.
+
+Annotate version requirements explicitly in source and build definitions; current compiler behavior alone is not a version contract.
+
+---
+
+## Migration note for Java / Python / C# developers
+
+Java and C# load managed modules or assemblies; Python imports runtime modules. C++ compilation commonly produces object files that are combined by a linker. Name mangling, visibility, and ABI compatibility are independent of whether a declaration appears in a header. A managed-language analogy is useful for identifying an intent, but not for predicting C++ storage lifetime, ABI layout, or failure semantics.
+
+### Where intuition transfers and where it breaks
+
+This comparison highlights why translating syntax directly is less reliable than translating contracts.
+
+| Concern | Java | Python | C# | C++ |
+|---|---|---|---|---|
+| Runtime loading | JVM class loading | Import system | CLR assemblies | Translation units, linker, and platform loader |
+| Object lifetime | GC | Reference counts/GC | GC | Determined by storage duration and ownership |
+| Invalid operations | Frequently exceptions | Frequently exceptions | Frequently exceptions | May be diagnosed, defined, or undefined |
+| linkage and translation units | Managed runtime conventions | Dynamic language conventions | CLR/runtime conventions | Explicit language and ABI contracts |
+
+The main difference is that C++ exposes several boundaries which other runtimes coordinate automatically.
+
+### Common wrong assumptions
+
+It is unsafe to assume that names in different source files are automatically linked, that a non-owning pointer keeps its pointee alive, or that an invalid low-level operation will throw an exception. In C++ these are separate questions. A successful test under one compiler confirms only the observed execution; it does not confer a language guarantee or validate every ABI configuration.
+
+### Idiomatic C++ replacement
+
+The migration is clearest when expressed in terms of intent rather than translated keywords.
+
+| Managed-language habit | Idiomatic C++ |
+|---|---|
+| Package-level import | Explicit headers/modules plus correct linker inputs |
+| Expect runtime checks to catch every misuse | Use type-safe interfaces, validated preconditions, and instrumented debug builds |
+| Treat source-file/module visibility as one property | Distinguish lookup, linkage, and ABI/export requirements |
+
+---
+
+## Further reading
+
+The language and standard-library references provide the precise conditions behind the examples. They are sufficient starting points for this chapter; longer bibliographies can be added separately.
+
+### Standard and language reference
+
+* [language/definition](https://en.cppreference.com/w/cpp/language/definition)
+* [language/storage_duration](https://en.cppreference.com/w/cpp/language/storage_duration)
+* [language/language_linkage](https://en.cppreference.com/w/cpp/language/language_linkage)

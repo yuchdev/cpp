@@ -1844,48 +1844,33 @@ Small compile-time toggles can be appropriate, especially in embedded, or when y
 
 ---
 
-## 19. Function evolution timeline
+## 19. At-Exit Functions
 
-| Standard | Features                                         |
-|----------|--------------------------------------------------|
-| C++98    | Basic functions, pointers                        |
-| C++11    | `auto`, lambdas, `constexpr`, variadics          |
-| C++14    | return type deduction, init-capture              |
-| C++17    | attributes, `constexpr` expanded                 |
-| C++20    | `consteval`, concepts, `std::span`, `[[likely]]` |
-
+* The quick_exit() function is like exit() except that it does not invoke any destructors
+* Register functions to be invoked by quick_exit() using at_quick_exit()
+* Exit possibilities
+  * std::_Exit (abort): doesn't execute static destructors or flush critical IO and soes not call handler
+  * std::exit: executes static destructors and flushes critical IO and call handler if exists
+  * std::quick_exit: doesn't execute static destructors, but does flush critical IO and call handler if exists
 ---
 
-## 20. Migration note for Java / Python / C# developers
+## Rules worth keeping in working memory
 
-In Java, Python, and similar languages, functions are:
+The central distinction in functions and callable interfaces is between what the C++ type system guarantees, what the implementation commonly does, and what an API merely assumes. Carrying that distinction from declarations through operations avoids most of the surprises discussed above.
 
-* objects
-* heap-allocated
-* runtime entities
-* reflection-friendly
-* garbage-collected
+> A valid low-level operation needs a language-level contract, not just a machine-level outcome that looks plausible.
 
-In C++, functions are:
+### Core rules
 
-* compile-time entities
-* ABI-bound
-* optimized aggressively
-* invisible at runtime
-* governed by the abstract machine
+The following rules condense the chapter into reviewable decisions:
 
-Key differences:
+1. **Function signatures include language-level type and overload-resolution rules.**
+2. **Use explicit parameter ownership and value-category contracts.**
+3. **Distinguish `constexpr` eligibility from `consteval` mandatory evaluation.**
+4. **Do not let non-C-compatible C++ types or exceptions cross an `extern "C"` boundary.**
 
-* No runtime safety net
-* No universal callable object
-* No guaranteed type erasure
-* No default closures with lifetime tracking
 
-> C++ functions trade safety for absolute control and zero-cost abstraction.
-
----
-
-## Final guidance
+The practical guidance already emphasized in this chapter remains applicable:
 
 * Prefer clear function signatures
 * Minimize overload ambiguity
@@ -1893,3 +1878,208 @@ Key differences:
 * Use lambdas for local behavior
 * Use `constexpr` and attributes to express intent
 * Treat macros as a last resort
+
+### Pitfalls at a glance
+
+These recurring failures are particularly useful to recognize in code review because each starts from a plausible but insufficient assumption.
+
+| Pitfall | What happens | Do instead |
+|---|---|---|
+| Array parameter spelled `[N]` | Adjusts to pointer type | Use references or `span` |
+| Returned reference to local | Dangling reference | Return by value or ensure owned lifetime |
+| Catch-all variadic ABI assumption | Arguments undergo promotions; mismatch may be UB | Prefer type-safe variadic templates |
+
+Each safer alternative makes an implicit precondition visible either in the type or in the code that checks it.
+
+### Mental model summary
+
+The underlying distinction is consistent across the subject: a language guarantee is portable; an implementation choice must be checked; a domain requirement must be stated by the program.
+
+| Question | Language guarantee | Implementation detail | Application responsibility |
+|---|---|---|---|
+| What may this operation assume? | Specified preconditions and types | ABI, representation, optimizer strategy | Select the appropriate contract |
+| What happens at an edge case? | Specified result or behavior category | Diagnostics and machine reaction | Validate inputs and lifetimes |
+| Can this cross an interface? | Only what types and linkage guarantee | Toolchain and platform compatibility | Document conversions and ownership |
+
+The third column cannot substitute for the first, and the fourth is where domain-specific requirements belong.
+
+### Review checklist
+
+Use this checklist when changing functions and callable interfaces code or reviewing low-level interfaces:
+
+- [ ] Have we distinguished language guarantees from platform-specific observations?
+- [ ] Are all input domains and conversion or lifetime preconditions explicit?
+- [ ] Can the relevant edge cases be tested without executing undefined behavior?
+- [ ] Does the chosen API encode as much of the intended contract as practical?
+
+---
+
+## Diagnostics, useful compiler settings and extensions
+
+Compilers can diagnose many suspicious uses of functions and callable interfaces, but they cannot infer every application invariant. A clean warning build is useful evidence, not proof: tools can recognize some invalid expressions statically and others only when particular paths execute.
+
+### Warnings
+
+Start with high-signal diagnostics and add specialized checks where the chapter's failure modes justify them.
+
+| Compiler | Flags | What they reveal |
+|---|---|---|
+| GCC | `-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion` | Suspicious conversions, extensions, and common type mistakes |
+| Clang | `-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion` | Similar mistakes, with different analysis coverage |
+| MSVC | `/W4 /permissive-` | Common warnings and nonconforming language extensions |
+
+### Sanitizers and runtime checks
+
+Runtime instrumentation can expose executed failures but does not validate every semantic assumption.
+
+| Tool | Setting | Best use |
+|---|---|---|
+| AddressSanitizer | `-fsanitize=address` or MSVC `/fsanitize=address` | Invalid object lifetime and memory access when applicable |
+| UndefinedBehaviorSanitizer | `-fsanitize=undefined` (GCC/Clang) | Instrumented undefined operations; coverage is incomplete |
+| clang-tidy / static analysis | Selected checks and `/analyze` (MSVC) | Suspicious contracts, conversions, and API use |
+
+### Semantics-changing options
+
+Language mode, optimizer assumptions, and vendor extensions can affect which source expressions are accepted and how they are interpreted. The following controls deserve deliberate treatment rather than being regarded as speed settings alone.
+
+| Option | Effect | Recommendation |
+|---|---|---|
+| `-std=gnu++20` vs `-std=c++20` | GNU mode may accept non-standard constructs | Prefer ISO mode when teaching portable rules |
+| `-fno-strict-aliasing` | Weakens some alias-based optimization assumptions, not object-lifetime rules | Never use it to justify invalid accesses |
+| `-fwrapv` (GCC/Clang) | Gives signed overflow wrapping semantics under that compiler option | Use only under a documented toolchain contract |
+| `-ffast-math` (GCC/Clang) | Permits FP transformations inconsistent with strict numerical assumptions | Avoid for reproducibility and FP environment examples |
+
+These options affect different topics to different degrees; only enable a topic-specific workaround when it addresses a known and measured requirement.
+
+### Compiler extensions
+
+Vendor builtins can improve diagnostics or performance, but they are not portable substitutes for a standard language rule.
+
+| Extension | Compilers | Use | Portable approach |
+|---|---|---|---|
+| `__builtin_assume` / `__assume` | Clang / MSVC | Gives optimizer an unchecked precondition | Validate invariants; use `[[assume]]` only where C++23 is supported |
+| `__builtin_object_size` | GCC/Clang | Estimates available object storage | Carry an explicit extent in APIs |
+| `__attribute__` / `__declspec` attributes | GCC/Clang / MSVC | Vendor-specific linkage/layout hints | Prefer standard attributes where applicable |
+
+Keep extensions behind small wrappers, prefer `__cpp_*`/feature tests over compiler versions, and use `-pedantic-errors` or `/permissive-` when checking standard conformance.
+
+### Libraries and tooling beyond the standard
+
+The C++ Core Guidelines and the static analyzers built around them can help express and review preconditions that a raw type cannot encode.
+
+| Tool | Purpose | When useful |
+|---|---|---|
+| clang-tidy / cppcheck | Static analysis | Reviewing conversion, lifetime, and interface contracts |
+| Microsoft GSL | Non-owning and bounds-oriented vocabulary | Modernizing raw-pointer/size interfaces |
+| Compiler Explorer | Compare generated code | Verifying performance assumptions against actual toolchains |
+
+The best defense is layered: expressive types and APIs first, then warnings, targeted tests, runtime checking, and narrowly isolated extensions.
+
+---
+
+## Standards timeline
+
+The core model of functions and callable interfaces evolved incrementally; newer standards add safer vocabulary without retroactively rewriting all legacy expressions. The milestones below separate changes to the language from changes to available library interfaces.
+
+### C++98/03: The original model
+
+Functions, linkage, overloads, and pointers to functions are core language features.
+
+### C++11: Stronger types and interfaces
+
+Lambdas, move semantics, and `constexpr` broaden callables.
+
+### C++14: Incremental refinement
+
+Generic lambdas and return deduction ease generic interfaces.
+
+### C++17: Library and deduction evolution
+
+`if constexpr`, inline variables, and guaranteed copy elision affect generic function design.
+
+### C++20: Modern vocabulary
+
+Concepts, `consteval`, coroutines, and richer constexpr rules extend callable contracts.
+
+### C++23: Further standard facilities
+
+Explicit object parameters and `if consteval` improve member and immediate-function APIs.
+
+### C++26: Emerging improvements
+
+New callable and constexpr facilities are implementation-dependent until shipped.
+
+When documenting a facility, state its required language/library version rather than inferring support from the compiler's branding.
+
+---
+
+## Migration note for Java / Python / C# developers
+
+Readers familiar with managed runtimes often expect functions and callable interfaces to come with runtime metadata, automatic lifetime management, or checked failures. In C++, some of those services come from a chosen library type, while raw language mechanisms may deliberately expose more responsibility to the caller. The important translation is from a *runtime guarantee* in one language to a *type, contract, and lifetime guarantee* in C++.
+
+### Where intuition transfers and where it breaks
+
+The same apparent operation may have a different failure mode or storage model in each language.
+
+| Concept | Java | Python | C# | C++ reality |
+|---|---|---|---|---|
+| fn | methods/functions with runtime metadata | Overloads and functional interfaces | First-class callable objects | Delegates and overloads |
+| Invalid access/operation | Usually throws or is checked | Usually raises an exception | Often throws in safe code | May be ill-formed, defined, unspecified, or undefined depending on the operation |
+| Lifetime | Managed object reachability | Reference counting / GC | Managed GC | Automatic, dynamic, and explicitly borrowed lifetimes coexist |
+
+The distinction matters at API boundaries: a familiar surface syntax does not imply familiar failure behavior.
+
+### Common wrong assumptions
+
+One tempting assumption is that a successful local test demonstrates that an operation is safe. For the low-level C++ rules in this chapter, a test can demonstrate behavior of one build, but cannot establish portability or rule out undefined behavior. Another is that an object is kept alive by every handle referring to it; non-owning pointers, references, and views do not do that. Finally, a managed-language exception should not be presumed to exist at an equivalent C++ failure point.
+
+The earlier chapter's comparison is worth retaining in this context: In Java, Python, and similar languages, functions are:
+
+objects
+heap-allocated
+runtime entities
+reflection-friendly
+garbage-collected
+
+In C++, functions are:
+
+compile-time entities
+ABI-bound
+optimized aggressively
+invisible at runtime
+governed by the abstract machine
+
+Key differences:
+
+No runtime safety net
+No universal callable object
+No guaranteed type erasure
+No default closures with lifetime tracking
+
+> C++ functions trade safety for absolute control and zero-cost abstraction.
+
+---
+
+### Idiomatic C++ replacement
+
+The following mappings help make intent explicit without imitating a managed runtime mechanically.
+
+| Habit from managed languages | Idiomatic C++ |
+|---|---|
+| Callback with state | Use a capturing lambda or `std::function` where type erasure is needed |
+| Compile-time helper | Use `constexpr` for dual-mode evaluation and `consteval` for immediate APIs |
+| Expect automatic runtime bounds/lifetime checks | Select an owning container or checked API; validate preconditions explicitly |
+
+Use these choices because they express the program's requirements, not merely because they resemble familiar constructs from another language.
+
+---
+
+## Further reading
+
+These references document the underlying language rules and library contracts. They are starting points for checking precise preconditions; the chapter's examples explain how the rules interact.
+
+### Standard and language reference
+
+* [language/functions](https://en.cppreference.com/w/cpp/language/functions)
+* [language/overload_resolution](https://en.cppreference.com/w/cpp/language/overload_resolution)
+* [language/lambda](https://en.cppreference.com/w/cpp/language/lambda)
