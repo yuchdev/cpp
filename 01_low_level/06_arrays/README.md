@@ -1651,6 +1651,36 @@ The version dependency belongs in code and build constraints, not only in assump
 
 ---
 
+## Migration note for Java / Python / C# developers
+
+Managed-language arrays commonly carry runtime bounds and rely on automatic lifetime management. C++ raw arrays instead have compile-time bounds in their types, while pointers and views can lose or borrow that shape without extending the storage lifetime.
+
+### Where intuition transfers and where it breaks
+
+Similar-looking indexing and access do not guarantee the same checks or lifetime behavior.
+
+| Concept | Java | Python | C# | C++ reality |
+|---|---|---|---|---|
+| Array extent | Runtime array length | Runtime sequence length | Runtime array length | In `T[N]`'s type, but lost when it decays to `T*` |
+| Invalid access | Bounds exception | Exception | Bounds exception | May be undefined behavior; raw pointer access is not automatically checked |
+| Lifetime | Managed reachability | Runtime-managed object | Managed reachability | Depends on storage duration and ownership; `std::span` does not own its elements |
+
+### Common wrong assumptions
+
+A successful run does not establish that out-of-bounds pointer arithmetic or access is valid; C++ may give undefined behavior where a managed language throws. Likewise, a pointer, reference, or `std::span` does not keep its referred-to array alive. The array-to-pointer conversion and view-lifetime rules described above are the key differences at API boundaries.
+
+### Idiomatic C++ replacement
+
+Choose a type that states whether the sequence is owned, fixed-size, dynamic-size, or borrowed.
+
+| Habit from managed languages | Idiomatic C++ |
+|---|---|
+| Fixed-size owned sequence | `std::array<T, N>` |
+| Dynamic-size owned sequence | `std::vector<T>` |
+| Borrowed contiguous sequence | `std::span<T>` |
+
+---
+
 ## Further reading
 
 The standard-library facilities are easiest to understand when read together with the core-language array rules they are designed to preserve or replace.
