@@ -1581,7 +1581,7 @@ ASan is particularly effective for teaching array failures because an off-by-one
 
 * Prefer the standard facility when it exists; keep extensions behind a small wrapper header or macro.
 * Guard them with feature-test macros (`__cpp_*`, `__has_cpp_attribute`, `__has_builtin`) rather than compiler-version checks.
-* `-pedantic` / `-pedantic-errors` (GCC/Clang) and `/permissive-` (MSVC) flag non-standard code; `-std=c++NN` instead of `-std=gnu++NN` disables GNU extensions.
+* `-pedantic` / `-pedantic-errors` (GCC/Clang) and `/permissive-` (MSVC) diagnose non-standard code; `-std=c++NN` selects the strict ISO dialect instead of `-std=gnu++NN`, while `-pedantic-errors` is needed when supported extensions must be rejected.
 
 ### Libraries and tooling beyond the standard
 
