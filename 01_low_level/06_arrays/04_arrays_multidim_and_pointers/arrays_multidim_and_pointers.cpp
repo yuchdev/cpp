@@ -1,71 +1,98 @@
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <iostream>
 #include <type_traits>
 
-// arrays_multidim_and_pointer_to_array.cpp
-// Focus: multi-dimensional arrays, contiguous layout, pointer-to-array,
-// and why int** != int[R][C].
+#if defined(__has_include)
+#  if __has_include(<mdspan>)
+#    include <mdspan>
+#  endif
+#endif
 
 namespace cpp {
 
 static void layout_is_contiguous()
 {
     int m[2][3] = {
-        {1,2,3},
-        {4,5,6}
+        {1, 2, 3},
+        {4, 5, 6}
     };
 
-    // Row-major contiguous storage:
-    int* flat = &m[0][0];
-    assert(flat[0] == 1);
-    assert(flat[3] == 4);
+    // The rows are adjacent because m is an array of two int[3] objects.
+    static_assert(sizeof(m) == 6 * sizeof(int));
+    assert(&m[1][0] == m[1]);
 
-    // The type of m is int[2][3], and m decays to pointer to its first row: int (*)[3]
+    // Do not model the whole matrix as one int[6] by taking &m[0][0] and
+    // incrementing through the next row. Pointer arithmetic is defined within
+    // the inner int[3] array object (plus one-past), not across sibling rows.
+
     int (*rowp)[3] = m;
-    static_assert(std::is_same<decltype(rowp), int (*)[3]>::value, "");
-
-    // rowp + 1 moves by a whole row (3 ints)
+    static_assert(std::is_same_v<decltype(rowp), int (*)[3]>);
     assert(&rowp[1][0] == &m[1][0]);
 
-    // Pointer-to-array to the whole 2x3 matrix:
     int (*matp)[2][3] = &m;
-    static_assert(std::is_same<decltype(matp), int (*)[2][3]>::value, "");
+    static_assert(std::is_same_v<decltype(matp), int (*)[2][3]>);
 
-    // matp + 1 jumps past the whole matrix object
-    assert(reinterpret_cast<char*>(matp + 1) == reinterpret_cast<char*>(matp) + sizeof(m));
+    assert(reinterpret_cast<char*>(matp + 1) ==
+           reinterpret_cast<char*>(matp) + sizeof(m));
 }
 
-// Passing 2D array to a function: second dimension must be known in the type.
 static int sum_2d(const int (&m)[2][3])
 {
-    int s = 0;
-    for (int r = 0; r < 2; ++r)
-        for (int c = 0; c < 3; ++c)
-            s += m[r][c];
-    return s;
+    int sum = 0;
+    for (const auto& row : m)
+        for (int value : row)
+            sum += value;
+    return sum;
 }
 
-// Alternative: template on sizes
 template <std::size_t R, std::size_t C>
 static int sum_2d_t(const int (&m)[R][C])
 {
-    int s = 0;
+    int sum = 0;
     for (std::size_t r = 0; r < R; ++r)
         for (std::size_t c = 0; c < C; ++c)
-            s += m[r][c];
-    return s;
+            sum += m[r][c];
+    return sum;
 }
 
 static void passing_2d()
 {
-    int m[2][3] = {{1,2,3},{4,5,6}};
+    int m[2][3] = {{1, 2, 3}, {4, 5, 6}};
+
     assert(sum_2d(m) == 21);
     assert(sum_2d_t(m) == 21);
 
-    // Note: int** is a pointer to pointer, not a contiguous 2D array type.
-    // You cannot safely pass int[2][3] as int**.
+    // int** is a pointer to pointer. It neither carries the row stride nor
+    // describes one contiguous int[2][3] object.
 }
+
+#if defined(__cpp_lib_mdspan) && __cpp_lib_mdspan >= 202207L
+static void mdspan_cpp23()
+{
+    std::array<int, 6> storage = {1, 2, 3, 4, 5, 6};
+
+    // mdspan separates one flat contiguous storage range from multidimensional
+    // indexing. The view is non-owning.
+    std::mdspan view{storage.data(), 2, 3};
+
+    static_assert(decltype(view)::rank() == 2);
+
+    assert(view.extent(0) == 2);
+    assert(view.extent(1) == 3);
+    assert(view[0, 2] == 3);
+    assert(view[1, 0] == 4);
+
+    view[1, 2] = 42;
+    assert(storage[5] == 42);
+}
+#else
+static void mdspan_cpp23()
+{
+    // C++23 demonstration activates when the standard library supplies <mdspan>.
+}
+#endif
 
 } // namespace cpp
 
@@ -73,6 +100,8 @@ int main()
 {
     cpp::layout_is_contiguous();
     cpp::passing_2d();
-    std::cout << "arrays_multidim_and_pointer_to_array.cpp: OK\n";
+    cpp::mdspan_cpp23();
+
+    std::cout << "arrays_multidim_and_pointers.cpp: OK\n";
     return 0;
 }
