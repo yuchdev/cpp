@@ -3258,195 +3258,206 @@ If those four answers are explicit, most pointer code becomes straightforward. I
 
 ## Rules worth keeping in working memory
 
-The central distinction in pointers, references, alignment, and object lifetime is between what the C++ type system guarantees, what the implementation commonly does, and what an API merely assumes. Carrying that distinction from declarations through operations avoids most of the surprises discussed above.
+A pointer can designate a location, but an address alone does not establish a live object, an accessible type, a valid bound, or ownership. These are separate invariants that code must establish and preserve.
 
-> A valid low-level operation needs a language-level contract, not just a machine-level outcome that looks plausible.
+> Pointer safety is the intersection of lifetime, bounds, type accessibility, alignment, and ownership contracts.
 
 ### Core rules
 
-The following rules condense the chapter into reviewable decisions:
-
-1. **A pointer value does not itself establish an object lifetime.**
-2. **Keep pointer arithmetic within the appropriate array object.**
-3. **Do not confuse a non-owning observer with an owning smart pointer.**
-4. **Use `std::bit_cast`, `std::span`, and explicit lifetime operations for their respective purposes.**
-
+1. **Prove the pointee is alive at each access.** Holding the same numeric address does not extend an object's lifetime.
+2. **Perform pointer arithmetic only within the permitted array domain.** One-past pointers can be formed but never dereferenced.
+3. **Represent ownership explicitly.** Use values, containers, or owning smart pointers; use raw pointers, references, and views for clearly documented borrowing.
+4. **Do not treat casts as object construction.** `reinterpret_cast` cannot create a `T` or bypass alignment and type-accessibility rules.
+5. **Preserve extents and invalidation contracts.** `std::span` encodes bounds but does not extend the backing storage's lifetime.
+6. **Separate atomic publication from reclamation.** `std::atomic<T*>` does not keep the pointee alive.
 
 ### Pitfalls at a glance
 
-These recurring failures are particularly useful to recognize in code review because each starts from a plausible but insufficient assumption.
+These mistakes arise from collapsing several independent parts of the C++ object model into a single idea of a machine address.
 
 | Pitfall | What happens | Do instead |
 |---|---|---|
-| Returning address of a local | Pointer dangles after the local dies | Return a value or transfer ownership |
-| `reinterpret_cast` then dereference | Type accessibility or alignment may be violated | Use byte views or legitimate object construction |
-| Atomic raw pointer assumed to keep pointee alive | Reclamation is not solved by atomicity | Use an appropriate lifetime/reclamation scheme |
-
-Each safer alternative makes an implicit precondition visible either in the type or in the code that checks it.
+| Return a pointer or reference to a local | Borrower outlives the object | Return by value or transfer explicit ownership |
+| Dereference one-past or otherwise invalid pointer | Outside the permitted object/array domain | Pass an extent and check bounds |
+| Cast byte storage to `T*` and read | No suitable live `T` may exist; alignment may also fail | Establish lifetime and type-accessibility legally |
+| Keep `span` after vector growth | Reallocation invalidates the view | Bound the view's lifetime and reacquire after mutation |
+| Assume `shared_ptr`/raw pointer cycles or aliasing are harmless | Leaks or stale pointers can survive unnoticed | Design ownership graph; use `weak_ptr` where appropriate |
+| Interpret pointer equality as thread-safe object identity | Address reuse creates ABA hazards | Use a reclamation/identity strategy fit for concurrency |
 
 ### Mental model summary
 
-The underlying distinction is consistent across the subject: a language guarantee is portable; an implementation choice must be checked; a domain requirement must be stated by the program.
+The same address can be acceptable for one operation and invalid for another.
 
-| Question | Language guarantee | Implementation detail | Application responsibility |
-|---|---|---|---|
-| What may this operation assume? | Specified preconditions and types | ABI, representation, optimizer strategy | Select the appropriate contract |
-| What happens at an edge case? | Specified result or behavior category | Diagnostics and machine reaction | Validate inputs and lifetimes |
-| Can this cross an interface? | Only what types and linkage guarantee | Toolchain and platform compatibility | Document conversions and ownership |
+| Dimension | Key question | Typical mechanism |
+|---|---|---|
+| Storage and alignment | Is there suitably aligned storage? | `alignas`, aligned allocation |
+| Lifetime | Does a suitable object currently exist there? | Constructor, placement new, legal implicit lifetime start |
+| Type accessibility | May this glvalue access that object? | Correct type, permitted byte representation access |
+| Bounds | Is this pointer within the appropriate array? | Container, `span`, documented pointer-plus-size |
+| Ownership | Who releases the resource? | RAII, `unique_ptr`, `shared_ptr` |
+| Concurrency | Can the object be reclaimed during use? | Locking or an appropriate reclamation protocol |
 
-The third column cannot substitute for the first, and the fourth is where domain-specific requirements belong.
+A successful dereference on one platform does not prove that all six requirements were met.
 
 ### Review checklist
 
-Use this checklist when changing pointers, references, alignment, and object lifetime code or reviewing low-level interfaces:
+When reviewing pointer-heavy interfaces, ask:
 
-- [ ] Have we distinguished language guarantees from platform-specific observations?
-- [ ] Are all input domains and conversion or lifetime preconditions explicit?
-- [ ] Can the relevant edge cases be tested without executing undefined behavior?
-- [ ] Does the chosen API encode as much of the intended contract as practical?
+- [ ] Is every pointer/reference/view backed by a live object for its entire use?
+- [ ] Are extent and invalidation rules explicit, particularly after container mutations?
+- [ ] Is the owning party identifiable, including on exception paths?
+- [ ] Are alignment, lifetime start, and type-accessibility requirements separately satisfied?
+- [ ] Do pointer-to-integer conversions or ordering assumptions rely on a documented platform ABI?
+- [ ] Are concurrent readers protected against reclamation and ABA where applicable?
 
 ---
 
 ## Diagnostics, useful compiler settings and extensions
 
-Compilers can diagnose many suspicious uses of pointers, references, alignment, and object lifetime, but they cannot infer every application invariant. A clean warning build is useful evidence, not proof: tools can recognize some invalid expressions statically and others only when particular paths execute.
+Compiler warnings catch some evident dangling references and type mistakes; more subtle lifetime failures depend on control flow and runtime history. Combine compile-time analysis with instrumented tests of container invalidation, destruction, and exceptional paths.
 
 ### Warnings
 
-Start with high-signal diagnostics and add specialized checks where the chapter's failure modes justify them.
-
 | Compiler | Flags | What they reveal |
 |---|---|---|
-| GCC | `-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion` | Suspicious conversions, extensions, and common type mistakes |
-| Clang | `-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion` | Similar mistakes, with different analysis coverage |
-| MSVC | `/W4 /permissive-` | Common warnings and nonconforming language extensions |
+| GCC | `-Wall -Wextra -Wpedantic -Wreturn-local-addr -Wuse-after-free=2` (where supported) | Obvious escaped locals and some uses after deallocation |
+| Clang | `-Wall -Wextra -Wpedantic -Wreturn-stack-address` | References/pointers to dead stack storage and suspicious constructs |
+| MSVC | `/W4 /permissive- /analyze` | Language warnings and additional static-analysis findings |
+
+Warnings are version-dependent, and no warning set proves that arbitrary pointer arithmetic or object lifetime is valid.
 
 ### Sanitizers and runtime checks
 
-Runtime instrumentation can expose executed failures but does not validate every semantic assumption.
-
-| Tool | Setting | Best use |
+| Tool | Setting | Typical coverage and limitation |
 |---|---|---|
-| AddressSanitizer | `-fsanitize=address` or MSVC `/fsanitize=address` | Invalid object lifetime and memory access when applicable |
-| UndefinedBehaviorSanitizer | `-fsanitize=undefined` (GCC/Clang) | Instrumented undefined operations; coverage is incomplete |
-| clang-tidy / static analysis | Selected checks and `/analyze` (MSVC) | Suspicious contracts, conversions, and API use |
+| AddressSanitizer | `-fsanitize=address` (GCC/Clang), `/fsanitize=address` (MSVC) | Heap/stack use-after-free and out-of-bounds; not all semantic lifetime violations |
+| Clang stack-use-after-return support | `-fsanitize-address-use-after-return=runtime` with `ASAN_OPTIONS=detect_stack_use_after_return=1` | Escaped stack addresses where supported |
+| UndefinedBehaviorSanitizer | `-fsanitize=undefined` | Selected misalignment and invalid operations; does not generally establish pointer provenance |
+| ThreadSanitizer | `-fsanitize=thread` on supported targets | Data races; not a universal ABA or safe-reclamation detector |
+| clang-tidy / static analysis | `bugprone-*`, `cppcoreguidelines-*`, MSVC `/analyze` | Potential ownership and lifetime defects; requires review for false positives |
+
+Sanitizers need representative executions and suitable runtime support; absence of a report is not evidence of language-defined behavior.
 
 ### Semantics-changing options
 
-Language mode, optimizer assumptions, and vendor extensions can affect which source expressions are accepted and how they are interpreted. The following controls deserve deliberate treatment rather than being regarded as speed settings alone.
-
 | Option | Effect | Recommendation |
 |---|---|---|
-| `-std=gnu++20` vs `-std=c++20` | GNU mode may accept non-standard constructs | Prefer ISO mode when teaching portable rules |
-| `-fno-strict-aliasing` | Weakens some alias-based optimization assumptions, not object-lifetime rules | Never use it to justify invalid accesses |
-| `-fwrapv` (GCC/Clang) | Gives signed overflow wrapping semantics under that compiler option | Use only under a documented toolchain contract |
-| `-ffast-math` (GCC/Clang) | Permits FP transformations inconsistent with strict numerical assumptions | Avoid for reproducibility and FP environment examples |
+| `-fno-strict-aliasing` (GCC/Clang) | Relaxes some alias-based optimization assumptions | Never interpret as permission to access nonexistent objects or violate lifetimes |
+| `-std=gnu++20` vs `-std=c++20` | GNU mode accepts implementation extensions | Use ISO mode plus `-pedantic-errors` when checking portability |
+| `-fno-delete-null-pointer-checks` (GCC/Clang, where supported) | Changes some optimization reasoning about pointer checks | Not a substitute for valid pointer lifetime or preconditions |
+| MSVC `/permissive-` | Enforces more conforming source acceptance | Use when validating modern portable C++ |
 
-These options affect different topics to different degrees; only enable a topic-specific workaround when it addresses a known and measured requirement.
+Compiler flags cannot repair a dangling pointer or an object that never began its lifetime.
 
 ### Compiler extensions
 
-Vendor builtins can improve diagnostics or performance, but they are not portable substitutes for a standard language rule.
-
-| Extension | Compilers | Use | Portable approach |
+| Extension | Compilers | Use | Standard alternative or caution |
 |---|---|---|---|
-| `__builtin_assume` / `__assume` | Clang / MSVC | Gives optimizer an unchecked precondition | Validate invariants; use `[[assume]]` only where C++23 is supported |
-| `__builtin_object_size` | GCC/Clang | Estimates available object storage | Carry an explicit extent in APIs |
-| `__attribute__` / `__declspec` attributes | GCC/Clang / MSVC | Vendor-specific linkage/layout hints | Prefer standard attributes where applicable |
+| `__builtin_assume_aligned` | GCC/Clang | Assert alignment to optimizer | `std::assume_aligned` (C++20); neither checks or fixes alignment |
+| `__builtin_object_size` | GCC/Clang | Estimate accessible storage size for fortification | Explicit `span`/extent is more dependable for APIs |
+| `__attribute__((aligned))` / `__declspec(align)` | GCC/Clang / MSVC | Vendor alignment declarations | Prefer `alignas` |
+| `__builtin_addressof` | GCC/Clang | Obtain true object address even with overloaded `operator&` | Prefer `std::addressof` |
+| `__assume` / `__builtin_assume` | MSVC / Clang | Unchecked optimizer promises | C++23 `[[assume]]` where available; false assumptions may cause undefined behavior |
 
-Keep extensions behind small wrappers, prefer `__cpp_*`/feature tests over compiler versions, and use `-pedantic-errors` or `/permissive-` when checking standard conformance.
+Isolate platform-specific pointer code behind small APIs, feature-test actual support, and check strict conformance settings rather than compiler names alone.
 
 ### Libraries and tooling beyond the standard
 
-The C++ Core Guidelines and the static analyzers built around them can help express and review preconditions that a raw type cannot encode.
-
-| Tool | Purpose | When useful |
+| Tool or library | Purpose | Typical use |
 |---|---|---|
-| clang-tidy / cppcheck | Static analysis | Reviewing conversion, lifetime, and interface contracts |
-| Microsoft GSL | Non-owning and bounds-oriented vocabulary | Modernizing raw-pointer/size interfaces |
-| Compiler Explorer | Compare generated code | Verifying performance assumptions against actual toolchains |
+| Microsoft GSL `not_null`, `span` | Express non-null and bounded borrowing | C-style interfaces with explicit preconditions |
+| C++ Core Guidelines | Ownership and lifetime design guidance | API reviews and modernization |
+| clang-tidy / cppcheck | Rule-based static analysis | Dangling handles and suspicious casts |
+| Compiler Explorer | Inspect implementation code generation | Check optimizer assumptions, alignment and aliasing behavior |
 
-The best defense is layered: expressive types and APIs first, then warnings, targeted tests, runtime checking, and narrowly isolated extensions.
+Start with ownership and lifetime-aware APIs, then use warnings, static analysis, sanitizers, and boundary tests as complementary defenses.
 
 ---
 
 ## Standards timeline
 
-The core model of pointers, references, alignment, and object lifetime evolved incrementally; newer standards add safer vocabulary without retroactively rewriting all legacy expressions. The milestones below separate changes to the language from changes to available library interfaces.
+The pointer and reference rules remain fundamental, while later standards provide progressively stronger vocabulary for ownership, views, forwarding, and explicit lifetime manipulation.
 
-### C++98/03: The original model
+### C++98/03: The foundational object model
 
-Raw pointer arithmetic, references, object lifetime, and aliasing form the core model.
+Raw pointers, references, pointer arithmetic, construction/destruction and `new`/`delete` establish the model that still governs low-level code. The standard library offers RAII containers but not modern ownership smart pointers.
 
-### C++11: Stronger types and interfaces
+### C++11: Ownership and value categories
 
-Smart pointers, rvalue references, `nullptr`, and alignment declarations clarify ownership and use.
+`nullptr`, `unique_ptr`, `shared_ptr`, `weak_ptr`, rvalue references, `std::move`, and `std::forward` make intended ownership and transfer more explicit. `alignas` and `alignof` also enter the language.
 
-### C++14: Incremental refinement
+### C++14: Easier exclusive ownership
 
-`make_unique` simplifies exclusive ownership.
+`std::make_unique` removes a common reason to spell out `new` in application code. Core lifetime and pointer arithmetic preconditions remain unchanged.
 
-### C++17: Library and deduction evolution
+### C++17: Representation and over-aligned allocation
 
-`std::byte`, `std::launder`, and aligned allocation strengthen low-level vocabulary.
+`std::byte`, `std::launder`, aligned allocation, and `std::addressof` improvements provide more targeted low-level mechanisms. None turns a cast into a general-purpose object-lifetime repair.
 
-### C++20: Modern vocabulary
+### C++20: Views and explicit low-level intent
 
-`span`, `bit_cast`, `to_address`, and `construct_at` provide precise intent.
+`std::span`, `std::to_address`, `std::bit_cast`, `std::construct_at`, and `std::assume_aligned` help make distinct contracts visible. Ranges introduce borrowed-range machinery, but borrowing remains non-owning.
 
-### C++23: Further standard facilities
+### C++23: Interoperability and reference forwarding
 
-`out_ptr`, `forward_like`, and `start_lifetime_as` cover interop and lifetime cases.
+`std::out_ptr`/`std::inout_ptr`, `std::forward_like`, explicit object parameters, and `std::start_lifetime_as` address specialized ownership, forwarding, and implicit-lifetime scenarios. Feature-test library availability: not every current implementation ships every facility.
 
-### C++26: Emerging improvements
+### C++26: Safe reclamation work
 
-Further safe reclamation facilities are being standardized; check availability.
+Hazard-pointer and read-copy-update facilities are standardized for C++26, subject to standard-library implementation availability. They address important reclamation patterns but do not make arbitrary atomic raw-pointer access safe.
 
-When documenting a facility, state its required language/library version rather than inferring support from the compiler's branding.
+Document the specific standard version and implementation support for each facility rather than assuming newer code inherits retroactive safety guarantees.
 
 ---
 
 ## Migration note for Java / Python / C# developers
 
-Readers familiar with managed runtimes often expect pointers, references, alignment, and object lifetime to come with runtime metadata, automatic lifetime management, or checked failures. In C++, some of those services come from a chosen library type, while raw language mechanisms may deliberately expose more responsibility to the caller. The important translation is from a *runtime guarantee* in one language to a *type, contract, and lifetime guarantee* in C++.
+Managed references usually imply runtime-managed reachability. C++ references and raw pointers are generally non-owning access mechanisms; the type itself does not guarantee that the referenced object stays alive. It is essential to separate object lifetime from raw address validity.
 
 ### Where intuition transfers and where it breaks
 
-The same apparent operation may have a different failure mode or storage model in each language.
-
 | Concept | Java | Python | C# | C++ reality |
 |---|---|---|---|---|
-| ptr | managed references and null | References; limited pointer-like interop | Object references | Managed references / unsafe pointers |
-| Invalid access/operation | Usually throws or is checked | Usually raises an exception | Often throws in safe code | May be ill-formed, defined, unspecified, or undefined depending on the operation |
-| Lifetime | Managed object reachability | Reference counting / GC | Managed GC | Automatic, dynamic, and explicitly borrowed lifetimes coexist |
-
-The distinction matters at API boundaries: a familiar surface syntax does not imply familiar failure behavior.
+| Object reference | GC-managed reference | Strong Python reference | Usually GC-managed reference | `T*` and `T&` are typically non-owning |
+| Nullability | Nullable references | `None` | Nullable reference analysis | `T*` may be null; `T&` must refer to an appropriate object |
+| Array bounds | Runtime checks | Runtime checks | Runtime checks in safe code | Raw-pointer indexing has preconditions, not automatic bounds checks |
+| Resource lifetime | GC, explicit resource APIs | Context managers/reference semantics | `using`/`IDisposable` | RAII ties cleanup to object lifetime; smart-pointer ownership is explicit |
 
 ### Common wrong assumptions
 
-One tempting assumption is that a successful local test demonstrates that an operation is safe. For the low-level C++ rules in this chapter, a test can demonstrate behavior of one build, but cannot establish portability or rule out undefined behavior. Another is that an object is kept alive by every handle referring to it; non-owning pointers, references, and views do not do that. Finally, a managed-language exception should not be presumed to exist at an equivalent C++ failure point.
+A reference provides no general ownership or reachability guarantee, and a `std::span` does not pin its backing vector. Directly binding a local `const` reference or rvalue reference to a temporary can extend that temporary's lifetime, but returning a reference to a temporary does not generally prolong it through the caller's lifetime. A dangling access is not required to throw an exception, and a pointer's numerical address is not a portable durable object ID.
 
 ### Idiomatic C++ replacement
 
-The following mappings help make intent explicit without imitating a managed runtime mechanically.
-
-| Habit from managed languages | Idiomatic C++ |
+| Managed-language habit | Idiomatic C++ |
 |---|---|
-| Optional borrowed access | Use `T*` with explicit lifetime documentation |
-| Exclusive owner | Use `std::unique_ptr<T>` rather than bare `new/delete` |
-| Expect automatic runtime bounds/lifetime checks | Select an owning container or checked API; validate preconditions explicitly |
+| Depend on reachability for owned heap objects | Store values directly or use `std::unique_ptr` / `std::shared_ptr` for clear ownership |
+| Pass arrays as reference-like objects | Use `std::span<T>` when a borrowed contiguous extent is intended |
+| Assume any reference protects its object | Document the borrowing lifetime; use an owning result when it must escape |
+| Reuse an object address as an identifier | Define a stable application-level identifier independent of storage reuse |
+| Rely on finally/dispose patterns everywhere | Use RAII objects that release resources in destructors |
 
-Use these choices because they express the program's requirements, not merely because they resemble familiar constructs from another language.
+These are design choices, not just syntax translations: ownership and valid access must be made visible at the API boundary.
 
 ---
 
 ## Further reading
 
-These references document the underlying language rules and library contracts. They are starting points for checking precise preconditions; the chapter's examples explain how the rules interact.
+Use these references to check exact language rules and the constraints of modern pointer-oriented library facilities.
 
 ### Standard and language reference
 
-* [language/pointer](https://en.cppreference.com/w/cpp/language/pointer)
-* [language/lifetime](https://en.cppreference.com/w/cpp/language/lifetime)
-* [memory/unique_ptr](https://en.cppreference.com/w/cpp/memory/unique_ptr)
-* [container/span](https://en.cppreference.com/w/cpp/container/span)
+* [Pointers](https://en.cppreference.com/w/cpp/language/pointer)
+* [References](https://en.cppreference.com/w/cpp/language/reference)
+* [Object lifetime](https://en.cppreference.com/w/cpp/language/lifetime)
+* [`std::unique_ptr`](https://en.cppreference.com/w/cpp/memory/unique_ptr)
+* [`std::shared_ptr`](https://en.cppreference.com/w/cpp/memory/shared_ptr)
+* [`std::span`](https://en.cppreference.com/w/cpp/container/span)
+* [`std::bit_cast`](https://en.cppreference.com/w/cpp/numeric/bit_cast)
+* [`std::start_lifetime_as`](https://en.cppreference.com/w/cpp/memory/start_lifetime_as)
+
+### Guidelines and proposals
+
+* [C++ Core Guidelines: resource management](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#s-resource)
+* [C++ Core Guidelines: lifetime safety](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#ss-lifetime)
+* [WG21 P0593: Implicit creation of objects for low-level manipulation](https://wg21.link/P0593)
