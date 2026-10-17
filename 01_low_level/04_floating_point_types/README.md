@@ -2518,194 +2518,200 @@ The important habit is to use these facilities according to their semantic purpo
 
 ## Rules worth keeping in working memory
 
-The central distinction in floating-point representation and arithmetic is between what the C++ type system guarantees, what the implementation commonly does, and what an API merely assumes. Carrying that distinction from declarations through operations avoids most of the surprises discussed above.
+Floating point is a finite, unevenly spaced model of real arithmetic. A numerical result depends not only on the operands but also on the format, rounding, evaluation order, and compiler's permitted transformations. A correct algorithm must state which of those assumptions matter.
 
-> A valid low-level operation needs a language-level contract, not just a machine-level outcome that looks plausible.
+> Floating-point correctness is a property of an algorithm and its error budget, not of the spelling of `double`.
 
 ### Core rules
 
-The following rules condense the chapter into reviewable decisions:
-
-1. **Treat IEEE-754 properties as properties to check, not universal type guarantees.**
-2. **Choose comparison tolerances from the algorithm's error model.**
-3. **Account for NaN, infinities, signed zero, and nonuniform spacing.**
-4. **Distinguish compiler FP optimization modes from numerical correctness guarantees.**
-
+1. **Check the format before decoding bits.** `sizeof(float)` alone does not establish IEEE binary32; check `std::numeric_limits<T>::is_iec559`, radix, digits, and layout assumptions.
+2. **Use exact comparison for exact invariants, and error analysis for approximate results.** A universal epsilon is neither necessary nor sufficient.
+3. **Handle NaNs, infinities, signed zero, and subnormals deliberately.** They change ordering, branching, and numerical behavior.
+4. **Check finite bounds before converting floating point to integers.** An out-of-range built-in conversion has undefined behavior.
+5. **Preserve object and aliasing rules when inspecting representations.** Prefer `std::bit_cast` (C++20) for equal-size trivially copyable representation transfers.
+6. **Treat reproducibility as an explicit requirement.** Rounding mode, contraction, excess precision, math libraries, and fast-math settings can change results.
 
 ### Pitfalls at a glance
 
-These recurring failures are particularly useful to recognize in code review because each starts from a plausible but insufficient assumption.
+The traps below are not isolated curiosities: they follow from mistaking a numerical approximation or an implementation property for a universal language guarantee.
 
 | Pitfall | What happens | Do instead |
 |---|---|---|
-| Global `epsilon()` tolerance | Works only near a limited scale | Use domain-specific absolute/relative tolerances |
-| Float-to-int out of range | Built-in conversion has undefined behavior | Validate finite range before casting |
-| Unrelated typed-pointer punning | Can violate aliasing rules | Use `std::bit_cast` for representation transfer |
-
-Each safer alternative makes an implicit precondition visible either in the type or in the code that checks it.
+| Compare every pair using `numeric_limits<double>::epsilon()` | The tolerance is scaled for values near 1, not the application's magnitude | Specify absolute and relative tolerances from an error budget |
+| Assume `min()` is most negative | For floating types it is the smallest *positive normal* value | Use `lowest()` for the lowest finite value and `denorm_min()` for the smallest positive subnormal where available |
+| Sort NaNs with ordinary `<` | The comparison is unordered and may violate an algorithm's strict-weak-ordering expectation | Reject NaNs or define an explicit comparator policy |
+| Cast NaN or out-of-range `double` to `int` | The built-in conversion can have undefined behavior | Check finiteness and a suitable representable interval before casting |
+| Enable `-ffast-math` for an IEEE-sensitive algorithm | Optimizations may disregard NaNs, signed zero, or strict reassociation rules | Keep strict compilation for numerically sensitive code |
+| Reinterpret a float through an `int*` | Type-access rules may be violated | Use `std::bit_cast` for representation inspection |
 
 ### Mental model summary
 
-The underlying distinction is consistent across the subject: a language guarantee is portable; an implementation choice must be checked; a domain requirement must be stated by the program.
+The different kinds of correctness need separate questions.
 
-| Question | Language guarantee | Implementation detail | Application responsibility |
-|---|---|---|---|
-| What may this operation assume? | Specified preconditions and types | ABI, representation, optimizer strategy | Select the appropriate contract |
-| What happens at an edge case? | Specified result or behavior category | Diagnostics and machine reaction | Validate inputs and lifetimes |
-| Can this cross an interface? | Only what types and linkage guarantee | Toolchain and platform compatibility | Document conversions and ownership |
+| Concern | What is guaranteed | What the application must decide |
+|---|---|---|
+| Representation | Fundamental floating types exist; exact format is implementation-dependent | Required radix, precision, and IEEE properties |
+| Arithmetic | Operations follow C++ and implementation's supported floating model | Acceptable rounding error and exceptional-value policy |
+| Comparison | Equality and ordering operators have floating semantics | Domain-specific tolerance or total-order strategy |
+| Persistence | Formatting APIs are available | Exact round-trip representation and format compatibility |
 
-The third column cannot substitute for the first, and the fourth is where domain-specific requirements belong.
+The distinction between *correctly rounded for one operation* and *accurate for the entire algorithm* is especially important.
 
 ### Review checklist
 
-Use this checklist when changing floating-point representation and arithmetic code or reviewing low-level interfaces:
+Before shipping numerical code, ask:
 
-- [ ] Have we distinguished language guarantees from platform-specific observations?
-- [ ] Are all input domains and conversion or lifetime preconditions explicit?
-- [ ] Can the relevant edge cases be tested without executing undefined behavior?
-- [ ] Does the chosen API encode as much of the intended contract as practical?
+- [ ] Have the assumed format, precision, and subnormal behavior been checked or documented?
+- [ ] Are comparison tolerances derived from scale and error, rather than copied from a constant?
+- [ ] Are NaN, infinity, and both signs of zero handled where they affect logic?
+- [ ] Are floating-to-integer conversions checked before the cast?
+- [ ] Are serialization and cross-platform reproducibility requirements stated?
+- [ ] Have optimized builds been tested under the intended floating-point compiler settings?
 
 ---
 
 ## Diagnostics, useful compiler settings and extensions
 
-Compilers can diagnose many suspicious uses of floating-point representation and arithmetic, but they cannot infer every application invariant. A clean warning build is useful evidence, not proof: tools can recognize some invalid expressions statically and others only when particular paths execute.
+A compiler can warn about conversions and suspicious comparisons, but it cannot derive an application's numerical accuracy requirement. Combine strict compilation with representative tests around boundaries, cancellation, overflow, underflow, and non-finite values.
 
 ### Warnings
 
-Start with high-signal diagnostics and add specialized checks where the chapter's failure modes justify them.
-
 | Compiler | Flags | What they reveal |
 |---|---|---|
-| GCC | `-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion` | Suspicious conversions, extensions, and common type mistakes |
-| Clang | `-Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion` | Similar mistakes, with different analysis coverage |
-| MSVC | `/W4 /permissive-` | Common warnings and nonconforming language extensions |
+| GCC | `-Wall -Wextra -Wpedantic -Wconversion -Wfloat-conversion -Wfloat-equal` | Narrowing, implicit float/integer changes, and exact comparisons worth reviewing |
+| Clang | `-Wall -Wextra -Wpedantic -Wconversion -Wfloat-conversion -Wfloat-equal` | Similar diagnostics; `-Wfloat-equal` intentionally produces noise for valid exact comparisons |
+| MSVC | `/W4 /permissive-` and optionally `/Wall` selectively | Conversion and precision-loss warnings such as C4244/C4305; `/Wall` includes substantial system-header noise |
+
+Do not mechanically replace every equality test. Comparisons against known exact sentinels and certain integer-valued quantities can be intentional.
 
 ### Sanitizers and runtime checks
 
-Runtime instrumentation can expose executed failures but does not validate every semantic assumption.
-
-| Tool | Setting | Best use |
+| Tool | Setting | What it can and cannot detect |
 |---|---|---|
-| AddressSanitizer | `-fsanitize=address` or MSVC `/fsanitize=address` | Invalid object lifetime and memory access when applicable |
-| UndefinedBehaviorSanitizer | `-fsanitize=undefined` (GCC/Clang) | Instrumented undefined operations; coverage is incomplete |
-| clang-tidy / static analysis | Selected checks and `/analyze` (MSVC) | Suspicious contracts, conversions, and API use |
+| Clang/GCC UBSan | `-fsanitize=float-cast-overflow` | Executed out-of-range floating-to-integer conversions; not a general numerical-accuracy checker |
+| Clang/GCC UBSan | `-fsanitize=undefined` | Selected undefined operations; verify sanitizer selection and toolchain support |
+| Floating-point environment | `<cfenv>`, `feclearexcept`, `fetestexcept` | Observed exception flags, when implementation and compiler respect environment access |
+| Boundary tests | `nextafter`, `isfinite`, `isnan`, `signbit` | Semantic corner cases that sanitizer instrumentation cannot infer |
+
+Floating-point exception flags are not C++ exceptions. `FENV_ACCESS` pragmas and dynamic rounding support are implementation-dependent; run such tests under a documented compiler configuration.
 
 ### Semantics-changing options
 
-Language mode, optimizer assumptions, and vendor extensions can affect which source expressions are accepted and how they are interpreted. The following controls deserve deliberate treatment rather than being regarded as speed settings alone.
-
 | Option | Effect | Recommendation |
 |---|---|---|
-| `-std=gnu++20` vs `-std=c++20` | GNU mode may accept non-standard constructs | Prefer ISO mode when teaching portable rules |
-| `-fno-strict-aliasing` | Weakens some alias-based optimization assumptions, not object-lifetime rules | Never use it to justify invalid accesses |
-| `-fwrapv` (GCC/Clang) | Gives signed overflow wrapping semantics under that compiler option | Use only under a documented toolchain contract |
-| `-ffast-math` (GCC/Clang) | Permits FP transformations inconsistent with strict numerical assumptions | Avoid for reproducibility and FP environment examples |
+| GCC/Clang `-ffast-math` | Relaxes strict floating semantics and enables transformations affecting special values and rounding | Avoid for chapters' FP-environment and reproducibility examples |
+| GCC/Clang `-ffp-contract=off/on/fast` | Controls opportunities to fuse multiply-add operations, with compiler-specific details | Pin deliberately for reproducible calculations |
+| GCC `-frounding-math` | Restricts some assumptions about a fixed rounding mode; experimental/incomplete support | Test dynamic-rounding behavior rather than assuming full conformance |
+| MSVC `/fp:strict`, `/fp:precise`, `/fp:fast` | Different constraints on transformations, environment, and exceptions | Choose a documented policy for each numerical component |
+| `-std=c++20` vs `-std=gnu++20` | ISO versus GNU extension acceptance | Prefer ISO mode for portable demonstrations |
 
-These options affect different topics to different degrees; only enable a topic-specific workaround when it addresses a known and measured requirement.
+These flags are part of the numerical contract, not merely performance tuning.
 
 ### Compiler extensions
 
-Vendor builtins can improve diagnostics or performance, but they are not portable substitutes for a standard language rule.
+| Extension | Compilers | Use and portability |
+|---|---|---|
+| `__builtin_fma` and related builtins | GCC/Clang | Compiler-specific entry points; prefer standard `std::fma` for portable fused arithmetic |
+| `_Float16`, `__float128` | Supported GCC/Clang targets | Nonportable storage and calculation formats; C++23 `<stdfloat>` types are optional and not universally interchangeable |
+| `#pragma STDC FENV_ACCESS ON` | Implementation-dependent | Indicates floating-environment sensitivity; confirm compiler documentation and actual behavior |
+| `__FAST_MATH__` | GCC/Clang | Detects a compiler-defined fast-math configuration, not a portable guarantee |
 
-| Extension | Compilers | Use | Portable approach |
-|---|---|---|---|
-| `__builtin_assume` / `__assume` | Clang / MSVC | Gives optimizer an unchecked precondition | Validate invariants; use `[[assume]]` only where C++23 is supported |
-| `__builtin_object_size` | GCC/Clang | Estimates available object storage | Carry an explicit extent in APIs |
-| `__attribute__` / `__declspec` attributes | GCC/Clang / MSVC | Vendor-specific linkage/layout hints | Prefer standard attributes where applicable |
-
-Keep extensions behind small wrappers, prefer `__cpp_*`/feature tests over compiler versions, and use `-pedantic-errors` or `/permissive-` when checking standard conformance.
+Prefer standard facilities when available; isolate necessary extensions, guard them with feature checks, and use pedantic ISO builds to expose dependencies on extensions.
 
 ### Libraries and tooling beyond the standard
 
-The C++ Core Guidelines and the static analyzers built around them can help express and review preconditions that a raw type cannot encode.
-
-| Tool | Purpose | When useful |
+| Tool | Purpose | Typical use |
 |---|---|---|
-| clang-tidy / cppcheck | Static analysis | Reviewing conversion, lifetime, and interface contracts |
-| Microsoft GSL | Non-owning and bounds-oriented vocabulary | Modernizing raw-pointer/size interfaces |
-| Compiler Explorer | Compare generated code | Verifying performance assumptions against actual toolchains |
+| Boost.Multiprecision | Higher/controlled precision numeric types | Reference computations and precision-sensitive algorithms |
+| MPFR | Explicitly rounded high-precision floating arithmetic | Differential accuracy tests against an oracle |
+| clang-tidy / static analysis | Identify suspicious conversions and implicit assumptions | Code reviews around numeric APIs |
+| Compiler Explorer | Inspect instruction selection, FMA and conversions | Compare compiler modes and target architectures |
 
-The best defense is layered: expressive types and APIs first, then warnings, targeted tests, runtime checking, and narrowly isolated extensions.
+Use types and algorithms that express the precision contract first; follow with warnings, selective instrumentation, numerical test oracles, and reproducible build settings.
 
 ---
 
 ## Standards timeline
 
-The core model of floating-point representation and arithmetic evolved incrementally; newer standards add safer vocabulary without retroactively rewriting all legacy expressions. The milestones below separate changes to the language from changes to available library interfaces.
+C++ has kept the fundamental floating-point model while adding safer ways to inspect representations, express mathematical intent, and access optional formats.
 
-### C++98/03: The original model
+### C++98/03: The original numerical model
 
-`float`, `double`, and `long double` already offered implementation-dependent precision and formats.
+`float`, `double`, `long double`, `<cmath>`, `<limits>`, and floating conversions provide the essential language and library rules. Exact precision and radix remain implementation-dependent.
 
-### C++11: Stronger types and interfaces
+### C++11: Classification and better numerics
 
-`constexpr` permits selected constant arithmetic and type-level checks.
+C++11 provides `std::isnan`, `std::isfinite`, `std::fma`, `std::nextafter`, `std::log1p`, and `std::expm1` in the standard library, alongside `std::hexfloat` formatting. The additions let code describe exceptional values and numerically stable operations directly.
 
 ### C++14: Incremental refinement
 
-No fundamental change to binary floating semantics.
+Digit separators improve readability of numeric literals. No material change replaces floating approximation or the established comparison rules.
 
-### C++17: Library and deduction evolution
+### C++17: Conversion interfaces
 
-Further mathematical special functions and library utilities broaden numerical APIs.
+`std::to_chars` and `std::from_chars` provide locale-independent numeric text conversion interfaces, although floating overload availability has varied by standard library implementation. `std::hypot` gains a three-argument overload.
 
-### C++20: Modern vocabulary
+### C++20: Representation and mathematical vocabulary
 
-`std::numbers`, `std::midpoint`, `std::lerp`, `std::bit_cast`, and floating atomics become available.
+`std::bit_cast`, `std::endian`, `std::numbers`, `std::midpoint`, `std::lerp`, and floating-point `<=>` improve clarity. Floating spaceship comparison is a *partial ordering* because of NaNs.
 
-### C++23: Further standard facilities
+### C++23: Extended floating-point types
 
-Optional `<stdfloat>` types and conversion rank/subrank rules formalize extended formats.
+C++23 introduces optional fixed-width floating types in `<stdfloat>`, associated literal suffixes, and revised floating conversion ranking. Check implementation feature-test macros and availability before depending on these facilities.
 
-### C++26: Emerging improvements
+### C++26: Further evolution
 
-Library constexpr math and other improvements depend on actual implementation support.
+No C++26 feature is required for the chapter's fundamental correctness rules. Library feature availability continues to evolve; verify the adopted standard and actual standard-library support rather than promising an implementation-independent new format.
 
-When documenting a facility, state its required language/library version rather than inferring support from the compiler's branding.
+Annotate source code with the **minimum language and library version** it requires, especially around optional C++23 floating facilities.
 
 ---
 
 ## Migration note for Java / Python / C# developers
 
-Readers familiar with managed runtimes often expect floating-point representation and arithmetic to come with runtime metadata, automatic lifetime management, or checked failures. In C++, some of those services come from a chosen library type, while raw language mechanisms may deliberately expose more responsibility to the caller. The important translation is from a *runtime guarantee* in one language to a *type, contract, and lifetime guarantee* in C++.
+Most managed-language programmers have encountered IEEE binary64, but C++ does not require all three fundamental floating types to map to one fixed binary format. The more surprising difference is that unsafe conversions and compiler FP-mode changes can alter not only precision but also defined behavior.
 
 ### Where intuition transfers and where it breaks
 
-The same apparent operation may have a different failure mode or storage model in each language.
-
 | Concept | Java | Python | C# | C++ reality |
 |---|---|---|---|---|
-| fp | well-defined numeric runtime conventions | IEEE floating types | Binary floating point | `float`/`double` |
-| Invalid access/operation | Usually throws or is checked | Usually raises an exception | Often throws in safe code | May be ill-formed, defined, unspecified, or undefined depending on the operation |
-| Lifetime | Managed object reachability | Reference counting / GC | Managed GC | Automatic, dynamic, and explicitly borrowed lifetimes coexist |
-
-The distinction matters at API boundaries: a familiar surface syntax does not imply familiar failure behavior.
+| Common double precision | `double` is IEEE binary64 | `float` is normally a C double | `double` is IEEE binary64 | `double` format is implementation-dependent |
+| Exceptional values | IEEE NaN/infinities | NaN/infinities are supported | NaN/infinities are supported | Availability and signaling follow the implementation's floating model |
+| Floating-to-integer overflow | Java specifies a conversion result | Python `int(float)` can raise | Checked/unchecked conversion contexts | Out-of-range built-in conversion has undefined behavior |
+| Exact textual round trip | Library-defined formatting | `repr` supports round-trip of typical Python floats | Formatting APIs | Choose `max_digits10` or suitable `to_chars` policy |
 
 ### Common wrong assumptions
 
-One tempting assumption is that a successful local test demonstrates that an operation is safe. For the low-level C++ rules in this chapter, a test can demonstrate behavior of one build, but cannot establish portability or rule out undefined behavior. Another is that an object is kept alive by every handle referring to it; non-owning pointers, references, and views do not do that. Finally, a managed-language exception should not be presumed to exist at an equivalent C++ failure point.
+A tolerance suitable for one measurement unit is not suitable for every calculation. C++ `numeric_limits<T>::epsilon()` gives spacing around one, not a generally acceptable absolute error. Similarly, Java's defined narrowing behavior is not a reason to cast any `double` to a C++ integer without checking the range. Finally, language-level floating syntax does not guarantee matching results from different optimization modes, math libraries, or hardware.
 
 ### Idiomatic C++ replacement
 
-The following mappings help make intent explicit without imitating a managed runtime mechanically.
-
 | Habit from managed languages | Idiomatic C++ |
 |---|---|
-| Floating precision | Design for numeric error, not bitwise equality by default |
-| Serialization | Use round-trip precision or `to_chars`/`from_chars` |
-| Expect automatic runtime bounds/lifetime checks | Select an owning container or checked API; validate preconditions explicitly |
+| Assume every `double` is exactly binary64 | Check and document format constraints with `numeric_limits` |
+| Use one global epsilon | Express expected algorithmic error as absolute/relative/domain-specific bounds |
+| Trust runtime conversion to handle every exceptional value | Check `isfinite` and range before integer conversion |
+| Trust default printing for persistent interchange | Choose an explicit round-trip policy and test it |
 
-Use these choices because they express the program's requirements, not merely because they resemble familiar constructs from another language.
+The goal is not to forbid floating-point arithmetic: it is to make the error and representation contracts reviewable.
 
 ---
 
 ## Further reading
 
-These references document the underlying language rules and library contracts. They are starting points for checking precise preconditions; the chapter's examples explain how the rules interact.
+These references document the precise requirements behind representation, numerical operations, and floating-point environment handling.
 
 ### Standard and language reference
 
-* [language/types](https://en.cppreference.com/w/cpp/language/types)
-* [types/numeric_limits](https://en.cppreference.com/w/cpp/types/numeric_limits)
-* [numeric/math](https://en.cppreference.com/w/cpp/numeric/math)
+* [Floating-point types](https://en.cppreference.com/w/cpp/language/types)
+* [`std::numeric_limits`](https://en.cppreference.com/w/cpp/types/numeric_limits)
+* [Floating-point arithmetic and mathematical functions](https://en.cppreference.com/w/cpp/numeric/math)
+* [`std::bit_cast`](https://en.cppreference.com/w/cpp/numeric/bit_cast)
+* [`<cfenv>`](https://en.cppreference.com/w/cpp/header/cfenv)
+* [`<stdfloat>`](https://en.cppreference.com/w/cpp/header/stdfloat)
+* [`std::to_chars` and `std::from_chars`](https://en.cppreference.com/w/cpp/utility/from_chars)
+
+### Additional references
+
+* [Goldberg, *What Every Computer Scientist Should Know About Floating-Point Arithmetic*](https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html)
+* [WG21 paper P1467: Extended floating-point types](https://wg21.link/P1467)
