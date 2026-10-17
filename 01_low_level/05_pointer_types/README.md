@@ -3278,7 +3278,7 @@ These mistakes arise from collapsing several independent parts of the C++ object
 | Pitfall | What happens | Do instead |
 |---|---|---|
 | Return a pointer or reference to a local | Borrower outlives the object | Return by value or transfer explicit ownership |
-| Dereference one-past or unrelated pointer | Outside the permitted object/array domain | Pass an extent and check bounds |
+| Dereference one-past or otherwise invalid pointer | Outside the permitted object/array domain | Pass an extent and check bounds |
 | Cast byte storage to `T*` and read | No suitable live `T` may exist; alignment may also fail | Establish lifetime and type-accessibility legally |
 | Keep `span` after vector growth | Reallocation invalidates the view | Bound the view's lifetime and reacquire after mutation |
 | Assume `shared_ptr`/raw pointer cycles or aliasing are harmless | Leaks or stale pointers can survive unnoticed | Design ownership graph; use `weak_ptr` where appropriate |
@@ -3425,7 +3425,7 @@ Managed references usually imply runtime-managed reachability. C++ references an
 
 ### Common wrong assumptions
 
-A reference does not keep its referent alive, and a `std::span` does not pin its backing vector. Returning a reference to a temporary does not generally prolong that temporary through the caller's lifetime. A dangling access is not required to throw an exception, and a pointer's numerical address is not a portable durable object ID.
+A reference provides no general ownership or reachability guarantee, and a `std::span` does not pin its backing vector. Directly binding a local `const` reference or rvalue reference to a temporary can extend that temporary's lifetime, but returning a reference to a temporary does not generally prolong it through the caller's lifetime. A dangling access is not required to throw an exception, and a pointer's numerical address is not a portable durable object ID.
 
 ### Idiomatic C++ replacement
 
@@ -3458,6 +3458,6 @@ Use these references to check exact language rules and the constraints of modern
 
 ### Guidelines and proposals
 
-* [C++ Core Guidelines: resource management](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-resource)
-* [C++ Core Guidelines: lifetime safety](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#S-lifetime)
+* [C++ Core Guidelines: resource management](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#s-resource)
+* [C++ Core Guidelines: lifetime safety](https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#ss-lifetime)
 * [WG21 P0593: Implicit creation of objects for low-level manipulation](https://wg21.link/P0593)
