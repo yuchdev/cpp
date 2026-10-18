@@ -74,11 +74,13 @@ static void demonstrate_shift_rules()
     // 1) shifting by >= width is UB for built-in shifts
     // u = u << 32; // UB for uint32_t
 
-    // 2) left shift on signed that overflows is UB
+    // 2) signed left shifts have version-sensitive special rules, including
+    //    older allowance for reaching the sign bit in selected cases.
+    //    For portable bit manipulation, convert to unsigned before shifting.
     // int s = 1;
-    // s = s << 31; // UB (overflow / sign bit)
+    // s = s << 31; // do not use as a portable bit-mask idiom
 
-    // 3) right shift of negative signed is implementation-defined
+    // 3) right shift of negative signed is implementation-defined before C++20
     // int neg = -8;
     // std::cout << (neg >> 1) << "\n"; // arithmetic shift on most compilers, not guaranteed pre-C++20
 }
@@ -90,7 +92,7 @@ static void demonstrate_signed_right_shift_is_not_portable()
     std::cout << "neg=" << neg << " bits(as unsigned)=" << bits_u(static_cast<std::uint32_t>(neg)) << "\n";
     int r = (neg >> 1);
     std::cout << "neg>>1=" << r << " bits(as unsigned)=" << bits_u(static_cast<std::uint32_t>(r)) << "\n";
-    std::cout << "(Most targets do arithmetic shift, but do not rely on it for portability.)\n";
+    std::cout << "(C++20 specifies negative signed right shift rounding toward negative infinity; older standards leave it implementation-defined.)\n";
 }
 
 static void safe_shift_helpers_demo()
