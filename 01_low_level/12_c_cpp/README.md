@@ -11,34 +11,34 @@ Some files are **C-only** (`.c`) and some are **C++** (`.cpp`)
 
 ## 1. Files
 
-1. `01_name_mangling_and_overload.cpp`
+1. `01_name_mangling_and_overload` examples
    - C++ name mangling, why overloads work
    - how to inspect symbols with `nm` / `objdump`
    - why C cannot overload by signature
 
-2. `02_extern_c_and_callbacks.cpp`
+2. `02_extern_c_callbacks` examples
    - `extern "C"`: linkage and ABI
    - C-callable functions exported from C++
    - callbacks/function pointers across the boundary
    - pitfalls: exceptions, C++ objects across ABI
 
-3. `03_static_init_and_main.cpp`
+3. `03_static_init_and_main` examples
    - C++ startup: global constructors run **before `main`**
    - C startup: no user constructors/destructors
    - init-order fiasco + safe patterns
 
-4. `04_headers_and_types.cpp`
+4. `04_headers_and_types` examples
    - `<string.h>` vs `<cstring>` mapping
    - `void*` conversions, `malloc` in C vs C++
    - `bool` vs `_Bool`, `nullptr` vs `NULL`
    - `restrict` in C99 and portable C++ replacements
 
-5. `05_c_things_not_in_cpp.c`
+5. `05_c_things_not_in_cpp` examples
    - Valid C features that are ill-formed in standard C++:
      VLAs, compound literals, array designators, `restrict`, implicit `void*` conversion,
      C struct-tag differences.
 
-6. `06_cpp_things_not_in_c.cpp`
+6. `06_cpp_things_not_in_c` examples
    - C++ features that C doesn't have (RAII/classes/templates/etc.)
    - a correct "C ABI facade" pattern: opaque handles + create/destroy + error codes
 
