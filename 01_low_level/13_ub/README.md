@@ -262,18 +262,18 @@ ThreadSanitizer instruments executed accesses and can expose many unprotected da
 
 C++20 `consteval` and later constant-evaluation changes make some invalid operations diagnosable at compile time when they are actually evaluated during constant evaluation. This is different from runtime sanitization; not every potential runtime path is evaluated by the compiler.
 
-### `std::unreachable` in C++23 is a dangerous assertion about control flow
+### `std::unreachable` in C++23 is an unchecked promise
 
-The standard `std::unreachable()` tells the compiler that reaching this point has undefined behavior. Its purpose is to give optimizers a strong assumption, not to implement a safe fallback for unknown enum states or corrupt input.
+The C++23 function `std::unreachable()` from `<utility>` informs the optimizer that execution cannot reach that point in a well-defined program. Reaching it causes undefined behavior: it is not a recoverable runtime assertion.
 
 ```cpp
-#include <utility> // for other modern utilities
-// #include <utility> is NOT the home of std::unreachable;
-// include <utility> for std::to_underlying, <utility> notwithstanding.
-// C++23: #include <utility> is not sufficient; use <utility> only for its own APIs.
+#include <utility> // C++23 std::unreachable
+
+// Only for a genuinely proven impossible state:
+// if (invariant_holds) ...; else std::unreachable();
 ```
 
-Do not use `std::unreachable` to handle untrusted input or an incomplete switch. Instead throw, return an error, or terminate deliberately according to the API. In C++23 its header is `<utility>`? No: use the documented `<utility>`/implementation reference for target library rather than guessing from legacy builtins.
+Do not use it for untrusted input or as the fallback of a switch whose enum can hold unnamed values. Validate or report errors instead. An invalid optimizer assumption can be more damaging than a deliberate failure.
 
 ### Contracts introduced by C++26 are not permission to ignore preconditions
 
