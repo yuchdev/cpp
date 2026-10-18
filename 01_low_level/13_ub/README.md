@@ -1,4 +1,4 @@
-# 13. Undefined Behavior in C and C++
+# 13. Undefined Behavior and Its Evolution from C++98 to C++26
 
 This chapter is dedicated to Undefined Behavior (UB) - one of the most misunderstood,
 dangerous, and performance‑critical aspects of C and C++.
@@ -14,7 +14,7 @@ That includes:
 
 ---
 
-## Why UB exists
+## 1. Why UB exists
 
 UB is not a compiler bug. It exists to:
 - allow aggressive optimizations
@@ -24,7 +24,7 @@ UB is not a compiler bug. It exists to:
 
 ---
 
-## UB vs. Unspecified vs. Implementation‑Defined
+## 2. UB vs. Unspecified vs. Implementation‑Defined
 
 | Category               | Meaning                         |
 |------------------------|---------------------------------|
@@ -34,9 +34,9 @@ UB is not a compiler bug. It exists to:
 
 ---
 
-## How compilers exploit UB
+## 3. How compilers exploit UB
 
-If the compiler proves UB *could* happen, it may assume it never happens.
+For a path with undefined behavior, the optimizer may reason under the assumption that valid executions do not take that path. A speculative possibility of UB elsewhere is not enough to invalidate a correctly guarded access.
 
 ```cpp
 int f(int* p) {
@@ -45,11 +45,11 @@ int f(int* p) {
 }
 ```
 
-If `p` is ever null → UB → compiler may remove the check entirely.
+The null check makes this example **defined** when `p` is null; the dereference is reached only when the pointer is non-null. Non-null alone is not sufficient for safe dereference: the pointer must still designate a live, accessible object.
 
 ---
 
-## How to fight UB
+## 4. How to fight UB
 
 - Compile with sanitizers: `-fsanitize=undefined,address`
 - Enable warnings: `-Wall -Wextra -Wpedantic`
@@ -58,18 +58,18 @@ If `p` is ever null → UB → compiler may remove the check entirely.
 
 ---
 
-## Files
+## 5. Files
 
 * `ub_examples.cpp` - isolated UB examples with detailed comments
 
 ---
 
-## Rule
+## 6. Rule
 
 > If your program has UB, the compiler owes you nothing.
 
 
-## UB cases explained (based on the original educational snippet)
+## 7. UB cases explained (based on the original educational snippet)
 
 Below is a short explanation for each UB pattern from your original file.  
 Rule of thumb: the moment UB occurs, the whole program becomes unconstrained - even code "after" the UB may be optimized away.
@@ -159,7 +159,7 @@ Fix: return on all paths; enable `-Wreturn-type`.
 
 ---
 
-## Practical way to study UB
+## 8. Practical way to study UB
 Run one case at a time with sanitizers:
 
 ```bash
@@ -170,6 +170,158 @@ clang++ -std=c++20 -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer u
 Sanitizers do not catch *all* UB (e.g., some strict-aliasing miscompilations), but they catch a lot.
 
 ---
+
+## 9. Why optimizer reasoning about undefined behavior is more subtle than a crash
+
+Undefined behavior means that a particular execution has no requirements imposed by the C++ abstract-machine rules. It does not mean that a compiler can remove every guard merely because a dangerous operation appears somewhere in the function. The key distinction is whether the bad operation is reachable along the actual execution path and whether the compiler can rely on a violated precondition.
+
+### A prior check of a pointer can be entirely valid
+
+A null check *before* dereferencing a pointer is a perfectly legitimate defensive pattern. It is wrong to claim that a compiler may arbitrarily remove such a check because the program would have undefined behavior *if the pointer were null*.
+
+```cpp
+int value_or_zero(const int* p) {
+    if (p == nullptr) return 0;
+    return *p; // only reached for non-null p
+}
+```
+
+A null pointer is not dereferenced on the null path. Optimization may simplify code under additional documented assumptions, but ordinary C++ semantics require the branch to protect that access. By contrast, a check *after an unconditional dereference* can be optimized away as redundant on defined executions.
+
+### Signed overflow lets optimization reject impossible paths
+
+For ordinary signed integer addition, overflow is undefined behavior. A compiler may optimize on the premise that a defined program does not overflow, invalidating intuitive attempts to detect overflow by examining a wrapped result.
+
+```cpp
+bool greater_after_increment(int x) {
+    return x + 1 > x; // true for every defined evaluation
+}
+```
+
+To test overflow, use precondition checks before adding, a wider type where available, or a checked-arithmetic facility. C++26's `std::ckd_add`, `std::ckd_sub`, and `std::ckd_mul` provide standardized checked integer operations where supported. Do not silently assume that a compiler option such as `-fwrapv` is a cross-platform language rule.
+
+---
+
+## 10. Object lifetimes and aliasing create UB without crossing a buffer boundary
+
+Many low-level errors produce no out-of-bounds address at all. They occur because an object does not exist at the accessed location, because the glvalue type is not allowed to access the object, or because the program incorrectly assumes a memory representation proves a live object lifetime.
+
+### `reinterpret_cast` does not make the target object exist
+
+Casting an address to `T*` is only a pointer conversion; it neither allocates suitably aligned storage nor starts an arbitrary object's lifetime. This matters when parsing packets or implementing custom allocators.
+
+```cpp
+alignas(double) unsigned char bytes[sizeof(double)]{};
+auto* p = reinterpret_cast<double*>(bytes);
+// Dereferencing p is not a general object-creation mechanism.
+```
+
+Use actual construction, `std::bit_cast` for equal-size trivially copyable representation conversion, or applicable C++20 implicit-lifetime operations and C++23 `std::start_lifetime_as` with their stated preconditions.
+
+### The pointer can keep the same address after the object dies
+
+Destroying an object ends its lifetime even if the backing allocation remains valid. A stale pointer does not revive the old object; container erasure, vector reallocation, and placement-new storage reuse require careful reassessment of pointer validity.
+
+```cpp
+std::vector<int> values{1, 2};
+int* p = values.data();
+values.push_back(3); // may reallocate: p may now dangle
+```
+
+Reserve policies, owning containers, and stable identifiers can prevent some invalidation bugs; an address equality check alone cannot prove object identity after reuse.
+
+---
+
+## 11. Concurrency adds undefined behavior that sanitizers only approximate
+
+A C++ data race arises when conflicting evaluations access the same memory location in different threads without a happens-before relationship and at least one is not atomic, subject to the memory-model rules. The program then has undefined behavior, even if the machine appears to perform indivisible aligned writes.
+
+### Volatile is not a portable thread-synchronization mechanism
+
+`volatile` affects certain evaluations of volatile-qualified objects; it does not provide atomic read-modify-write operations, release/acquire synchronization, or a happens-before edge.
+
+```cpp
+std::atomic<bool> stop{false};
+// Thread A: stop.store(true, std::memory_order_release);
+// Thread B: while (!stop.load(std::memory_order_acquire)) { }
+```
+
+The exact memory order may be relaxed for a standalone stop flag depending on the larger protocol. The fundamental requirement is to model the shared state with atomics, mutexes, or another valid synchronization mechanism.
+
+### Atomic pointer publication is not automatic memory reclamation
+
+An atomic pointer can publish an object to another thread, but a reader can still race with deletion after loading the pointer. Hazard pointers, epoch reclamation, read-copy-update designs, and locks solve different parts of the lifetime protocol. C++26 standard hazard-pointer and RCU library facilities increase the vocabulary, but do not retroactively make raw atomic pointers safe.
+
+### ThreadSanitizer findings and limitations
+
+ThreadSanitizer instruments executed accesses and can expose many unprotected data races. It is not a proof of race freedom and may require a specialized runtime, supported platform, and avoidance of unsupported synchronization mechanisms. Pair it with stress tests, invariants, and a clear ownership model.
+
+---
+
+## 12. Compile-time evaluation and unreachable contracts change the location of failures
+
+C++20 `consteval` and later constant-evaluation changes make some invalid operations diagnosable at compile time when they are actually evaluated during constant evaluation. This is different from runtime sanitization; not every potential runtime path is evaluated by the compiler.
+
+### `std::unreachable` in C++23 is a dangerous assertion about control flow
+
+The standard `std::unreachable()` tells the compiler that reaching this point has undefined behavior. Its purpose is to give optimizers a strong assumption, not to implement a safe fallback for unknown enum states or corrupt input.
+
+```cpp
+#include <utility> // for other modern utilities
+// #include <utility> is NOT the home of std::unreachable;
+// include <utility> for std::to_underlying, <utility> notwithstanding.
+// C++23: #include <utility> is not sufficient; use <utility> only for its own APIs.
+```
+
+Do not use `std::unreachable` to handle untrusted input or an incomplete switch. Instead throw, return an error, or terminate deliberately according to the API. In C++23 its header is `<utility>`? No: use the documented `<utility>`/implementation reference for target library rather than guessing from legacy builtins.
+
+### Contracts introduced by C++26 are not permission to ignore preconditions
+
+C++26 contracts add language mechanisms for expressing preconditions and postconditions, with behavior depending on contract semantics and the selected evaluation mode. The feature does not abolish undefined behavior inside unchecked operations, and a contract annotation cannot make a dangling pointer valid.
+
+Keep contract checks at trust boundaries, but specify how release builds and consumers should behave when input validation fails. Do not confuse an optimizer assumption with a recoverable validation failure.
+
+---
+
+## 13. C++26 uninitialized values distinguish two classes of problematic evaluation
+
+Historically, explanations of uninitialized automatic objects focused on indeterminate values. C++26 introduces additional terminology for *erroneous values*, changing how some uninitialized evaluations are classified without authorizing their ordinary use.
+
+### Reading an unwritten ordinary `int` is still not a valid data source
+
+```cpp
+int x;    // no initialization
+// int y = x; // do not do this
+x = 10;
+int y = x; // defined
+```
+
+The distinction between undefined and erroneous behavior matters in standard wording and tool reporting. For ordinary application programming, the practical rule is unchanged: initialize values or prove that every execution writes them before use. Byte-oriented types have narrowly specified uninitialized-friendly operations, but those exceptions are not permission to use arbitrary uninitialized data.
+
+### Runtime checks only cover the paths they observe
+
+AddressSanitizer catches many heap/stack/global bounds and lifetime defects. UndefinedBehaviorSanitizer instruments selected undefined operations, and MemorySanitizer detects uses of uninitialized data on supported toolchains. A single run with no report cannot establish that all source paths are defined.
+
+When studying intentionally invalid snippets, isolate one scenario per executable and invoke it only in a controlled sanitizing test environment. Do not run all UB demonstrations in one binary and expect deterministic results after the first invalid operation.
+
+---
+
+## 14. Portability, numerical assumptions, and diagnostic strategy
+
+Some behavior is implementation-defined or unspecified rather than undefined. Confusing those categories leads to false bug reports and weak tests. Standard C++ programs may depend on documented implementation choices, but must not accidentally rely on a choice being universal.
+
+### Floating-point arithmetic is not interchangeable with signed integer overflow
+
+IEEE-style floating overflow often produces infinity when the implementation supports it; signed integer overflow is undefined by core language rules. Floating-point precision, NaNs, trap settings, and fast-math compiler modes are separate concerns and should be tested according to the actual numerical contract.
+
+### Compiler flags can mask bugs while preserving non-portability
+
+`-fno-strict-aliasing` alters some optimization assumptions but does not start object lifetimes or fix alignment. `-fwrapv` on supported compilers supplies a particular signed-overflow interpretation, but the ISO C++ rule remains different. Building with `-O0` can change symptoms while leaving the invalid source unchanged.
+
+For senior-level debugging, compile the smallest reproducer under at least two optimization levels and two compilers where practical. Treat sanitizer results, generated assembly, and the abstract-machine rules as complementary evidence—not as interchangeable authorities.
+
+---
+
 
 ## Rules worth keeping in working memory
 
@@ -308,7 +460,7 @@ Sequencing rules were strengthened for several expressions.
 
 Further constexpr/lifetime clarifications refine diagnostics.
 
-### C++26: Forthcoming support
+### C++26: Checked arithmetic, contracts, and erroneous values
 
 Safety facilities evolve, but UB does not universally become a runtime exception.
 
