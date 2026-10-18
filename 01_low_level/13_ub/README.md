@@ -198,7 +198,7 @@ bool greater_after_increment(int x) {
 }
 ```
 
-To test overflow, use precondition checks before adding, a wider type where available, or a checked-arithmetic facility. C++26's `std::ckd_add`, `std::ckd_sub`, and `std::ckd_mul` provide standardized checked integer operations where supported. Do not silently assume that a compiler option such as `-fwrapv` is a cross-platform language rule.
+To test overflow, use precondition checks before adding, a wider type where available, or a checked-arithmetic facility. C++26 makes the C-style `ckd_add`, `ckd_sub`, and `ckd_mul` function templates available through `<stdckdint.h>` where supported. Their names are supplied in the global namespace; whether corresponding `std::` declarations exist is unspecified. They report whether the mathematically exact result was representable. Do not silently assume that a compiler option such as `-fwrapv` is a cross-platform language rule.
 
 ---
 
