@@ -1,0 +1,24 @@
+name: Chapter Markdown Structure
+on:
+  pull_request:
+    paths:
+      - '01_low_level/**/README.md'
+      - 'scripts/check_chapter_structure.py'
+      - '.github/workflows/chapter-structure.yml'
+  push:
+    branches: [master]
+    paths:
+      - '01_low_level/**/README.md'
+      - 'scripts/check_chapter_structure.py'
+      - '.github/workflows/chapter-structure.yml'
+  workflow_dispatch:
+jobs:
+  chapter-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate Book 01 chapter structure
+        run: python scripts/check_chapter_structure.py
