@@ -2036,7 +2036,7 @@ The history of C++ arrays is best read as three overlapping stories: the C-inher
 
 ### C++98/03: Built-in arrays and the original C-compatible model
 
-Raw arrays have compile-time element types and bounds, but frequently undergo array-to-pointer conversion in expressions and function parameter adjustments. They can be nested, may be dynamically allocated with `new[]`, and cannot be assigned as whole arrays. C++98 algorithms already accept iterator pairs formed from array element pointers; pointer arithmetic remains limited to the appropriate array object.
+Ordinary bounded array declarations have compile-time bounds; unknown-bound array types specify no extent. Since C++98, `new int[n]` has also permitted a runtime first bound. Arrays frequently undergo array-to-pointer conversion in expressions and function parameter adjustments, can be nested, and cannot be assigned as whole arrays. C++98 algorithms already accept iterator pairs formed from array element pointers; pointer arithmetic remains limited to the appropriate array object.
 
 ### C++11: Value-like fixed arrays and modern deduction tools
 
