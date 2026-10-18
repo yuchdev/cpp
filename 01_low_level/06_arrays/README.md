@@ -1309,71 +1309,7 @@ This is significant because generic range algorithms can work with the array as 
 
 ---
 
-## 8. Choosing among raw arrays, `std::array`, `std::span`, `std::vector`, and `std::mdspan`
-
-The modern array question is rarely “Which syntax is newest?”
-
-It is:
-
-> Which type communicates ownership, extent, dimensionality, and mutability correctly?
-
-### Use a raw `T[N]` when the language-level array type itself matters
-
-Raw arrays remain appropriate for:
-
-* ABI and C interoperability;
-* embedded layouts;
-* aggregate members with exact built-in representation requirements;
-* examples that need pointer-to-array types;
-* low-level code where the array type itself is part of the contract.
-
-Do not replace every raw array mechanically.
-
-### Use `std::array<T, N>` for fixed-size value semantics
-
-Prefer `std::array` when:
-
-* the size is compile-time fixed;
-* the sequence should be copyable/assignable as one value;
-* container APIs are useful;
-* zero length should be representable;
-* raw-array decay would be undesirable.
-
-### Use `std::span<T>` for non-owning contiguous parameters
-
-Prefer span when:
-
-* ownership belongs elsewhere;
-* the callee needs elements and extent;
-* the source may be a raw array, `std::array`, vector, or another contiguous range;
-* pointer-plus-length should be one parameter.
-
-### Use `std::vector<T>` when dynamic extent and ownership belong together
-
-A vector carries:
-
-* dynamic size;
-* capacity;
-* ownership;
-* contiguous storage.
-
-If the function/object is responsible for the lifetime and resizable extent, a view is too weak and a raw pointer is too vague.
-
-### Use C++23 `std::mdspan` for multidimensional non-owning indexing
-
-`mdspan` fits when:
-
-* storage ownership is separate;
-* there are multiple extents;
-* mapping/stride policy matters;
-* the same backing storage may have different multidimensional interpretations.
-
-It is a view, not a multidimensional vector owner.
-
----
-
-
-## 9. Array declarations and unknown bounds have a richer type system than their syntax suggests
+## 8. Array declarations and unknown bounds have a richer type system than their syntax suggests
 
 An array declaration is not merely an element type followed by a length. The declarator determines a nested type, and apparently small changes in where a qualifier, pointer, or reference appears can change the program's ABI. This is particularly relevant when maintaining C++98 interfaces alongside C++20 range-oriented code.
 
@@ -1382,9 +1318,10 @@ An array declaration is not merely an element type followed by a length. The dec
 A single declaration can distinguish an array of pointers from a pointer to an array. Neither arrangement can be deduced reliably from how the resulting values might print as addresses.
 
 ```cpp
-int* elements[4]{};    // four independent int* objects
-int (*rows)[4] = nullptr; // one pointer to an array of four int
-int (&alias)[4] = some_array; // reference to an existing four-element array
+int some_array[4]{};
+int* elements[4]{};         // four independent int* objects
+int (*rows)[4] = nullptr;  // one pointer to an array of four int
+int (&alias)[4] = some_array; // binds to an existing array
 ```
 
 In this snippet, `some_array` must denote a live `int[4]` object. The `elements` object is itself an array; `rows` is a single pointer object; and `alias` binds to an array without copying it. This distinction survives all the way to pointer arithmetic and function signatures.
@@ -1454,7 +1391,7 @@ The reference-returning function retains shape but transfers no ownership. Retur
 
 ---
 
-## 10. Arrays have construction and lifetime rules, not just memory layouts
+## 9. Arrays have construction and lifetime rules, not just memory layouts
 
 Arrays of class objects make it impossible to maintain the fiction that an array is merely an untyped allocation. Every element has an independent lifetime, initialization step, and destruction obligation. These rules become especially consequential under exceptions and when uninitialized storage is involved.
 
@@ -1525,7 +1462,7 @@ Even `std::unique_ptr<T[]>` stores no length by default; when capacity, current 
 
 ---
 
-## 11. Arrays integrate with algorithms and ranges, but not every range is contiguous
+## 10. Arrays integrate with algorithms and ranges, but not every range is contiguous
 
 Generic algorithms operate on iterator pairs or ranges, not necessarily on owning containers. A raw array is a legitimate range, and its iteration is a case where the compiler can preserve the full extent instead of forcing the user to calculate a size from pointers.
 
@@ -1583,7 +1520,7 @@ This matters in caches, callbacks, and asynchronous tasks: copying a view into a
 
 ---
 
-## 12. Layout, alignment, ABI, and cache behavior constrain real array designs
+## 11. Layout, alignment, ABI, and cache behavior constrain real array designs
 
 The type system can establish the shape of an array without saying that the chosen layout is good for a particular processor. In low-level code the physical layout determines cache locality, vectorization opportunities, and binary interoperability. Treat those as separate engineering questions from core-language well-formedness.
 
@@ -1635,6 +1572,12 @@ C++20 has no portable `restrict` keyword. GCC/Clang `__restrict__` and MSVC `__r
 
 A `std::span<float>` parameter communicates contiguity and extent, but **not** that two such spans refer to disjoint storage. If non-overlap is part of the algorithm, document and validate it, then isolate platform-specific optimizer hints behind well-defined interfaces.
 
+### C++26 data-parallel facilities build on well-defined contiguous access
+
+C++26 also brings standard data-parallel types in `<simd>`, with load/store operations and masks designed for portable SIMD-oriented computations. They offer an explicit way to express vector lanes, but do not erase the usual requirements that the selected memory range contain live, accessible, suitably aligned objects.
+
+The older optimization lesson remains valid: a kernel built around contiguous streams, clear aliasing preconditions, and carefully handled remainder elements is easier to reason about than one built around unchecked reinterpretation of arbitrary storage. Feature-test the SIMD library independently of the language mode, and benchmark against compiler auto-vectorization.
+
 ### Logical shape, physical pitch, and data ownership must remain separate
 
 Image-processing and scientific libraries often store rows with padding. The logical matrix might be `height × width`, while the actual memory stride between row starts is larger than `width`.
@@ -1650,7 +1593,7 @@ A flat owner plus explicit pitch can represent this correctly. A built-in `T[R][
 
 ---
 
-## 13. `std::mdspan` makes extents, mapping, and access policies independent
+## 12. `std::mdspan` makes extents, mapping, and access policies independent
 
 C++23 `mdspan` is more than syntactic sugar for a two-dimensional subscript. Its design separates the index space from physical layout and from the means of accessing elements. This is valuable for scientific arrays, tensor engines, image planes, and interoperability with libraries that do not own their incoming data.
 
@@ -1716,7 +1659,7 @@ C++26 `std::submdspan` gives standardized slicing operations, while `std::layout
 
 ---
 
-## 14. C++26 improves array-adjacent APIs without changing the raw-array model
+## 13. C++26 improves array-adjacent APIs without changing the raw-array model
 
 The C++26 additions matter because they solve problems that forced developers into custom bounded containers or home-grown strided views. They do not reinterpret `T[N]` or remove array-to-pointer decay. A codebase targeting C++20 should use these facilities only in feature-tested demonstrations or in configurations that explicitly require a newer library.
 
@@ -1793,6 +1736,70 @@ for (int& value : scratch)
 The example is safe because it writes all elements before reading them. The lesson remains unchanged from C++98: a programmer must establish initialization and object lifetime before using array elements as meaningful values.
 
 ---
+
+## 14. Choosing among raw arrays, `std::array`, `std::span`, `std::vector`, and `std::mdspan`
+
+The modern array question is rarely “Which syntax is newest?”
+
+It is:
+
+> Which type communicates ownership, extent, dimensionality, and mutability correctly?
+
+### Use a raw `T[N]` when the language-level array type itself matters
+
+Raw arrays remain appropriate for:
+
+* ABI and C interoperability;
+* embedded layouts;
+* aggregate members with exact built-in representation requirements;
+* examples that need pointer-to-array types;
+* low-level code where the array type itself is part of the contract.
+
+Do not replace every raw array mechanically.
+
+### Use `std::array<T, N>` for fixed-size value semantics
+
+Prefer `std::array` when:
+
+* the size is compile-time fixed;
+* the sequence should be copyable/assignable as one value;
+* container APIs are useful;
+* zero length should be representable;
+* raw-array decay would be undesirable.
+
+### Use `std::span<T>` for non-owning contiguous parameters
+
+Prefer span when:
+
+* ownership belongs elsewhere;
+* the callee needs elements and extent;
+* the source may be a raw array, `std::array`, vector, or another contiguous range;
+* pointer-plus-length should be one parameter.
+
+### Use `std::vector<T>` when dynamic extent and ownership belong together
+
+A vector carries:
+
+* dynamic size;
+* capacity;
+* ownership;
+* contiguous storage.
+
+If the function/object is responsible for the lifetime and resizable extent, a view is too weak and a raw pointer is too vague.
+
+### Use C++23 `std::mdspan` for multidimensional non-owning indexing
+
+`mdspan` fits when:
+
+* storage ownership is separate;
+* there are multiple extents;
+* mapping/stride policy matters;
+* the same backing storage may have different multidimensional interpretations.
+
+It is a view, not a multidimensional vector owner.
+
+---
+
 
 ## 15. Cross-cutting pitfalls worth remembering
 
@@ -2053,7 +2060,7 @@ Raw arrays have compile-time element types and bounds, but frequently undergo ar
 
 ### C++26: Checked access, slicing, and bounded dynamic sequences
 
-`std::span::at` introduces checked element access, `std::submdspan` adds multidimensional slicing, and `std::inplace_vector` represents an owning array with dynamic logical size but fixed in-object capacity. New padded layout and aligned-accessor options address real multidimensional storage. Initializer-list construction for suitable const spans improves call ergonomics while retaining lifetime hazards. C++26 also refines uninitialized-value terminology; it does not make uninitialized ordinary element reads safe. Implementations may ship these facilities on different schedules.
+`std::span::at` introduces checked element access, `std::submdspan` adds multidimensional slicing, and `std::inplace_vector` represents an owning array with dynamic logical size but fixed in-object capacity. New padded layout and aligned-accessor options address real multidimensional storage. Initializer-list construction for suitable const spans improves call ergonomics while retaining lifetime hazards. C++26 also introduces data-parallel types in `<simd>` for explicit vector-style operations, and refines uninitialized-value terminology; neither change makes uninitialized ordinary element reads safe. Implementations may ship these facilities on different schedules.
 
 Code examples should declare their **minimum language and standard-library version**, not merely depend on a local compiler version number.
 
@@ -2115,6 +2122,7 @@ The standard-library facilities are easiest to understand when read together wit
 * C++26 `std::span::at`: <https://en.cppreference.com/w/cpp/container/span/at>
 * C++26 `std::submdspan`: <https://en.cppreference.com/w/cpp/container/mdspan>
 * C++26 uninitialized-value rules: <https://en.cppreference.com/w/cpp/language/default_initialization>
+* C++26 data-parallel types: <https://en.cppreference.com/w/cpp/numeric/simd>
 * Strided mappings and extents: <https://en.cppreference.com/w/cpp/container/mdspan>
 * Array declarations, unknown bounds and reference conversions: <https://en.cppreference.com/w/cpp/language/array>
 
