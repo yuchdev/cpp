@@ -1,0 +1,41 @@
+name: Chapter Markdown Structure
+on:
+  pull_request:
+    paths:
+      - '01_low_level/**/README.md'
+      - 'scripts/check_chapter_structure.py'
+      - '.github/workflows/chapter-structure.yml'
+  push:
+    branches: [master]
+    paths:
+      - '01_low_level/**/README.md'
+      - 'scripts/check_chapter_structure.py'
+      - '.github/workflows/chapter-structure.yml'
+  workflow_dispatch:
+jobs:
+  chapter-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate Book 01 chapter structure
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            base="${{ github.event.pull_request.base.sha }}"
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            base="${{ github.event.before }}"
+          else
+            python scripts/check_chapter_structure.py
+            exit
+          fi
+          mapfile -t files < <(git diff --name-only --diff-filter=ACMR "$base" HEAD -- '01_low_level/*/README.md')
+          if (( ${#files[@]} )); then
+            python scripts/check_chapter_structure.py "${files[@]}"
+          else
+            echo "No changed chapter READMEs to validate"
+          fi
