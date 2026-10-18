@@ -17,8 +17,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
       - name: Validate Book 01 chapter structure
-        run: python scripts/check_chapter_structure.py
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            mapfile -t files < <(git diff --name-only --diff-filter=ACMR "${{ github.event.pull_request.base.sha }}" HEAD -- '01_low_level/*/README.md')
+            if (( ${#files[@]} )); then
+              python scripts/check_chapter_structure.py "${files[@]}"
+            else
+              echo "No changed chapter READMEs to validate"
+            fi
+          else
+            python scripts/check_chapter_structure.py
+          fi
