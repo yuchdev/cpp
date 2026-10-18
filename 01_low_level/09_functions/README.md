@@ -1,4 +1,4 @@
-# 09. Functions and their Evolution in Modern C++
+# 09. Functions from C++98 to C++26: Types, Calls, ABI, and Callable Objects
 
 > Functions are the fundamental abstraction boundary in C++.
 > They combine language rules, ABI conventions, optimizer behavior, and C legacy.
@@ -499,7 +499,7 @@ Use `va_list` correctly or avoid entirely.
 
 ---
 
-## 7. Attributes (`[[...]]`)
+## 6. Attributes (`[[...]]`)
 
 Attributes annotate functions for tools and optimizers.
 
@@ -781,7 +781,7 @@ If you want, I can add a follow-up file showing:
 
 ---
 
-## 8. Static local variables
+## 7. Static local variables
 
 ```cpp
 void f() {
@@ -797,7 +797,7 @@ Facts:
 
 ---
 
-## 9. Parameter passing and decay
+## 8. Parameter passing and decay
 
 ### Arrays decay to pointers
 
@@ -812,7 +812,7 @@ void f(int[1024]);   // all identical
 
 ---
 
-## 10. Variadic interfaces
+## 9. Variadic interfaces
 
 ### Three approaches
 
@@ -830,7 +830,7 @@ void f(std::initializer_list<int>);
 
 ---
 
-## 11. Default arguments
+## 10. Default arguments
 
 * Only for trailing parameters
 * Bound at call site
@@ -842,7 +842,7 @@ void log(int level = get_default());
 
 ---
 
-## 13. Inline functions
+## 11. Inline functions
 
 ### Meaning of `inline`
 
@@ -866,7 +866,7 @@ void log(int level = get_default());
 * If you put the inline function's definition into a `*.cpp` file, and if it is called from another `*.cpp` file, you'll get an "unresolved external" error from the linker
 ---
 
-## 14. Overload resolution (deep dive)
+## 12. Overload resolution (deep dive)
 
 Resolution order:
 
@@ -884,7 +884,7 @@ Resolution order:
 
 ---
 
-## 15. Initializer lists `{}`
+## 13. Initializer lists `{}`
 
 ### Deduction rules
 
@@ -905,7 +905,7 @@ f({});        // error: type unknown
 
 ---
 
-## 16. C++ Callables & Lambdas
+## 14. C++ Callables & Lambdas
 
 This is a detailed reference on "callables" in C++ and the evolution of lambdas:
 - C++98 function objects ("functors")
@@ -1284,7 +1284,7 @@ auto add10 = [](int x){ return add_free(10, x); };
 ```
 
 `std::bind` pitfalls:
-- placeholder indexing is hard to read
+- argument indexing is hard to read
 - value vs reference capture surprises (use `std::ref`)
 - error messages can be noisy
 
@@ -1472,7 +1472,7 @@ If you want, I can add:
 
 ---
 
-## 18. Macros vs functions
+## 15. Macros vs functions
 
 ### 1. What the preprocessor is (and is not)
 
@@ -1844,7 +1844,7 @@ Small compile-time toggles can be appropriate, especially in embedded, or when y
 
 ---
 
-## 19. At-Exit Functions
+## 16. At-Exit Functions
 
 * The quick_exit() function is like exit() except that it does not invoke any destructors
 * Register functions to be invoked by quick_exit() using at_quick_exit()
@@ -1852,6 +1852,90 @@ Small compile-time toggles can be appropriate, especially in embedded, or when y
   * std::_Exit (abort): doesn't execute static destructors or flush critical IO and soes not call handler
   * std::exit: executes static destructors and flushes critical IO and call handler if exists
   * std::quick_exit: doesn't execute static destructors, but does flush critical IO and call handler if exists
+---
+
+## Advanced function rules that matter from C++20 to C++26
+
+### C++20 immediate functions distinguish evaluation time from return type
+
+A `consteval` function must be invoked in an immediate-function context or as part of an allowed immediate invocation; its result must meet constant-evaluation rules. `constexpr` does not impose this requirement on every call. Neither keyword automatically makes expensive computations free: compile-time work consumes compiler resources and can shift cost from runtime into builds.
+
+```cpp
+consteval unsigned mask(unsigned bit) { return 1u << bit; }
+constexpr unsigned selected = mask(5);
+static_assert(selected == 32);
+```
+
+For untrusted or runtime indices, validate the shift precondition and use a normal runtime function. C++23 relaxed several constexpr function restrictions, and C++26 extends constant-evaluation capabilities further, but language-version support must be tested on the actual compiler.
+
+### C++23 explicit object parameters replace many cv/ref overloads
+
+The explicit object parameter, often called *deducing this*, gives a member function an explicit `this`-object parameter. The mechanism can reduce repetitive overloads for lvalue/rvalue and const/non-const access, and its type deduction interacts with forwarding in ways that ordinary implicit object parameter declarations do not.
+
+```cpp
+// C++23, when __cpp_explicit_this_parameter >= 202110L:
+struct Counter {
+    int value = 0;
+    template<class Self>
+    decltype(auto) get(this Self&& self) {
+        return std::forward<Self>(self).value;
+    }
+};
+```
+
+In actual builds include `<utility>` and guard the declaration itself; a C++20 compiler cannot parse the syntax even if it is inside an uninstantiated template. Explicit-object member functions differ from implicit-object members in pointer-to-member types, so check callbacks and ABI assumptions before modernizing widely exported APIs.
+
+### C++23 `std::invoke_r` separates invocation from return conversion
+
+`std::invoke` (C++17) unifies function objects, functions, and member pointers. C++23 `std::invoke_r<R>` additionally requests a conversion of the result to `R`, or discards it for `void`.
+
+```cpp
+#if defined(__cpp_lib_invoke_r) && __cpp_lib_invoke_r >= 202106L
+auto f = [] { return 42; };
+long result = std::invoke_r<long>(f);
+#endif
+```
+
+This is preferable to informal `std::function` wrapping when no type erasure or ownership of callable state is needed. It does not turn arbitrary non-invocable expressions into valid invocations.
+
+### C++23 `std::move_only_function` represents non-copyable callables
+
+`std::function` historically required a copy-constructible stored target. C++23 adds `std::move_only_function`, which can hold a callable with move-only captures and can encode cv/ref and `noexcept` qualifiers in the wrapper's signature.
+
+```cpp
+#if defined(__cpp_lib_move_only_function) && __cpp_lib_move_only_function >= 202110L
+std::move_only_function<int()> task =
+    [p = std::make_unique<int>(7)] { return *p; };
+assert(task() == 7);
+#endif
+```
+
+The wrapper is owning and type-erased; an empty invocation has preconditions. For non-owning callbacks, C++26 `std::function_ref` provides a different lifetime contract.
+
+### C++26 `std::function_ref` avoids ownership but exposes dangling hazards
+
+A `std::function_ref<R(Args...)>` is a lightweight reference to a callable, useful for synchronous algorithms that invoke it but do not retain it. Unlike `std::function` and `std::move_only_function`, it does not own the target or extend its lifetime.
+
+```cpp
+// C++26 with <functional> and __cpp_lib_function_ref support:
+void for_each_item(std::span<const int> data,
+                   std::function_ref<void(int)> callback);
+```
+
+Do not store such a reference for asynchronous use unless the callable's owner is explicitly guaranteed to survive. The benefit comes from communicating borrowing semantics rather than from promising zero overhead on every ABI.
+
+### Coroutines are language transformations, not ordinary resumable function calls
+
+C++20 coroutines use `co_await`, `co_yield`, or `co_return` to transform a function into a state machine whose frame and lifetime follow coroutine rules. The return type must supply an appropriate promise type. The compiler-generated frame can outlive the initial call, which changes what captured references and parameters are safe.
+
+A coroutine that retains a reference to a stack local across suspension can dangle even when the same code would be safe in a synchronous function. Carefully distinguish parameters copied into the coroutine frame from objects merely referenced by it. Consider cancellation, exception propagation, and destruction of suspended frames as part of the function's contract.
+
+### C++26 pack indexing refines generic function parameter packs
+
+C++26 pack indexing (`Ts...[I]` in type contexts and `pack...[I]` in expression contexts) makes it possible to select a specific type or argument from a pack without recursive helper machinery. It does not alter the evaluation, forwarding, or lifetime rules of the selected argument.
+
+Use a feature test such as `__cpp_pack_indexing` before introducing these expressions. Template design should still prefer a clear concept/constraint and describe what happens when the selected pack index is out of bounds.
+
 ---
 
 ## Rules worth keeping in working memory
@@ -2005,9 +2089,9 @@ Concepts, `consteval`, coroutines, and richer constexpr rules extend callable co
 
 Explicit object parameters and `if consteval` improve member and immediate-function APIs.
 
-### C++26: Emerging improvements
+### C++26: Borrowed callables and pack indexing
 
-New callable and constexpr facilities are implementation-dependent until shipped.
+C++26 standardizes `std::function_ref` as a non-owning callable view and pack indexing for directly selecting elements of parameter packs. Neither change removes callable lifetime or forwarding obligations; library support is feature-dependent.
 
 When documenting a facility, state its required language/library version rather than inferring support from the compiler's branding.
 
