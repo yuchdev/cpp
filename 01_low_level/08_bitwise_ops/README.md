@@ -1,6 +1,8 @@
-# 08. Bitwise Operations in C++
+# 08. Bitwise Operations from C++98 to C++26
 
-## Advanced Facts, Pitfalls, and Evolution (C++98 → C++20)
+Bitwise expressions operate on integral values, but their safety hinges on promotions, signedness, shift counts, and object representation. This chapter develops the C++98 language rules before the modern standard vocabulary, and separates value-level bit patterns from byte layouts and hardware register protocols.
+
+The seven example programs cover representation, shifts, arithmetic tricks, bit scans, flags, standard containers, and radix/layout work. New C++23/26 material is feature-dependent; the repository continues to build as C++20.
 
 > Bitwise operations are where C++ stops abstracting and starts describing the machine.
 > This chapter documents *what is guaranteed*, *what is merely common*, and *what is undefined*.
@@ -333,6 +335,136 @@ enum class Perm : uint32_t { Read = 1, Write = 2 };
 ---
 ---
 
+## 15. Rotate, endian conversion, and bit fields are three different problems
+
+A fixed-width integer can describe a mathematical bit sequence, a machine register, or serialized bytes. Those domains should not be conflated. The C++20 `<bit>` header contains bit-pattern operations, but converting to a wire representation still requires an explicit byte-order contract.
+
+### Rotation must not be implemented using undefined shifts
+
+The expression `(x << n) | (x >> (width - n))` appears everywhere in legacy cryptographic and hash functions. As written, it can shift by the exact type width when `n == 0`, which is undefined behavior. C++20's `std::rotl` and `std::rotr` give the intended rotation for unsigned integer types and normalize the rotation count.
+
+```cpp
+#include <bit>
+#include <cstdint>
+
+constexpr auto rotated = std::rotl(std::uint32_t{0x12345678u}, 8);
+static_assert(rotated == 0x34567812u);
+```
+
+Use rotations for permutation and mixing, not as substitutes for arithmetic multiplication or for byte swapping. `std::rotl` is defined on unsigned integer types; when working with signed state, convert intentionally.
+
+### Bit position is not byte order
+
+A network packet specifies an order of octets, while a machine integer has a value and an object representation. Shifting an unsigned value extracts its mathematical bits regardless of host endian layout; copying its in-memory bytes does not.
+
+```cpp
+constexpr std::uint32_t header = 0x12345678u;
+constexpr auto first_wire_octet = (header >> 24) & 0xffu;
+static_assert(first_wire_octet == 0x12u);
+```
+
+C++20 `std::endian` describes native scalar endianness, including the possibility of mixed endianness. C++23 `std::byteswap` reverses the bytes of an integer value; it does not automatically define a complete serialization policy for structs containing padding.
+
+### C++ bit-fields are not portable wire-format layouts
+
+Bit-field members can be useful for storage-conscious in-process structures, but their allocation order, packing, padding, and alignment are implementation-dependent. Even the address of a bit-field cannot be taken, and operations may involve integer promotions.
+
+```cpp
+struct DeviceFlags {
+    unsigned ready : 1;
+    unsigned mode : 3;
+};
+// Do not reinterpret this struct as a portable network header.
+```
+
+For external formats, decode explicit byte arrays with shifts and masks. For registers, follow the hardware vendor's documented access rules, including volatile-qualified MMIO where required; `volatile` alone is not thread synchronization.
+
+---
+
+## 16. Bit scans have edge cases that change control flow
+
+Counting leading and trailing zeros is foundational for allocators, radix trees, compressed indexes, and integer codecs. The instruction-level implementations are often extremely fast, but historical compiler intrinsics disagree about the all-zero input.
+
+### Standard count functions define the zero case
+
+C++20 `std::countl_zero` and `std::countr_zero` return the width of the unsigned type for zero, while many pre-standard compiler builtins such as `__builtin_ctz(0)` have undefined behavior.
+
+```cpp
+#include <bit>
+#include <cstdint>
+#include <limits>
+
+static_assert(std::countr_zero(std::uint32_t{0}) == 32);
+static_assert(std::countl_zero(std::uint32_t{0}) == 32);
+static_assert(std::bit_width(std::uint32_t{0}) == 0);
+```
+
+`std::bit_width` yields the number of bits needed to represent the value; it is *not* the number of leading zeros. Encoding a data structure's sentinel convention should happen above these primitives.
+
+### Population count applies to bits, not a signed mathematical value
+
+C++20 `std::popcount` accepts unsigned integer types. The result type is `int`, regardless of the unsigned operand width. Explicitly choose the intended representation when the original source is signed.
+
+```cpp
+constexpr auto count = std::popcount(std::uint32_t{0b101101u});
+static_assert(count == 4);
+```
+
+Avoid the assumption that a negative value has a portable number of one-bits without specifying its unsigned conversion and width. A signed-to-unsigned conversion is well-defined modulo \(2^N\), but its bit-pattern interpretation depends on the chosen unsigned type.
+
+---
+
+## 17. Power-of-two arithmetic has overflow boundaries
+
+A common pre-C++20 test is `x != 0 && (x & (x - 1)) == 0`. It is correct for unsigned integers and commonly used in page allocators and ring buffers. The more difficult problem is rounding a value *up* to a power of two without wrapping.
+
+### C++20 `has_single_bit` and `bit_ceil` expose intent
+
+`std::has_single_bit(x)` expresses the test directly. `std::bit_ceil(x)` returns the least power of two not less than `x`, but if that power cannot be represented in the result type its behavior is undefined.
+
+```cpp
+#include <bit>
+#include <cstdint>
+
+static_assert(std::has_single_bit(std::uint32_t{64}));
+static_assert(std::bit_floor(std::uint32_t{70}) == 64);
+static_assert(std::bit_ceil(std::uint32_t{70}) == 128);
+```
+
+Validate the maximum input before rounding allocation sizes. Do not replace one historical overflow-prone bit hack with a standard API while keeping the same unchecked precondition.
+
+### Bit-mask extraction is not necessarily an authorization check
+
+When a bitmask controls permissions, checking whether *any* requested bit is set is different from requiring *all* bits. A correct mask operation can still implement a security bug if the logical predicate is wrong.
+
+```cpp
+constexpr bool all_bits(std::uint32_t got, std::uint32_t required) {
+    return (got & required) == required;
+}
+```
+
+The empty requested mask returns true. Decide explicitly whether that matches the protocol's domain semantics.
+
+---
+
+## 18. C++26 bit-oriented evolution and performance engineering
+
+C++26 provides additional data-parallel tools but does not change the classic meaning of unsigned shifts and masks. Engineering decisions still depend on representation, aliasing, memory bandwidth, and algorithm invariants.
+
+### `<simd>` can replace some manual lane-packing tricks
+
+C++26 standard data-parallel facilities provide explicit vector lanes and masks. Their usefulness is greatest when the algorithm processes independent elements and memory access satisfies alignment and lifetime preconditions. It is not correct to assume that an arbitrary packed struct can be reinterpreted as SIMD vectors.
+
+Compilers have long recognized many unsigned bit idioms and lowered them to rotate, population count, and bit-scan instructions. Compare `std::popcount`, `std::rotl`, and standard masks with handwritten patterns in optimized builds before claiming that a manually branchless expression is faster.
+
+### `std::bitset` and dynamic bit collections have different constraints
+
+A `std::bitset<N>` has compile-time capacity and provides named bit operations; `std::vector<bool>` stores packed bits through proxy references and is not a contiguous range of ordinary `bool` objects. Neither automatically provides atomic per-bit operations, and concurrent mutation requires an explicit synchronization design.
+
+For lock-free bitmaps, use suitable `std::atomic<unsigned>` word operations and specify how writers claim and release individual bits. Check whole-word atomicity and the memory order needed for the state protected by each bit.
+
+---
+
 ## Rules worth keeping in working memory
 
 The central distinction in bitwise operations and shifts is between what the C++ type system guarantees, what the implementation commonly does, and what an API merely assumes. Carrying that distinction from declarations through operations avoids most of the surprises discussed above.
@@ -490,9 +622,9 @@ No material change to core bitwise operators.
 
 `std::byteswap` adds portable byte-order reversal.
 
-### C++26: Emerging improvements
+### C++26: Data-parallel facilities and unchanged scalar semantics
 
-Further bit facilities may appear, but signed overflow and invalid shifts still require care.
+C++26 adds standard data-parallel types in `<simd>`, useful for explicitly vectorized lane processing and masks. The scalar bitwise semantics, zero-input scan rules, and unsigned-only `<bit>` preconditions remain unchanged. Feature-test library availability; older SIMD intrinsics remain vendor-specific.
 
 When documenting a facility, state its required language/library version rather than inferring support from the compiler's branding.
 
@@ -533,6 +665,10 @@ Use these choices because they express the program's requirements, not merely be
 ---
 
 ## Further reading
+
+* [C++20 bit utilities](https://en.cppreference.com/w/cpp/header/bit)
+* [C++23 `std::byteswap`](https://en.cppreference.com/w/cpp/numeric/byteswap)
+* [C++26 SIMD library](https://en.cppreference.com/w/cpp/numeric/simd)
 
 These references document the underlying language rules and library contracts. They are starting points for checking precise preconditions; the chapter's examples explain how the rules interact.
 

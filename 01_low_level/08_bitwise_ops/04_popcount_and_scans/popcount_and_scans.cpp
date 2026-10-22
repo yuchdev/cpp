@@ -160,6 +160,11 @@ static void demo_scans()
         std::cout << "countl_zero  = " << std::countl_zero(x) << "\n";
         std::cout << "rotl(x,5)    = 0x" << std::hex << std::rotl(x, 5) << std::dec << "\n";
         std::cout << "rotr(x,5)    = 0x" << std::hex << std::rotr(x, 5) << std::dec << "\n";
+#if defined(__cpp_lib_byteswap) && __cpp_lib_byteswap >= 202110L
+        std::cout << "C++23 byteswap = 0x" << std::hex
+                  << std::byteswap(std::uint32_t{0x12345678u})
+                  << std::dec << "\n";
+#endif
     }
   #endif
 #endif
