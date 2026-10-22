@@ -1854,7 +1854,7 @@ Small compile-time toggles can be appropriate, especially in embedded, or when y
   * std::quick_exit: doesn't execute static destructors, but does flush critical IO and call handler if exists
 ---
 
-## Advanced function rules that matter from C++20 to C++26
+## 17. Advanced function rules that matter from C++20 to C++26
 
 ### C++20 immediate functions distinguish evaluation time from return type
 
@@ -1878,7 +1878,7 @@ struct Counter {
     int value = 0;
     template<class Self>
     decltype(auto) get(this Self&& self) {
-        return std::forward<Self>(self).value;
+        return (std::forward<Self>(self).value);
     }
 };
 ```
