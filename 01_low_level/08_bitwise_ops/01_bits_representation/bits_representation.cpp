@@ -74,7 +74,9 @@ static void signed_vs_unsigned_model()
     std::cout << "s = " << s << "  bits(s as unsigned) = " << bits_u(u) << "\n";
 
     // In general: converting signed -> unsigned is well-defined (mod 2^N).
-    // Converting unsigned -> signed is implementation-defined if out of range.
+    // Since C++20, out-of-range unsigned -> signed conversion uses the unique
+    // value congruent modulo 2^N for the destination width. Earlier standards
+    // left out-of-range results implementation-defined.
 }
 
 static void twos_complement_identities_carefully()

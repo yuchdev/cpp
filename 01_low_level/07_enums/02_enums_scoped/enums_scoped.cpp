@@ -14,8 +14,9 @@
 // - Underlying type can be specified: enum class E : std::uint8_t { ... }
 // - Scoped enums have a fixed underlying type if specified; otherwise still integral but chosen by compiler.
 // - Forward declaration:
-//     * scoped enums can always be forward-declared (with or without underlying type)
-//       but to be a complete type, it must be defined.
+//     * an opaque scoped enum declaration is already a complete type because
+//       its underlying type is fixed (int by default). Enumerator names still
+//       require the later definition.
 //     * unscoped enums can only be forward-declared if you specify the underlying type.
 //
 // Evolution notes:
@@ -25,7 +26,7 @@
 enum class TrafficLight : std::uint8_t { Green = 1, Yellow = 2, Red = 3 };
 
 // Forward decl scoped enum: OK
-enum class ErrorCode; // incomplete type until definition
+enum class ErrorCode; // complete opaque enum type; enumerators not yet known
 
 // Forward decl unscoped enum: requires underlying type (C++11+)
 enum LegacyStatus : unsigned int;
@@ -87,12 +88,11 @@ static void underlying_type_facts()
 
 static void forward_decl_rules()
 {
-    // You can declare pointers/references to incomplete enum types:
+    // An opaque enum declaration fixes the underlying type and makes
+    // the type complete already; only its enumerators remain unknown.
     ErrorCode* p = nullptr;
+    static_assert(sizeof(ErrorCode) == sizeof(int));
     (void)p;
-
-    // But you cannot sizeof an incomplete type:
-    // sizeof(ErrorCode); // ERROR if only forward-declared
 }
 
 int main()

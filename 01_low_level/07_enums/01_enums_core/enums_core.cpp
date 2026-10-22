@@ -13,10 +13,9 @@
 // - An enum is a distinct type, but it implicitly converts to int (unscoped enum).
 // - Underlying type for unscoped enums is implementation-defined (usually int).
 // - Enumerators are integral constant expressions.
-// - You can cast any integer to an enum type; the resulting value may not correspond
-//   to any enumerator. That is not automatically UB just by storing it, but using it
-//   as if it were a valid enumerator is a logic bug (and may cause undefined behavior
-//   if you rely on invariants that assume only listed enumerators occur).
+// - A non-fixed enum has a restricted value range. Casting an out-of-range
+//   integer to it has undefined behavior (CWG 1766). An in-range but unnamed
+//   value is possible; fixed-underlying enums can hold every underlying value.
 // - Size of an unscoped enum is implementation-defined (but at least enough to represent values).
 //
 // Evolution:
@@ -61,14 +60,15 @@ static void casting_outside_enumerators()
     PlainSmall ok = static_cast<PlainSmall>(0);
     assert(ok == ps0);
 
-    // This produces a value of type PlainSmall that is not equal to any named enumerator.
-    PlainSmall weird = static_cast<PlainSmall>(20);
+    // A non-fixed enum with values 1, 2, 4 has a range that includes 3.
+    // The cast is in range and creates an unnamed, well-defined enum value.
+    enum Flags { read = 1, write = 2, execute = 4 };
+    Flags combined = static_cast<Flags>(3);
+    assert(static_cast<int>(combined) == 3);
 
-    // IMPORTANT:
-    // - It's not "automatically UB" just to have this value.
-    // - But any code that assumes only ps0/ps1 exist is now broken.
-    // - In practice: validate when converting from external input.
-    (void)weird;
+    // static_cast<PlainSmall>(20) would be undefined behavior: 20 is
+    // outside PlainSmall's language-defined value range.
+    // Validate external integers before converting to a non-fixed enum.
 }
 
 // Demonstrate why "enums are not just ints" (types differ even if representation matches).

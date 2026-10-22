@@ -20,6 +20,7 @@ Build (C++17):
 #include <climits>
 #include <cstdint>
 #include <tuple>
+#include <stdexcept>
 #include <type_traits>
 
 template <class T>
@@ -87,6 +88,8 @@ std::pair<U, bool> add_u_with_overflow(U a, U b)
 
 int abs_portable(int x)
 {
+    if (x == std::numeric_limits<int>::min())
+        throw std::overflow_error("abs(INT_MIN) is not representable");
     return (x < 0) ? -x : x;
 }
 
