@@ -94,7 +94,7 @@ The C++ implementation can use RAII internally while maintaining an opaque exter
 
 ## 7. Function pointers and callbacks need a deliberate lifetime protocol
 
-A C callback typically consists of a function pointer plus a context pointer. A capturing C++ lambda cannot implicitly become a C function pointer; a noncapturing lambda can convert to a pointer to function with appropriate language linkage behavior as specified, but binary interfaces still require a compatible function-pointer contract.
+A C callback typically consists of a function pointer plus a context pointer. A capturing C++ lambda cannot implicitly become a C function pointer; a noncapturing lambda converts to a pointer to a function with C++ language linkage, so it is not a portable match for a C-linkage callback type, even if common compilers accept it. When the callback contract requires C linkage, use a named `extern "C"` trampoline.
 
 ```c
 typedef void (*on_result)(void* context, int status);
@@ -111,7 +111,7 @@ This is not just conservatism: differing compiler versions, standard libraries, 
 
 ## 9. C99 VLAs and compound literals are not ordinary C++ syntax
 
-A C variable-length array has runtime size and stack-storage semantics; standard C++ does not provide C99 VLAs. Some GCC and Clang C++ modes accept them as extensions, which can accidentally turn portable-looking code into vendor-specific code.
+A locally declared C variable-length array has automatic storage duration; ISO C does not prescribe a stack allocation mechanism. Standard C++ does not provide C99 VLAs. Some GCC and Clang C++ modes accept them as extensions, which can accidentally turn portable-looking code into vendor-specific code.
 
 ```c
 /* C99, not standard C++ */
