@@ -8,7 +8,7 @@ They exist to structure programs, prevent naming conflicts, and enable large-sca
 
 ---
 
-## Purpose of namespaces
+## 1. Purpose of namespaces
 
 * Use namespaces to express logical structure (C++ Standard 14.3.1)
 * Prevent name collisions across large codebases and libraries
@@ -27,7 +27,7 @@ Namespaces **do not**:
 
 ---
 
-## Linkage and namespaces
+## 2. Linkage and namespaces
 
 * A name that can be used in translation units different from the one in which it was defined is said to have **external linkage**
 * A name that can be referred to only in the translation unit in which it is defined is said to have **internal linkage**
@@ -50,7 +50,7 @@ extern const int y = 20; // explicitly external
 
 ---
 
-## Unnamed (anonymous) namespaces
+## 3. Unnamed (anonymous) namespaces
 
 * An unnamed namespace can be used to make names local to a compilation unit
 * The effect of an unnamed namespace is very similar to that of internal linkage
@@ -64,14 +64,14 @@ namespace {
 
 ### Important details
 
-* Entities technically have external linkage
-* But they are **unreachable** from other translation units
+* Unnamed-namespace members have internal linkage in the usual C++ model.
+* Their names are local to the translation unit
 * Preferred modern replacement for `static` globals
 * Applies to variables, functions, classes, templates
 
 ---
 
-## Named namespaces and namespace merging
+## 4. Named namespaces and namespace merging
 
 Namespaces can be **defined in multiple places** and are merged by name:
 
@@ -93,7 +93,7 @@ namespace my {
 
 ---
 
-## Namespace aliases
+## 5. Namespace aliases
 
 Namespace aliases provide shorter or version-neutral access:
 
@@ -114,7 +114,7 @@ namespace lib = very_long_vendor_library;
 
 ---
 
-## `using` declarations and `using` directives
+## 6. `using` declarations and `using` directives
 
 ### `using` directive
 
@@ -141,7 +141,7 @@ using std::vector;
 
 ---
 
-## Argument-Dependent Lookup (ADL)
+## 7. Argument-Dependent Lookup (ADL)
 
 Namespaces participate in **argument-dependent lookup** (Koenig lookup):
 
@@ -169,7 +169,7 @@ normalize(v); // found via ADL
 
 ---
 
-## Namespaces and operator overloading
+## 8. Namespaces and operator overloading
 
 Operators should usually be **free functions in the same namespace as their operands**:
 
@@ -187,7 +187,7 @@ namespace math {
 
 ---
 
-## Inline namespaces (C++11+)
+## 9. Inline namespaces (C++11+)
 
 * The `inline` specifier makes a nested namespace the **default meaning** of the enclosing namespace
 * This is primarily used for **API and ABI versioning**
@@ -230,7 +230,7 @@ using lib;
 
 ---
 
-## Headers, includes, and namespaces
+## 10. Headers, includes, and namespaces
 
 * Spaces are significant within the `< >` or `" "` of an include directive
 * The absence of a `.h` suffix does **not** imply anything about how the header is stored
@@ -245,7 +245,7 @@ using lib;
 
 ---
 
-## C linkage and namespaces
+## 11. C linkage and namespaces
 
 * We can specify a linkage convention to be used in an `extern` declaration
 * `extern "C"` specifies C linkage (no name mangling)
@@ -271,6 +271,91 @@ extern "C" {
 * Declaring a function as both C and C++ linkage is an error
 
 ---
+
+---
+
+## 12. Modern name lookup and namespace evolution: advanced boundaries
+
+### ADL uses associated classes and namespaces, not a textual global search
+
+Argument-dependent lookup adds candidate functions from namespaces and classes associated with the argument types. It enables `swap(a,b)` customization and the hidden-friend idiom but can introduce overload candidates that ordinary unqualified lookup would not find.
+
+```cpp
+namespace network {
+    struct Packet {
+        friend bool operator==(const Packet&, const Packet&) = default;
+    };
+}
+bool same(network::Packet a, network::Packet b) { return a == b; }
+```
+
+The friend function can be found through argument-dependent lookup even though it is not ordinarily visible through namespace-qualified lookup. This is why adding operators or converting constructors can change overload resolution across otherwise unrelated call sites.
+
+### Hidden friends constrain lookup surface but are not private implementation secrets
+
+A friend function first declared within a class is a namespace-scope function associated with that class, and often participates in ADL without being found by ordinary unqualified lookup. This pattern improves generic operator design and prevents inappropriate implicit conversions from making overload candidates available too broadly.
+
+Do not confuse it with member-function access control or module export restrictions. A hidden friend can still be part of a public library API, and changing its signature can create source or binary compatibility issues.
+
+### C++17 nested-namespace definitions reduce boilerplate only
+
+`namespace library::detail { ... }` is shorthand for nested namespace blocks. It does not create a visibility boundary, a module partition, or an implicitly private implementation area.
+
+```cpp
+namespace library::detail {
+    inline constexpr int format_version = 2;
+}
+```
+
+If an implementation name is in a public header, client code may depend on it despite the convention `detail`. A versioned public API requires documentation and change discipline rather than relying on namespace spelling to hide entities.
+
+### C++20 modules decouple namespaces from compilation units
+
+Named module boundaries govern reachability and module linkage; namespaces remain a name-organization and lookup facility. Two modules can define names in the same namespace without becoming the same module, and an exported namespace-qualified declaration must still comply with the relevant module interface rules.
+
+```cpp
+// Interface of a C++20 named module (illustrative)
+export module example.math;
+export namespace example {
+    int calculate(int);
+}
+```
+
+A module name is not a namespace, and `import example.math;` is not a `using namespace example;` directive. This distinction is essential in migrations from textual headers, particularly where dependent lookup and template instantiation are involved.
+
+### C++20 `using enum` may reintroduce exactly the collisions scoped enums prevented
+
+Scoped enum members are normally qualified names. `using enum Color;` introduces them into the local scope, which is convenient for switches but can conflict with other local declarations or imported enumerators.
+
+Prefer it within a small function scope with a clear enum domain. Avoid putting a blanket `using enum` into a public header, just as you would avoid a broad namespace using-directive there.
+
+### Inline namespaces help version APIs but complicate overload sets
+
+An inline namespace makes its members available for lookup as though injected into the enclosing namespace while retaining an explicit qualified name. This supports coexistence of ABI versions but does not by itself prevent conflicting overloads, duplicate definitions, or symbol-export errors.
+
+```cpp
+namespace api {
+inline namespace v2 { int parse(const char*); }
+namespace v1 { int parse(const char*); }
+}
+```
+
+Be cautious when changing which namespace is inline: ADL, mangled names, template specializations, and client rebuild requirements may change. ABI versioning needs toolchain-specific symbol verification.
+
+### Namespace aliases are not ABI aliases
+
+A namespace alias redirects source-level name lookup; it does not rename definitions or exported symbols, and cannot be reopened as a namespace definition.
+
+```cpp
+namespace vendor::version_2 { void dispatch(); }
+namespace client_api = vendor::version_2;
+```
+
+Use aliases to reduce qualification noise, not as proof that a linked library can replace one namespace's ABI with another.
+
+### C++23/26 reflection does not change foundational namespace lookup
+
+Recent language advances such as explicit object parameters and C++26 static reflection introduce new forms of compile-time inspection and declarations, but do not make namespaces runtime objects or make ADL optional. Generic code still needs explicit reasoning about ordinary lookup, dependent lookup, argument-associated candidates, and two-phase template lookup.
 
 ---
 
@@ -411,7 +496,7 @@ Modules affect declaration visibility but do not make namespaces modules.
 
 No material change to namespace lookup fundamentals.
 
-### C++26: Forthcoming support
+### C++26: Evolving tools without fundamental linkage or lookup changes
 
 New reflection/library features still obey namespace and lookup rules.
 
