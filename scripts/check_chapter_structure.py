@@ -15,7 +15,7 @@ ENDING = (
     "Further reading",
 )
 YEARS = ("C++98/03", "C++11", "C++14", "C++17", "C++20", "C++23", "C++26")
-STUBS = re.compile(r"\b(?:TODO|TBD|FIXME|fill this in)\b|<placeholder>", re.I)
+STUBS = re.compile(r"\b(?:TODO|TBD|FIXME|PLACEHOLDER|fill this in)\b|<placeholder>", re.I)
 HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*$", re.M)
 FENCE_OPEN = re.compile(r"^ {0,3}(`{3,}|~{3,})(.*)$")
 FENCE_CLOSE = re.compile(r"^ {0,3}(`{3,}|~{3,})[ \t]*$")

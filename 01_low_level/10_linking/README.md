@@ -9,7 +9,7 @@ Most subtle C++ bugs at scale are **linking bugs**, not syntax or type-system bu
 
 ---
 
-## Translation Units
+## 1. Translation Units
 
 A **translation unit (TU)** is the result of preprocessing a source file:
 
@@ -23,7 +23,7 @@ Each TU is compiled **independently**, then linked together.
 
 ---
 
-## Linkage Types
+## 2. Linkage Types
 
 ### 1. Internal linkage
 
@@ -86,7 +86,7 @@ They are **purely compile-time or local constructs**.
 
 ---
 
-## Scope vs Linkage (do not confuse)
+## 3. Scope vs Linkage (do not confuse)
 
 | Concept     | Meaning                                             |
 | ----------- | --------------------------------------------------- |
@@ -109,7 +109,7 @@ C++ adds:
 
 ---
 
-## The One Definition Rule (ODR)
+## 4. The One Definition Rule (ODR)
 
 The **ODR** governs what may be defined where:
 
@@ -129,7 +129,7 @@ Violations lead to:
 
 ---
 
-## `static` keyword: historical overload
+## 5. `static` keyword: historical overload
 
 `static` has **two unrelated meanings**:
 
@@ -147,7 +147,7 @@ static int x;   // internal linkage (global)
 
 ---
 
-## `const` and linkage
+## 6. `const` and linkage
 
 In **C++ (unlike C)**:
 
@@ -173,7 +173,7 @@ inline constexpr int ci = 42;
 
 ---
 
-## Headers and Inclusion Rules
+## 7. Headers and Inclusion Rules
 
 Best practices:
 
@@ -185,7 +185,7 @@ Best practices:
 
 ---
 
-## Global Initialization Order
+## 8. Global Initialization Order
 
 There is **no guaranteed order** of initialization of global objects across TUs.
 
@@ -216,7 +216,7 @@ constinit int g = 42;
 
 ---
 
-## `extern "C"` and ABI Boundaries
+## 9. `extern "C"` and ABI Boundaries
 
 ```cpp
 extern "C" void c_function();
@@ -254,7 +254,7 @@ extern "C" {
 
 ---
 
-## Name Mangling
+## 10. Name Mangling
 
 C++ encodes:
 
@@ -278,7 +278,7 @@ Use tools to inspect:
 
 ---
 
-## Inline Functions and Variables
+## 11. Inline Functions and Variables
 
 ### Inline functions
 
@@ -297,7 +297,7 @@ inline int counter = 0;
 
 ---
 
-## Templates and Linking
+## 12. Templates and Linking
 
 Templates are **instantiated at use sites**.
 
@@ -315,7 +315,7 @@ template int foo<int>(int);
 
 ---
 
-## Symbol Visibility (Shared Libraries)
+## 13. Symbol Visibility (Shared Libraries)
 
 On ELF / Mach-O systems (GCC/Clang):
 
@@ -336,7 +336,7 @@ Benefits:
 
 ---
 
-## Windows DLL Import / Export
+## 14. Windows DLL Import / Export
 
 ```cpp
 __declspec(dllexport)
@@ -360,7 +360,7 @@ Different from ELF:
 
 ---
 
-## Dynamic Linking at Runtime
+## 15. Dynamic Linking at Runtime
 
 POSIX example:
 
@@ -376,7 +376,7 @@ Requires:
 
 ---
 
-## Facts about Linking
+## 16. Facts about Linking
 
 ```
 extern "C" {
@@ -398,6 +398,75 @@ extern "C" {...}
 * The initialization of a local static is thread-safe (42.3.3)
 
 ---
+
+---
+
+## 17. Modern linking and ABI engineering: details beyond the linker command
+
+### C++17 inline variables preserve one entity across translation units
+
+C++98's common header pattern for global mutable variables required an `extern` declaration in a header and exactly one definition elsewhere. C++17 introduces inline variables, allowing an identical definition to appear in multiple translation units while designating one program-level entity, subject to the one-definition rule. An inline variable should be declared inline on every relevant declaration that defines it; it is not a substitute for managing a shared library's symbol visibility and ABI.
+
+```cpp
+// configuration.hpp (C++17)
+inline std::atomic<unsigned> active_sessions{0};
+// Unlike a namespace-scope const in a header, this is one shared entity
+// within a correctly linked program.
+```
+
+Keep dynamic initialization costs and initialization dependencies visible even for inline variables. An ODR violation may be ill-formed with no diagnostic required, rather than an ordinary linker error.
+
+### C++20 modules introduce a third linkage category: module linkage
+
+In named-module contexts, some namespace-scope entities have *module linkage*: they can be referenced from translation units attached to the same named module, but are not exposed as external-linkage declarations to unrelated translation units. This is not equivalent to an anonymous namespace's internal linkage or to a namespace nested under a module name.
+
+```cpp
+// module-unit.cpp (C++20 modules)
+module;
+#include <cstdint>
+export module telemetry;
+int detail_counter = 0; // module linkage in the appropriate context
+export int read_counter() { return detail_counter; }
+```
+
+This requires an actual module build graph and compiled module interface artifacts; simply renaming a header to a module does not solve dependency or ODR problems. The global module fragment and textual headers preserve relevant traditional linkage rules.
+
+### Dynamic initialization ordering has stronger and weaker guarantees
+
+Within a translation unit, ordered dynamic initialization follows definition order for the applicable variables. Across translation units, initialization order is much more constrained by language rules and may remain indeterminate for many dependencies. The *construct-on-first-use* idiom relies on function-local statics and C++11's thread-safe initialization guarantee.
+
+```cpp
+Registry& registry() {
+    static Registry instance;
+    return instance;
+}
+```
+
+Initialization is safe under the specified concurrency rules; destruction-order dependencies can still be problematic at process termination. C++20 `constinit` forces static initialization or rejects the declaration, but does not make an object immutable and does not impose arbitrary cross-module teardown ordering.
+
+### LTO can expose ODR and ABI mistakes that separate compilation concealed
+
+Link-time optimization allows the optimizer to see definitions across translation units and reason more aggressively about inline functions, class layouts, and aliasing. Code that accidentally violates the one-definition rule might appear stable when compiled independently and break under LTO.
+
+```text
+TU A: header sees PACKED=1, defines inline access()
+TU B: header sees PACKED=0, defines inline access()
+Result: potentially different definitions of the same inline entity
+```
+
+The problem is not LTO itself: compiling the same entity inconsistently already breaks the C++ program contract. Enable reproducible macro settings and ABI-oriented integration tests, and consider compiler ODR diagnostics where available.
+
+### Weak symbols, COMDAT, and visibility are ABI mechanisms, not ISO C++ contracts
+
+ELF symbol binding, PE/COFF COMDAT folding, Mach-O symbol visibility, and linker-specific dead-stripping are implementation technologies. They help implement inline definitions, templates, and dynamic libraries, but their exact behavior is not a source-language guarantee.
+
+For ELF use `readelf -Ws`, `nm -C`, `objdump -T` and linker map files; for Windows use `dumpbin /symbols` and `dumpbin /exports`. Record symbol exports as part of ABI tests rather than expecting visibility to follow from namespaces or C++ linkage alone.
+
+### C++23 and C++26 preserve explicit module and ABI design obligations
+
+C++23's language and library additions do not replace the one-definition rule, and C++26 reflection or package-oriented tooling does not promise ABI compatibility between independently built C++ libraries. Template instantiations, exception models, RTTI, standard library configurations, and calling conventions still require deliberate compatibility decisions.
+
+Prefer narrow C interfaces for long-lived cross-toolchain plugin boundaries, and document compiler, target, standard library, and exported symbol versions for C++-to-C++ binary interfaces.
 
 ---
 
@@ -538,7 +607,7 @@ Modules provide explicit compiled interfaces but retain ABI/linkage concerns.
 
 Module integration improves without eliminating platform linkers.
 
-### C++26: Forthcoming support
+### C++26: Evolving tools without fundamental linkage or lookup changes
 
 Expect evolving module-toolchain interoperability; check build-system support.
 
