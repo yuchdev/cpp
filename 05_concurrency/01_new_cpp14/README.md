@@ -50,7 +50,7 @@ Book advices:
 * Use shared_ptr to refer to shared objects
 * Use type-safe mechanisms for concurrency
 * Minimize the use of shared data
-* Don’t choose shared data for communication because of 'efficiency' without thought and preferably not without measurement
+* Don?t choose shared data for communication because of 'efficiency' without thought and preferably not without measurement
 * Think in terms of concurrent tasks, rather than threads
 * A library doesn't have to be large or complicated to be useful
 * Time your programs before making claims about efficiency
