@@ -450,7 +450,7 @@ This facility handles one-dimensional built-in arrays rather than automatically 
 
 ### 6.1 Empty arrays are real container values
 
-`std::array<int,0>` is a valid type, unlike a built-in `int[0]`. It has size zero and `begin() == end()\). The value of `data()` in this case must not be used as a portable “null means empty” invariant. The proper questions are `empty()` and `size()`.
+`std::array<int,0>` is a valid type, unlike a built-in `int[0]`. It has size zero and `begin() == end()`. The value of `data()` in this case must not be used as a portable “null means empty” invariant. The proper questions are `empty()` and `size()`.
 
 The absence of elements also means `front()`, `back()`, and `operator[](0)` have no valid element to access. An empty owner is useful because it obeys the container interface where possible, not because it fabricates a usable element zero.
 
