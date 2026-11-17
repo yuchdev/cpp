@@ -1,3 +1,8 @@
+#include <iostream>
+#include <stdexcept>
+
+using namespace std;
+
 void complex_object_exception()
 {
 
@@ -58,7 +63,11 @@ void complex_object_exception()
 class my_exception : std::exception
 { // private inheritance
 public:
-    my_exception() : std::exception("my_exception") {}
+    // std::exception has no portable constructor taking a message (GCC and
+    // MSVC both offer one as a non-standard extension; libc++ does not) --
+    // the portable way to give an exception type its own message is to
+    // store it and override what().
+    const char* what() const noexcept override { return "my_exception"; }
 };
 
 void foo()
@@ -83,6 +92,8 @@ void show_exception_private_inherit()
 
 int main()
 {
+    complex_object_exception();
+    show_exception_private_inherit();
     return 0;
 }
 

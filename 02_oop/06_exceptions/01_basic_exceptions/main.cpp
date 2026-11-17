@@ -1,44 +1,32 @@
-#include <cmath>
-#include <string>
-#include <iostream>
-// declaration of functions for floating point types
-#include <cfloat>
-#include <cfenv>
-#include <vector>
-#include <stdexcept>
-
 #include "ex.h"
-#include "controlled.h"
-#include "finished.h"
-#include "sehhandler.h"
-#include "autoptr.h"
-#include "zero_divide.h"
-#include "structured_exception.h"
 
-using std::vector;
+#include <iostream>
+#include <stdexcept>
+#include <vector>
+
 using std::cout;
 using std::endl;
+using std::vector;
 
-// Throwing exceptions of base type
+// Throwing exceptions of a built-in type
 void show_base_type_ex(int b)
 {
-
-    // When throwing exceptions of base type
-    // no implicit conversion takes place 
-    // (double -> int, unsigned -> signed, etc.)
+    // When throwing exceptions of a built-in type, no implicit conversion
+    // takes place (double -> int, unsigned -> signed, etc.) -- the
+    // handler must match the thrown type exactly (or via a pointer/
+    // reference conversion), the same as any other exception type.
     if (b)
         throw int(1);
     else
         throw double(0.);
-    // It is better not to throw exceptions of base type
-    // and don't allocate memory for exceptions from the heap
-    // e.g. `throw new int(1)`
+    // It is better not to throw exceptions of a built-in type, and not to
+    // allocate an exception's storage on the heap, e.g. `throw new int(1)`.
 }
 
 void show_base_type()
 {
     try {
-        //show_base_type_ex(1);
+        // show_base_type_ex(1);
         show_base_type_ex(0);
     }
     catch (const int e) {
@@ -47,15 +35,15 @@ void show_base_type()
     catch (const double e) {
         cout << "double " << e << endl;
     }
-    // this handler catches all pointer exceptions
-        // what to do here except of analyzing stack is unclear
-        // we can not process p in any way, as its type is unknown
+    // This handler would catch any exception thrown by pointer -- but
+    // there is not much useful to do with it, since p's pointee type is
+    // unknown and cannot be inspected without undefined behavior.
     catch (const void* p) {
+        (void)p;
     }
-
 }
 
-// Catch standard exception 
+// Catching a standard exception thrown by the standard library itself.
 void show_out_of_range()
 {
     vector<int> vi;
@@ -74,6 +62,6 @@ void show_out_of_range()
 int main()
 {
     show_base_type();
-    show_simple_ex();
+    show_out_of_range();
     return 0;
 }

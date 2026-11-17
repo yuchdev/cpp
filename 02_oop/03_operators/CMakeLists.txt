@@ -1,3 +1,3 @@
-add_subdirectory(complex)
-add_subdirectory(enum_overload)
-add_subdirectory(smart_ptr)
+add_subdirectory(01_enum_operators)
+add_subdirectory(02_complex_number)
+add_subdirectory(03_user_defined_literals)

@@ -1,4 +1,4 @@
-set(TARGET simple_exception)
+set(TARGET 02_simple_exception)
 
 file(GLOB SOURCES *.cpp *.h)
 

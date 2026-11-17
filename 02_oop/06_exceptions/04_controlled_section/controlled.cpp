@@ -1,3 +1,9 @@
+#include "controlled.h"
+#include <iostream>
+#include <stdexcept>
+
+using namespace std;
+
 // Controlled constructor intercept all exceptions from the constructor body
 // and the initialization list, and passes them further
 controlled::controlled() try : _vect(1000)

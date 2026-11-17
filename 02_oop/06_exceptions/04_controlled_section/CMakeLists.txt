@@ -1,4 +1,4 @@
-set(TARGET controlled)
+set(TARGET 04_controlled_section)
 
 file(GLOB SOURCES *.cpp *.h)
 

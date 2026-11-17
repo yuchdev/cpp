@@ -1,5 +1,0 @@
-add_subdirectory(01_simple_inheritance)
-add_subdirectory(02_polymorphism)
-add_subdirectory(03_upcasting)
-add_subdirectory(04_interfaces)
-add_subdirectory(05_adapter)

@@ -1,4 +1,4 @@
-set(TARGET complex_exception)
+set(TARGET 03_complex_exception)
 
 file(GLOB SOURCES *.cpp *.h)
 

@@ -1,4 +1,4 @@
-set(TARGET basic_types)
+set(TARGET 01_basic_exceptions)
 
 file(GLOB SOURCES *.cpp *.h)
 

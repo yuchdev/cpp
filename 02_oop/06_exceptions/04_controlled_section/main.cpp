@@ -1,3 +1,8 @@
+#include "controlled.h"
+#include <iostream>
+
+using namespace std;
+
 // Show controlled constructor
 void show_controlled()
 {
