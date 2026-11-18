@@ -6,7 +6,13 @@ public:
     Currency();
     Currency(double c);
     Currency(const Currency& c);
-    ~Currency();
+    // virtual: Currency declares virtual operators (below) and Usd
+    // derives from it, so deleting a Usd through a Currency* must run
+    // ~Usd() first -- a non-virtual destructor here, on a class that is
+    // already polymorphic for other reasons, is exactly the pitfall
+    // section 2's "Polymorphic classes need a virtual destructor" rule
+    // warns about.
+    virtual ~Currency();
 
     Currency& operator=(const Currency& c);
 
@@ -50,8 +56,8 @@ public:
     Usd(const Currency& c);
 
     // This is just an example of operator virtualization
-    virtual Currency& operator*=(const Currency& c);
-    virtual Currency& operator/=(const Currency& c);
+    Currency& operator*=(const Currency& c) override;
+    Currency& operator/=(const Currency& c) override;
 };
 
 // You cannot inherit from built-in types!

@@ -39,7 +39,15 @@ struct Derived : public Base
 {
 protected:
     // In the case of early, static binding
-    // this function will never be called
+    // this function will never be called.
+    // `virtual` here does NOT make this an override: Base::func is not
+    // virtual, so there is nothing to override -- this is a brand-new,
+    // unrelated virtual function that merely hides Base::func by name.
+    // Writing `override` on this specific declaration is a compile
+    // error (there is no matching base virtual to override), which is
+    // itself the point: `override` exists to catch exactly this
+    // distinction, and this is the one declaration in this file that
+    // deliberately must NOT have it.
     virtual int func(int i) { return i * i; }
 };
 
@@ -60,8 +68,10 @@ struct Derived_virt : public Base_virt
 {
 protected:
     // In the case of late, dynamic binding
-    // this function will be called for an instance of the Derived_virt class
-    virtual int func(int i) { return i * i; }
+    // this function will be called for an instance of the Derived_virt class.
+    // Base_virt::func IS virtual, so this genuinely overrides it --
+    // `override` compiles here, unlike the Derived::func case above.
+    int func(int i) override { return i * i; }
 };
 
 /*
@@ -94,9 +104,9 @@ struct B_virt : public A_virt
 {
 
     B_virt();
-    virtual ~B_virt();
+    ~B_virt() override;
     /** Execute function f on class creation and destruction */
-    virtual ostream& f() const;
+    ostream& f() const override;
 };
 
 // An example of virtualization of an external function
@@ -198,37 +208,65 @@ public:
 
 struct Derived1 : Base1
 {
-    // TODO: complete the implementation of the derived class
-    //    int f(int) {
-    //    	std::cout << "int Derived1::f()" << std::endl;
-    //    	return 1;
-    //    }
-
     // a virtual function to show inheritance of default values
     // (i = 20) overrides (i = 10) from the base
-    void g(int i = 20)
+    void g(int i = 20) override
     {
         std::cout << "D::g(int) " << i << std::endl;
     }
 
     // a virtual function to show different return types
     // the return pointer B_virt could be cast to A_virt
-    virtual B_virt* pf(int i = 2)
+    B_virt* pf(int i = 2) override
     {
         std::cout << "B_virt* B::pf(int) " << i << std::endl;
         return new B_virt();
     }
 
 public:
-    virtual void open_me() const
+    void open_me() const override
     {
         std::cout << "Derived1::open_me()" << std::endl;
     }
 
 protected:
     // this function could be called by the pointer to the base class!
-    virtual void hide_me() const
+    // Marked final: no class deriving from Derived1 may override this
+    // one function again (while every OTHER virtual function here
+    // remains overridable) -- see MostDerived1 below for what that
+    // actually forbids.
+    void hide_me() const override final
     {
         std::cout << "Derived1::hide_me()" << std::endl;
+    }
+};
+
+// final applies per-function (as above) or to a whole class, forbidding
+// any further derivation at all:
+struct FinalDerived1 final : Base1
+{
+};
+
+#if 0
+// error: cannot derive from 'FinalDerived1' because it has been
+// declared as 'final'
+struct CannotDerive : FinalDerived1 { };
+#endif
+
+struct MostDerived1 : Derived1
+{
+#if 0
+    // error: declaration of 'hide_me' overrides a 'final' function
+    void hide_me() const override
+    {
+        std::cout << "MostDerived1::hide_me()" << std::endl;
+    }
+#endif
+
+    // Every OTHER virtual function from Base1/Derived1 remains overridable --
+    // final applies only to the one function (or class) it's written on.
+    void open_me() const override
+    {
+        std::cout << "MostDerived1::open_me()" << std::endl;
     }
 };

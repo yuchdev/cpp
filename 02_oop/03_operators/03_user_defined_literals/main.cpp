@@ -151,54 +151,71 @@ void show_explicit_convert_operator()
 // A template literal operator is a literal operator that takes its argument 
 // as a template parameter pack, rather than as a function argument
 
-#if 0
-// The variadic template techniques can be disconcerting, but it is the only way 
+// The variadic template techniques can be disconcerting, but it is the only way
 // of assigning nonstandard meanings to digits at compile time
 // Ex: ternary digits
 namespace cpp
 {
 
-// x to the nth power for n>=0 
+// x to the nth power for n>=0
 constexpr int ipow(int x, int n)
 {
     return (n > 0) ? x * ipow(x, n - 1) : 1;
 }
 
-// handle the single ternary digit case  
-template<char c>
-constexpr int b3_helper()
-{
-    static_assert(c < '3', "not a ternary digit");
-    return c;
-}
-
-// peel off one ternary digit 
-
+// Peel off one ternary digit per instantiation, folding it into the
+// running total, until none remain.
+//
+// This was originally written as TWO overloads -- a single-digit base
+// case `b3_helper<c>()` and a recursive `b3_helper<c, tail...>()` -- and
+// called as `b3_helper(tail...)` (ordinary function-call syntax on a
+// template that takes its arguments as NON-TYPE template parameters, not
+// runtime parameters: a type error the original code never actually hit
+// because it was disabled behind #if 0 and never compiled). Fixing the
+// call to `b3_helper<tail...>()` surfaces a second, more interesting
+// problem: when exactly one digit is left, BOTH overloads become viable
+// -- `b3_helper<c>()` matches directly, and `b3_helper<c, tail...>()`
+// also matches with `tail` deduced as an empty pack -- which is a
+// genuine, ambiguous overload, not merely a typo. `if constexpr` avoids
+// the ambiguity entirely by making this ONE function template, branching
+// at compile time instead of needing a separate overload to stop the
+// recursion.
 template<char c, char... tail>
 constexpr int b3_helper()
 {
-    static_assert(c < '3', "not a ternary digit");
-    return ipow(3, sizeof...(tail)) * (c - '0') + b3_helper(tail...);
+    static_assert(c >= '0' && c <= '2', "not a ternary digit");
+    if constexpr (sizeof...(tail) == 0) {
+        return c - '0';
+    }
+    else {
+        return ipow(3, sizeof...(tail)) * (c - '0') + b3_helper<tail...>();
+    }
 }
 
 // base 3, i.e., ternary
 template<char... chars>
 constexpr int operator""_b3()
 {
-    return b3_helper(chars...);
+    return b3_helper<chars...>();
 }
 
 } // namespace cpp
-
 
 void show_ternary_digits()
 {
     using namespace cpp;
 
-    // changing meaning
+    // changing meaning: 201 in base 3 is 2*9 + 0*3 + 1 = 19, nothing like
+    // the ordinary decimal interpretation of the digits "201".
     constexpr int i1 = 201_b3;
+    static_assert(i1 == 19);
+
+    constexpr int i2 = 0_b3;
+    static_assert(i2 == 0);
+
+    constexpr int i3 = 2_b3;
+    static_assert(i3 == 2);
 }
-#endif
 
 //6. Template friend (19.4)
 namespace cpp
@@ -320,8 +337,7 @@ int main()
     show_deleted_operations();
     show_operator_suffix();
     show_explicit_convert_operator();
-    // TODO:
-    //show_ternary_digits();
+    show_ternary_digits();
     show_template_friend();
     show_find_friends();
     return 0;

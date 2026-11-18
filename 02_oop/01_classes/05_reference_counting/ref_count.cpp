@@ -1,5 +1,6 @@
 #include <cstring>
 #include <algorithm>
+#include <cassert>
 
 
 namespace meyers_refcount
@@ -91,8 +92,14 @@ private:
             _data(new char[strlen(init_val) + sizeof(char)]),
             _shareable(true)
         {
-            // strcpy(_data, init_val);
-            std::copy(init_val, init_val + strlen(init_val), _data);
+            // Copy the null terminator too (+1), not just the characters:
+            // _data is later re-read with strlen() (every copy/detach
+            // calls this same constructor again from an existing _data),
+            // so leaving the terminator uninitialized is a real
+            // heap-buffer-overflow waiting to happen the first time this
+            // string is copied or detached -- caught by AddressSanitizer,
+            // not by anything short of actually exercising this code.
+            std::copy(init_val, init_val + strlen(init_val) + 1, _data);
         }
 
         ~string_value() { delete[] _data; }
@@ -319,7 +326,57 @@ private:
 
 } //namespace meyers_refcount
 
+// Proves the two claims that give copy-on-write its name, for both
+// implementations, using only their public interface: a copy SHARES the
+// same buffer (no allocation, same address) until one side is mutated,
+// at which point exactly that side silently detaches into its own copy
+// -- the other, unmutated side is left completely untouched.
+//
+// A genuinely easy mistake while writing this kind of test: indexing a
+// NON-const rc_string -- even just to read, never to write through the
+// result -- calls the NON-const operator[], which detaches unconditionally
+// (it has no way to know you won't write through the reference it hands
+// back). Checking "are these still shared?" without destroying the very
+// sharing you're checking for requires going through a CONST reference,
+// which is exactly the const/non-const overload-resolution rule 03_constness
+// demonstrates, now mattering for real.
+void show_copy_on_write_sharing_and_detach()
+{
+    using namespace meyers_refcount;
+
+    {
+        rc_string s1("hello");
+        rc_string s2(s1); // copy: shares s1's buffer, no new allocation
+
+        const rc_string& view1 = s1;
+        const rc_string& view2 = s2;
+        assert(&view1[0] == &view2[0]); // const access: same buffer, no detach
+
+        s2[0] = 'H'; // non-const access: detaches s2 into its own buffer
+
+        assert(&view1[0] != &view2[0]); // no longer sharing
+        assert(view1[0] == 'h');        // s1's buffer is untouched by s2's write
+        assert(view2[0] == 'H');
+    }
+
+    {
+        rc_string2 t1("world");
+        rc_string2 t2(t1); // copy via rc_ptr: shares t1's buffer
+
+        const rc_string2& tview1 = t1;
+        const rc_string2& tview2 = t2;
+        assert(&tview1[0] == &tview2[0]);
+
+        t2[0] = 'W'; // detaches t2 (rc_object::is_shared()/mark_unshareable() inside)
+
+        assert(&tview1[0] != &tview2[0]);
+        assert(tview1[0] == 'w');
+        assert(tview2[0] == 'W');
+    }
+}
+
 int main()
 {
+    show_copy_on_write_sharing_and_detach();
     return 0;
 }

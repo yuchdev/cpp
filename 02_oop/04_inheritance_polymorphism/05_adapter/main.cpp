@@ -1,5 +1,6 @@
 #include "adapter.h"
 
+#include <cassert>
 #include <iostream>
 
 // adapter_stack_t inherits deque_t PROTECTED: every public (and protected)
@@ -14,9 +15,16 @@ void show_protected_inheritance_adapter()
     s.push(2);
     s.push(3);
 
-    while (!s.is_empty())
-        std::cout << s.pop() << ' ';
-    std::cout << '\n';
+    assert(s.pop() == 3); // LIFO: push_back then pop_back
+    assert(s.pop() == 2);
+    assert(s.pop() == 1);
+    assert(s.is_empty());
+
+#if 0
+    // Protected inheritance disables the implicit upcast for outside
+    // code: adapter_stack_t does not advertise "is-a deque_t".
+    deque_t* d = &s; // error: 'deque_t' is an inaccessible base of 'adapter_stack_t'
+#endif
 }
 
 // write_only_adapter_stack_t narrows the interface again: it only exposes
@@ -27,6 +35,9 @@ void show_write_only_adapter()
     w.push(10);
     w.push(20);
     // no way to read the values back: pop()/is_empty() are not visible here
+#if 0
+    w.pop(); // error: 'pop' is a protected member of 'adapter_stack_t'
+#endif
 }
 
 // another_adapter_stack_t inherits deque_t PRIVATELY, then uses
@@ -39,7 +50,14 @@ void show_using_declaration_adapter()
     a.push_back(100);
     a.push_back(200);
 
-    std::cout << a.pop_back() << ' ' << a.pop_back() << '\n';
+    assert(a.pop_back() == 200);
+    assert(a.pop_back() == 100);
+
+#if 0
+    // push_front/pop_front/is_empty were never re-exposed by a
+    // using-declaration, so they remain inaccessible here.
+    a.push_front(1); // error: 'push_front' is a private member of 'deque_t'
+#endif
 }
 
 // composite_t reaches the same result as adapter_stack_t through
@@ -52,9 +70,9 @@ void show_composition_adapter()
     c.push(7);
     c.push(8);
 
-    while (!c.is_empty())
-        std::cout << c.pop() << ' ';
-    std::cout << '\n';
+    assert(c.pop() == 8);
+    assert(c.pop() == 7);
+    assert(c.is_empty());
 }
 
 int main()

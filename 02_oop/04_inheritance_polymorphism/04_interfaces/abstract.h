@@ -80,8 +80,8 @@ class circle : public shape2d
 public:
     // In derived classes, virtual functions are implemented
     // only if necessary
-    virtual void draw();
-    virtual void rotate(point& p);
+    void draw() override;
+    void rotate(point& p) override;
 private:
     point _center;
     int _radius;
@@ -90,9 +90,11 @@ private:
 class rectangle : public shape2d
 {
 public:
-    virtual void draw();
-    // The virtual keyword is not necessary
-    virtual void rotate(point& p);
+    void draw() override;
+    // The virtual keyword is not necessary on an override -- `override`
+    // is both sufficient and the modern, verified-by-the-compiler way to
+    // say the same thing.
+    void rotate(point& p) override;
 private:
     point _up_left;
     point _down_right;
@@ -103,8 +105,8 @@ private:
 class sphere : public shape3d
 {
 public:
-    virtual void draw();
-    virtual void rotate(line& px, line& py, line& pz);
+    void draw() override;
+    void rotate(line& px, line& py, line& pz) override;
 private:
     int center;
     int radius;
@@ -113,8 +115,8 @@ private:
 class cube : public shape3d
 {
 public:
-    virtual void draw();
-    virtual void rotate(line& px, line& py, line& pz);
+    void draw() override;
+    void rotate(line& px, line& py, line& pz) override;
 private:
     int center;
     int rib;

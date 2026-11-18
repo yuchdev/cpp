@@ -1,3 +1,4 @@
 add_subdirectory(01_enum_operators)
 add_subdirectory(02_complex_number)
 add_subdirectory(03_user_defined_literals)
+add_subdirectory(04_multidim_subscript)

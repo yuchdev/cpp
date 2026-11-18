@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <cmath>
+#include <compare>
 #include <cstddef>
 
 // The class covers operator overloading techniques
@@ -131,6 +132,25 @@ public:
     friend double r_vector(const complex_t& c)
     {
         return sqrt((c.re * c.re) + (c.im * c.im));
+    }
+
+    // Complex numbers have no natural total order -- ordering by
+    // magnitude, as here, is one defensible design choice (the chapter's
+    // 01_classes/04_concrete_class makes a DIFFERENT, equally defensible
+    // choice for its own complex type: lexicographic by (re, im)). The
+    // two orderings genuinely disagree: under THIS <=>, (3,4) and (4,3)
+    // compare EQUIVALENT (same magnitude, 5), even though operator==
+    // above says they are NOT equal (their components differ). A type's
+    // <=> is not obligated to agree with its == about what "the same"
+    // means -- std::partial_ordering::equivalent is deliberately not
+    // named "equal" for exactly this reason (see the Standards timeline).
+    // Returns partial_ordering (not strong_ordering) because the
+    // underlying comparison is double <=> double, and floating-point
+    // comparison is partial -- NaN compares unordered with everything,
+    // including itself.
+    friend std::partial_ordering operator<=>(const complex_t& a, const complex_t& b)
+    {
+        return r_vector(a) <=> r_vector(b);
     }
 
 private:

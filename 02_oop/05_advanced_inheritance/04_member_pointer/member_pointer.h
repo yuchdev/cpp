@@ -16,12 +16,12 @@ class member_derived : public member_pointer
 {
 public:
     member_derived() {}
-    virtual ~member_derived() {}
+    ~member_derived() override {}
 
-    virtual void start();
-    virtual void stop();
-    virtual void suspend();
-    virtual void resume();
+    void start() override;
+    void stop() override;
+    void suspend() override;
+    void resume() override;
 
     static void static_init();
 

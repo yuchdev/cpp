@@ -63,3 +63,23 @@ private:
     vector<Employee*> _group;
     short _level;
 };
+
+// Manager, above, writes its own constructor by hand -- the ordinary
+// case, since "constructors are not inherited" (C++11 and earlier).
+// Since C++11, a derived class can opt IN to a base's constructor set
+// instead, with one using-declaration, rather than writing forwarding
+// constructors for each one by hand:
+class TemporaryEmployee : public Employee
+{
+public:
+    using Employee::Employee; // inherits Employee(const char*) directly
+
+    // Inheriting a constructor does not inherit anything else: show_name()
+    // still has to be written or left to the base's version explicitly;
+    // nothing about using Employee::Employee reaches beyond construction.
+    void mark_temporary() { is_temporary_ = true; }
+    bool is_temporary() const { return is_temporary_; }
+
+private:
+    bool is_temporary_ = false;
+};

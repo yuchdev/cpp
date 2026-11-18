@@ -43,31 +43,43 @@ void* user_alloc::universal_allocate(size_t s, new_handler handler/* = 0*/)
     if (handler)
         oldHandler = std::set_new_handler(handler);
 
-    // 2. Handling a lack of memory situation
-    while (true) {
-        p = malloc(s);
-        if (p) {
-            break;
-        }
-        else {
-            // a trick to receive the current global new_handler
-            // set it to nullptr and quickly return it back
-            new_handler globalHandler = set_new_handler(nullptr);
-            set_new_handler(globalHandler);
-            if (0 == globalHandler) {
-                // do not call the handler, just throw an exception
-                throw bad_alloc();
+    // 2. Handling a lack of memory situation. This is wrapped in a
+    // try/catch specifically because the installed handler can throw
+    // (that is one of its four legal behaviors) -- if it does, the
+    // global new_handler MUST still be restored to oldHandler before the
+    // exception propagates, or the replacement handler leaks into every
+    // later allocation in the whole process, not just this one call.
+    try {
+        while (true) {
+            p = malloc(s);
+            if (p) {
+                break;
             }
             else {
-                // return global handler as new_handle()
+                // a trick to receive the current global new_handler
+                // set it to nullptr and quickly return it back
+                new_handler globalHandler = set_new_handler(nullptr);
                 set_new_handler(globalHandler);
+                if (0 == globalHandler) {
+                    // do not call the handler, just throw an exception
+                    throw bad_alloc();
+                }
+                else {
+                    // return global handler as new_handle()
+                    set_new_handler(globalHandler);
 
-                // call it
-                globalHandler();
+                    // call it
+                    globalHandler();
+                }
             }
-
         }
     }
+    catch (...) {
+        if (handler)
+            std::set_new_handler(oldHandler);
+        throw;
+    }
+
     if (handler)
         std::set_new_handler(oldHandler);
     return p;

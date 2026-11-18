@@ -10,11 +10,12 @@ Getting any one of these wrong produces code that compiles, often even runs corr
 
 The examples in this directory are:
 
-1. [`01_construction/`](01_construction/construct.h) ([`construct.cpp`](01_construction/construct.cpp), [`class_static.cpp`](01_construction/class_static.cpp)) — the nine ways an object gets constructed/destroyed, static data members, Meyers' singleton via a local static.
-2. [`02_constructors/main.cpp`](02_constructors/main.cpp) — memberwise init, explicit destruction, `initializer_list` disambiguation, delegating constructors, `=default`/`=delete`, move operations, and slicing.
-3. [`03_constness/constness.cpp`](03_constness/constness.cpp) — const/non-const member functions, `mutable`, bitwise vs. conceptual constness.
-4. [`04_concrete_class/concrete.cpp`](04_concrete_class/concrete.cpp) — the "concrete class" idiom: a hand-rolled value type with `{}`-init, copy/move, and guaranteed-elision return.
-5. [`05_reference_counting/ref_count.cpp`](05_reference_counting/ref_count.cpp) — Meyers' reference-counted/copy-on-write string, a historically important technique that modern C++ has mostly retired.
+1. [`01_construction/`](01_construction/construct.h) ([`construct.cpp`](01_construction/construct.cpp), [`class_static.cpp`](01_construction/class_static.cpp)) — the nine ways an object gets constructed/destroyed, the `new T()`/`new T` distinction proven on a genuine aggregate, forward-declared-by-value proven at a real call site, and the thread-safety guarantee on a Meyers' singleton verified with `std::thread`.
+2. [`02_constructors/main.cpp`](02_constructors/main.cpp) — memberwise init, explicit destruction, `initializer_list` disambiguation, delegating constructors, `=default`/`=delete`, slicing, and two `static_assert`/runtime-proven facts: a destructor-only class is deceptively "move constructible" (it secretly copies), and a non-`noexcept` move constructor makes `std::vector` copy instead of move on reallocation.
+3. [`03_constness/constness.cpp`](03_constness/constness.cpp) — const/non-const member functions proven by overload resolution, `mutable`, bitwise vs. conceptual constness.
+4. [`04_concrete_class/concrete.cpp`](04_concrete_class/concrete.cpp) — the "concrete class" idiom: a hand-rolled value type with `{}`-init, copy/move, `operator<=>`/`operator==` (and the pitfall of treating the resulting order as mathematically meaningful), and guaranteed copy elision proven on a type with copy *and* move both deleted.
+5. [`05_reference_counting/ref_count.cpp`](05_reference_counting/ref_count.cpp) — Meyers' reference-counted/copy-on-write string, a historically important technique that modern C++ has mostly retired, with real sharing/detach assertions (and a real heap-buffer-overflow this exercise surfaced and fixed).
+6. [`06_deducing_this/main.cpp`](06_deducing_this/main.cpp) — C++23 explicit object parameters collapsing §3's const/non-const accessor pair into one function template.
 
 A compact map before the details:
 
@@ -356,9 +357,11 @@ Notice the copy constructor allocates its *own* buffer and copies into it before
 By default, every class gets a default constructor, copy constructor, copy assignment, move constructor, move assignment, and destructor. Two separate rules govern when the compiler takes any of those away:
 
 * declaring **any** constructor suppresses the implicit default constructor;
-* declaring a copy operation, a move operation, **or the destructor** suppresses the implicitly-declared move operations (and, deprecated since C++17 and formally removed since C++20, *also* suppresses the implicit copy operations in that case).
+* declaring a copy operation, a move operation, **or the destructor** suppresses the implicitly-declared move operations outright — they are not generated at all, full stop. The *copy* operations are treated more gently: declaring a destructor or a copy operation only makes the implicitly-generated copy constructor/assignment **deprecated** (since C++11), not deleted — and that remains true through C++23; no published standard has actually removed it, however often people repeat that it has. Only a user-declared **move** constructor or move assignment operator actually deletes the implicit copy constructor.
 
-The practical consequence is the Rule of 0/3/5: either write **none** of the five special member functions and let the defaults manage your resources for you (Rule of 0 — e.g. the `complex` class above owns nothing non-trivial), or if you must manage a resource by hand, write **all** of destructor, copy constructor, and copy assignment together (the pre-C++11 Rule of 3), and in modern code add move constructor and move assignment too (Rule of 5) — because declaring the destructor alone already took the implicit moves away from you, leaving every copy to silently fall back to the (correct, but needlessly expensive) copy path.
+The practical, and genuinely deceptive, consequence: `std::is_move_constructible_v<T>` can be `true` for a `T` with no move constructor at all, because the (merely deprecated, still very much alive) copy constructor can bind an rvalue too — the trait only answers "can a `T` be constructed from a `T&&`", not "will that construction actually move anything". §2's `show_destructor_suppresses_move_not_copy()` proves this with a counting member: constructing from `std::move(a)` silently copies.
+
+The practical consequence for class design is still the Rule of 0/3/5: either write **none** of the five special member functions and let the defaults manage your resources for you (Rule of 0 — e.g. the `complex` class above owns nothing non-trivial), or if you must manage a resource by hand, write **all** of destructor, copy constructor, and copy assignment together (the pre-C++11 Rule of 3), and in modern code add move constructor and move assignment too (Rule of 5) — because declaring the destructor alone already took the implicit moves away from you, leaving every "move" to silently, successfully compile as a copy instead.
 
 ### Guaranteed copy elision changed what a "return by value" actually does
 
@@ -420,6 +423,8 @@ char& operator[](size_t index)   // non-const access: might mutate, so detach fi
 ```
 
 A `const` access (`operator[] const`) never triggers a copy — it just reads the shared buffer. A non-const access *might* write, so it unconditionally detaches first ("copy-on-write"), then marks the detached buffer unshareable so a future copy of *this* object won't try to share stale state.
+
+This has a sharp edge that is easy to miss when *writing a test* for this exact behavior (as [`ref_count.cpp`](05_reference_counting/ref_count.cpp)'s own `show_copy_on_write_sharing_and_detach()` does): indexing a non-`const` `rc_string` calls the non-`const` `operator[]` and detaches **unconditionally**, even if the caller only reads the returned reference and never writes through it. The function has no way to know you won't write — handing back a non-`const` reference *is* the commitment to "this might be mutated", so it pays the detach cost up front, on every non-`const` access, whether or not a write actually follows. Checking "are these two strings still sharing a buffer?" without destroying the very sharing you're checking for requires going through a `const` reference specifically — the const/non-const overload-resolution rule from §3 isn't incidental here, it's the only way to observe this class's internal state without perturbing it.
 
 ### The second version separates "being reference-counted" from "being a string"
 
@@ -563,17 +568,16 @@ Relaxed `constexpr` function bodies made `constexpr` constructors and member fun
 
 * **Guaranteed copy elision for prvalues**: returning a prvalue (e.g. `return T{...};`, or a temporary materialized directly into its destination) no longer requires — or even permits assuming — a copy/move call at all; the type doesn't need an accessible copy or move constructor for that specific case. This is distinct from, and stronger than, the older "the compiler is permitted to elide this copy" rule for named returns, which remains merely *permitted*, not mandated.
 * Aggregates were extended to allow public base classes, so a derived type with no user-declared constructors can still be brace-initialized.
-* The rule that a user-declared destructor or copy-assignment operator suppresses the implicitly-generated copy constructor/assignment (deprecated since C++11) moved one step closer to formal removal.
+* The rule that a user-declared destructor or copy-assignment operator makes the implicitly-generated copy constructor/assignment *deprecated* dates to C++11, and is **still only deprecated** — as of C++23 the standard has not actually removed it. Verify this precisely before relying on it: `std::is_copy_constructible_v` on a type with only a user-declared destructor is `true` on every mainstream compiler, generated copy op and all; only a user-declared *move* constructor or move assignment operator actually deletes the implicit copy constructor.
 
 ### C++20: three-way comparison, designated initializers, formal deprecation removed
 
 * `operator<=>` lets a class define ordering once and have `<`, `>`, `<=`, `>=` (and, combined with a defaulted `==`, `!=`) synthesized from it — replacing the historical six-operator boilerplate for a value type like `complex` in §4.
 * Designated initializers (`T{.x = 1, .z = 2}`) extend aggregate `{}`-init with field names, in declaration order.
-* The C++11 deprecation of implicit copy-operation generation when a destructor or copy-assignment is user-declared is no longer merely deprecated — the implicit copy constructor/assignment generation in that situation is formally removed (though compilers vary in how strictly/with what diagnostics they enforce it; verify on your actual toolchain).
 
 ### C++23: deducing `this`
 
-Explicit object parameters (`template<class Self> decltype(auto) value(this Self&& self) ...`) let one templated member function stand in for the usual const/non-const (and now also lvalue/rvalue) overload family that §3's accessor pattern otherwise requires writing by hand — directly relevant to the const/non-const overload pair discussed there.
+Explicit object parameters (`template<class Self> auto&& value(this Self&& self) ...`) let one templated member function stand in for the usual const/non-const (and now also lvalue/rvalue) overload family that §3's accessor pattern otherwise requires writing by hand — directly relevant to the const/non-const overload pair discussed there, and worked through for real in [`06_deducing_this/main.cpp`](06_deducing_this/main.cpp). That example could not be compile-verified on this machine's toolchain (Xcode 14/AppleClang 14 rejects the `this`-parameter syntax outright, confirmed with an isolated test — the same category of gap as `06_quick_exit`/`08_expected_unexpected` in `06_exceptions`); it has its own `CXX_STANDARD 23` property and is written carefully against the published feature paper, but verify on a newer toolchain before trusting it blindly.
 
 ### C++26: proceed cautiously
 

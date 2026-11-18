@@ -15,7 +15,7 @@ The examples in this directory are:
 2. [`02_operator_new_delete/`](02_operator_new_delete/) — overloading `operator new`/`operator delete` per class (`user_alloc.h`/`.cpp`, `memory.cpp`), and a CRTP mixin giving every class its own `new_handler` (`new_handler_mixture.h`).
 3. [`03_placement_delete/placement_delete.cpp`](03_placement_delete/placement_delete.cpp) — custom placement `operator new`/`operator delete` pairs, and when placement delete actually gets called.
 4. [`04_memory_pool/memory_pool.cpp`](04_memory_pool/memory_pool.cpp) — a fixed-size pre-allocated pool used as a class-specific allocator.
-5. [`05_alignment/align.cpp`](05_alignment/align.cpp) — struct padding and why byte-wise comparison of objects is unsafe.
+5. [`05_alignment/align.cpp`](05_alignment/align.cpp) — struct padding, `alignof`/`alignas`, a real `memcmp` failure on two logically-identical objects proven with deliberately pre-poisoned padding bytes, and a safe-vs-unsafe decode of data at a misaligned address.
 
 A useful first map:
 
@@ -324,6 +324,8 @@ void* alloc(std::size_t s)
 
 A slot is "free" when its first byte is `0`. This is a simplification worth naming explicitly as a teaching shortcut: it assumes `T`'s first byte is never legitimately `0` for a live object, which is not a safe assumption for an arbitrary `T` (consider a `T` whose first data member, or whose vptr's first byte on some ABI, can be zero while still constructed). A production pool tracks free slots with an explicit free-list (an intrusive singly-linked list threaded through the unused slots) rather than a magic byte value. The comment in the example ("this works for teaching purposes") is implicit in how narrowly it is scoped — treat the zero-byte trick as illustrative, not as a pattern to copy into real code.
 
+This toy pool had never actually been exhausted or exercised with an oversized request before this chapter's examples were made to run (and assert) for real — only 2–3 objects were ever allocated in any prior version of this demo, so the exhaustion path, the oversized-fallback path, and the free-slot scan's own bounds check had simply never run. Making `show_pool_exhaustion_and_oversized_fallback()` actually allocate past the pool's capacity surfaced three real bugs, all now fixed in [`memory_pool.cpp`](04_memory_pool/memory_pool.cpp): `alloc()`'s free-slot scan checked its own bound *after* already stepping one slot too far, reading one byte past the pool's buffer on every exhaustion (a heap-buffer-overflow, caught with AddressSanitizer); `free()` could only ever recognize an *oversized* fallback allocation (`s > sizeof(T)`), never an *exhausted-pool* fallback allocation — which still reports `s == sizeof(T)` — so that case leaked forever instead of being freed; and `free()`'s oversized branch fell through to the pool's own slot-marking code after already releasing the memory via `::operator delete`, a use-after-free. None of these are hypothetical: all three reproduce the moment a demo actually fills the pool, which is exactly the kind of case a "looks right, prints the happy path" example can hide indefinitely.
+
 ### A pool changes failure and fragmentation behavior, not just speed
 
 Beyond raw throughput, pools are also reached for because they bound fragmentation in long-running processes: fixed-size slots from one slab cannot fragment amongst themselves the way a general heap's mixed-size allocations can over time. This is why pool- and arena-style allocation shows up heavily in embedded/real-time systems (deterministic allocation cost, no page faults from a growing heap) and in high-throughput servers (see Further reading for jemalloc and the Windows Low-Fragmentation Heap, both production answers to the same problem this toy pool sketches).
@@ -342,16 +344,9 @@ struct S { char c; int i; };
 
 ### `memcmp`-ing objects is unsafe because padding bytes are indeterminate
 
-`05_alignment/align.cpp` keeps this fact as a cautionary one-liner:
-
-```cpp
-struct S { char c; int i; };
-
-// Wrong compare
-bool is_equal(S a, S b) { return 0 == memcmp(&a, &b, sizeof(S)); }
-```
-
 The padding bytes between `c` and `i` are not guaranteed to hold any particular value, and are not guaranteed to be equal between two objects that are logically equal in every named member. `memcmp` compares *all* bytes in the object representation, padding included, so two `S` values with identical `c` and `i` can legitimately compare unequal under `memcmp`. The correct comparison is member-wise: `a.c == b.c && a.i == b.i`.
+
+This is easy to assert in prose and much more convincing proven: [`05_alignment/align.cpp`](05_alignment/align.cpp)'s `show_memcmp_is_unsafe_for_padded_types()` deliberately pre-fills two buffers with *different* garbage (`0xAA` vs. `0xBB`) before placement-constructing an identical `S{'x', 42}` into each. Construction only writes `c` and `i`; it never touches the padding byte sitting between them, so that byte survives from whatever was there before. The result: `a->c == b->c && a->i == b->i` holds, but `memcmp(a, b, sizeof(S))` reports them as different anyway — not a hypothetical, a real, asserted outcome of this exact pair of objects.
 
 ### `alignof` queries, `alignas` demands
 
@@ -362,7 +357,7 @@ alignof(int);                 // the platform's required alignment for int, typi
 alignas(16) char buffer[64];  // buffer is now 16-byte aligned, e.g. for SIMD loads
 ```
 
-`alignas(N)` can only strengthen a type's natural alignment, never weaken it below what the type would require anyway.
+`alignas(N)` can only strengthen a type's natural alignment, never weaken it below what the type would require anyway — and "never" here means a hard compile error (`error: requested alignment is less than minimum alignment`), not a silently-ignored request or an implicit packing directive.
 
 ### Alignment is also why a typed pointer over raw/packed bytes is dangerous
 
@@ -453,6 +448,8 @@ Static warnings catch some allocator-overload mistakes (mismatched placement pai
 | LeakSanitizer | `-fsanitize=leak` (often bundled with ASan) | Allocations that a custom allocator never returns to its own pool or to the system |
 | UndefinedBehaviorSanitizer | `-fsanitize=undefined` | Misaligned access, some pointer-arithmetic UB |
 | Valgrind (memcheck) | `valgrind ./binary` | Deep allocator-bug diagnosis without recompiling, at a large speed cost |
+
+`01_new_forms/new_forms.cpp`'s `show_bad_alloc()` deliberately requests an allocation near `SIZE_MAX` to force a deterministic `bad_alloc` (see §1) — AddressSanitizer's own allocator imposes a lower size cap than the real one and **aborts** on a request that large instead of letting it reach `operator new` to throw normally (confirmed: even `ASAN_OPTIONS=allocator_may_return_null=1`, ASan's own documented escape hatch for exactly this situation, still aborts here — just with "out of memory" instead of "allocation-size-too-big" — so there is no known ASan option that lets this specific example run to completion under ASan). This is an ASan artifact, not a bug in the example: it runs and asserts cleanly in a normal, non-sanitized build. Build this one file without `-fsanitize=address` if you want to see it actually throw and get caught.
 
 ### Semantics-changing options
 

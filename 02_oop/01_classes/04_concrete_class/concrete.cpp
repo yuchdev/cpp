@@ -1,12 +1,15 @@
+#include <cassert>
+#include <compare>
 #include <iostream>
-#include <vector>
 #include <map>
 #include <memory>
+#include <vector>
 
 /*
 
 1. Class complex
 * {}-init
+* operator<=>, operator== (C++20)
 
 2. Class vector
 * rvalue reference
@@ -14,14 +17,11 @@
 * initializer_list constructors
 
 3. Return unique_ptr
-* move semantic
+* move semantic, guaranteed copy elision
 
 4. Lambdas
 
-5. Variadic templates
-* nested args
-
-6. Type aliases
+5. Type aliases
 
 */
 
@@ -40,7 +40,34 @@ public:
     double real() const { return re_; }
     double imag() const { return im_; }
 
-    // TODO: different operators...
+    complex& operator+=(const complex& rhs)
+    {
+        re_ += rhs.re_;
+        im_ += rhs.im_;
+        return *this;
+    }
+
+    friend complex operator+(complex lhs, const complex& rhs) { return lhs += rhs; }
+
+    // Complex numbers have no natural mathematical total order -- there is
+    // no "a < b" that is both well-defined and useful the way it is for
+    // real numbers. Defining <=> here is therefore a DESIGN CHOICE, not a
+    // mathematical fact, and the choice is debatable: this orders
+    // lexicographically by (re_, im_), purely because that is what a
+    // defaulted <=> does for free given the members' declaration order.
+    // An equally defensible, genuinely different choice would compare by
+    // magnitude (re_*re_ + im_*im_) instead -- which would make, say,
+    // (3, 0) and (0, 3) compare EQUAL under <=> while still comparing
+    // unequal under == (since == is specified separately, see below).
+    // Pick deliberately; don't let "the compiler can default it" decide
+    // what "less than" means for your type.
+    auto operator<=>(const complex&) const = default;
+
+    // operator== is specified independently of <=> (a defaulted <=> alone
+    // does not make == ... a defaulted == is still required if you want
+    // one, though the compiler WILL synthesize !=, <, >, <=, >= from a
+    // single defaulted <=>).
+    bool operator==(const complex&) const = default;
 
 private:
     double re_;
@@ -146,17 +173,35 @@ std::unique_ptr<int> ret_unique_ptr()
 {
     std::unique_ptr<int> p(new int(10));
     return p;
-    // behaves like return move( p );
+    // Returning a NAMED local object is (N)RVO: the compiler is PERMITTED
+    // to construct it directly in the caller's storage and skip the move
+    // entirely, but it isn't required to -- unique_ptr compiles here only
+    // because it has an accessible move constructor to fall back on if
+    // the compiler doesn't elide.
+}
 
-    // Copy elision refers to a compiler optimization technique 
-    // that eliminates unnecessary copying of objects.
-    // This elision of copy/move operations, called copy elision, is permitted
-    // in a return statement in a function with a class return type, 
-    // when the expression is the name of a non-volatile automatic object 
-    // with the same qualifier - unqualified type as the function return type
+// A type with NEITHER a copy constructor NOR a move constructor. There is
+// no fallback: if returning one by value ever required an actual copy or
+// move call, this type simply could not be returned by value at all.
+struct immovable_tag
+{
+    explicit immovable_tag(int id) : id_(id) {}
+    immovable_tag(const immovable_tag&) = delete;
+    immovable_tag(immovable_tag&&) = delete;
+    int id_;
+};
 
-    // So this should call copy construction, however calls move
-    // and works like a new RVO
+// This is the C++17 GUARANTEE, not the older permitted-but-optional RVO
+// above: the return expression is a genuine PRVALUE (the result of a
+// function call, constructed directly, never a named local), so the
+// language requires it to be constructed directly in the caller's
+// storage -- "copy elision" here isn't optional, and isn't really
+// "eliding" anything, because no copy or move was ever going to happen
+// in the first place. The fact that this function compiles at all, for a
+// type with copy and move both deleted, is the proof.
+immovable_tag make_immovable_tag(int id)
+{
+    return immovable_tag(id);
 }
 
 // 4. Functor
@@ -172,32 +217,7 @@ std::unique_ptr<int> ret_unique_ptr()
 // and capture all local names used by value is [=]
 
 
-// 5. Variadics
-// an arbitrary number of arguments of arbitrary types
-// Should be at least 3 functions:
-// * recursive call for all params
-// * call for the head param
-// * end-of-recursion
-
-// recursive call for all params
-template <typename T>
-void process(T t)
-{
-    std::cout << t << "=" << typeid(t).name() << std::endl;
-}
-
-// close recursion
-void variadic_func() {}
-
-// call for the head param
-template <typename T, typename... Tail>
-void variadic_func(T head, Tail... tail)
-{
-    process(head);
-    variadic_func(tail...);
-}
-
-// 6. Type aliases
+// 5. Type aliases
 // introduce a synonym for a type or a template
 
 // as a synonym of typedef
@@ -231,6 +251,28 @@ void show_complex()
     std::cout << c1.imag() << std::endl;
     std::cout << c2.imag() << std::endl;
     std::cout << c3.imag() << std::endl;
+
+    assert((c2 + c3) == cpp::complex(2.0, 2.0));
+
+    // The defaulted <=> orders lexicographically by (re_, im_), so (0,5)
+    // sorts as LESS than (1,0) even though (0,5) has the larger magnitude
+    // -- living proof that this "ordering" carries no mathematical
+    // meaning about complex numbers, only the one the member declaration
+    // order happened to assign it.
+    cpp::complex small_magnitude_but_lex_greater(1.0, 0.0);
+    cpp::complex large_magnitude_but_lex_less(0.0, 5.0);
+    assert(large_magnitude_but_lex_less < small_magnitude_but_lex_greater);
+
+    // A single defaulted <=> gives every relational operator for free.
+    assert(c2 < c3);
+    assert(c3 > c2);
+    assert(c2 <= c2);
+    assert(c2 >= c2);
+
+    // But == needed its own separate `= default` -- <=> alone does not
+    // imply it.
+    assert(cpp::complex(1.0, 2.0) == c3);
+    assert(c1 != c2);
 }
 
 void show_vector()
@@ -243,14 +285,12 @@ void show_return_by_move()
 {
     std::unique_ptr<int> p = cpp::ret_unique_ptr();
     std::cout << *p << std::endl;
+
+    cpp::immovable_tag tag = cpp::make_immovable_tag(42);
+    assert(tag.id_ == 42);
 }
 
 // show lambdas in 11
-
-void show_variadics()
-{
-    cpp::variadic_func(1, 1.2, "hello");
-}
 
 void show_type_aliaces()
 {
@@ -266,7 +306,7 @@ int main()
 {
     show_complex();
     show_vector();
-    show_variadics();
+    show_return_by_move();
     show_type_aliaces();
     return 0;
 }

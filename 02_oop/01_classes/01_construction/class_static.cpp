@@ -1,14 +1,17 @@
-#include <iostream>
 #include "construct.h"
+
+#include <cassert>
+#include <iostream>
+#include <thread>
+#include <vector>
 
 SimpleClass sc_global;
 
 void show_construct_destruct()
 {
     std::cout << std::endl << "Create automatic objects" << std::endl;
- 
-    // 1.Named object on stack
-    // If the object contains constants and references, it can't be constructed by default
+
+    // 1. Named object on stack.
     {
         SimpleClass c;
         SimpleClass d;
@@ -17,73 +20,96 @@ void show_construct_destruct()
         }
         NonCopyClass nc;
     }
-    // Created in order c-d-c1-nc, destroyed in order c1-nc-d-c
+    // Created in order c-d-c1-nc, destroyed in order c1-nc-d-c.
 
-    // 2. Dynamic object in heap (new/delete).
+    // 2. Dynamic object in heap (new/delete) -- SimpleClass has a
+    // user-declared default constructor, so () vs no-() makes no
+    // difference for it; see show_aggregate_init_forms() for the case
+    // where it does.
     std::cout << std::endl << "Create dynamic objects" << std::endl;
-
-    // If the class has only automatic default c-tor
-    // this calling form с() will zero the memory...
     SimpleClass* pc1 = new SimpleClass();
-    // ... but this won't
     SimpleClass* pc2 = new SimpleClass;
+    delete pc1; pc1 = nullptr;
+    delete pc2; pc2 = nullptr;
 
-    // For the raw pointer, nullptr is 'unused' sign
-    delete pc1; pc1 = 0;
-    delete pc2; pc2 = 0;
-
-    // 3. Non-static class member
+    // 3. Non-static class member.
     std::cout << std::endl << "Create non-static member" << std::endl;
-    // Default c-tor for internal
     {
         SimpleClass c1;
     }
 
-
-    // 4. Object-element of C-array
+    // 4. Object-element of a C array.
     std::cout << std::endl << "Create objects array " << std::endl;
-
-    // ! C-array elements are constructed by default
     SimpleClass arr_c[5];
-    // One can use c-tor with parameters in C-arrays
     SimpleClass arr_1[] = { SimpleClass(2), SimpleClass(sc_global) };
-    // and even implicit conversion
-    SimpleClass arr_2[] = { 1, 2 };
+    SimpleClass arr_2[] = { 1, 2 }; // implicit int -> SimpleClass conversion
 
-    // 5. Local static object
+    // 5. Local static object.
     std::cout << std::endl << "Create local static objects " << std::endl;
     create_static(0);
     create_static(1);
     create_static(2);
 
-    // Static object is always constructed before the first use
-    // Such an approach is called lazy initialization,
-    // and utilized in the singleton pattern
     int st = return_static();
+    (void)st;
 
-    // 6. Global static object
-    // Constructors of global objects are called before main() in the order of their declaration
-    // The order in different translation units is unspecified
+    // 6. Global/namespace-scope object: sc_global, above, already ran its
+    // constructor before main() started.
 
-    // 7. Temporary object
-    // For the temporary object, the lifetime is the same as the lifetime of the expression
+    // 7. Temporary object.
     std::cout << std::endl << "Create temporary object " << std::endl;
     SimpleClass(5);
-    // Also, implicit copying happen during passing and returning objects by value,
-    // and during throwing and catching exceptions
 
-    // 8. Object created by a user-defined allocator
-    {
-        // see 01_c_subset/06_memory_management/01_memory_management.cpp
-    }
+    // 8. Object created by a user-defined allocator: see 02_memory/.
 
-    // 9. Member of union.
-    // Union is a special class, which allows to store different types in the same memory
-    // It can't have constructors, destructors, and virtual functions
+    // 9. Union member: not applicable -- a union cannot have members with
+    // constructors or destructors at all.
 }
 
+// `new T()` value-initializes; `new T` default-initializes. For a class
+// with a user-provided default constructor (SimpleClass, SimpleStruct)
+// these end up doing the same thing -- the constructor runs either way.
+// The difference is only observable for a type with NO user-declared
+// constructor at all: an aggregate.
+void show_aggregate_init_forms()
+{
+    AggregateOfInts* zeroed = new AggregateOfInts(); // value-init: every member zeroed
+    assert(zeroed->a == 0 && zeroed->b == 0);
+    delete zeroed;
+
+    AggregateOfInts* indeterminate = new AggregateOfInts; // default-init: members left indeterminate
+    // Deliberately not read or asserted on: an indeterminate int's value
+    // is unspecified, and the point stands without having to read it.
+    delete indeterminate;
+}
+
+// A local static's first-use initialization is guaranteed thread-safe
+// since C++11 -- no caller-side locking needed, and no risk of running
+// the initializer twice even if multiple threads race to be first. Before
+// C++11 this was implementation-defined; some compilers got it wrong.
+void show_local_static_is_thread_safe()
+{
+    constexpr int n_threads = 8;
+    std::vector<int*> addresses(n_threads, nullptr);
+    std::vector<std::thread> threads;
+
+    for (int i = 0; i < n_threads; ++i) {
+        threads.emplace_back([&addresses, i] {
+            addresses[i] = &return_static(); // first-use race, by construction
+        });
+    }
+    for (auto& t : threads)
+        t.join();
+
+    for (int i = 1; i < n_threads; ++i)
+        assert(addresses[i] == addresses[0]); // exactly one instance, however many racers
+}
 
 int main()
 {
+    show_construct_destruct();
+    show_forward_declared_by_value();
+    show_aggregate_init_forms();
+    show_local_static_is_thread_safe();
     return 0;
 }

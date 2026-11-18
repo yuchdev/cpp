@@ -1,4 +1,6 @@
+#include <cassert>
 #include <iostream>
+#include <limits>
 #include <new>
 
 #include "user_alloc.h"
@@ -20,15 +22,18 @@ The user-defined new_handler can:
 * terminate the program by `abort()` or `exit()`
 */
 
-// Inherit from the mixture-class
+// Inherit from the mixture-class. Note what is NOT here: a deliberately
+// huge member array to force an allocation failure "by sheer size". On a
+// modern 64-bit system with virtual-memory overcommit, a multi-gigabyte
+// allocation can succeed immediately (no physical page is touched until
+// something writes to it), so that classic textbook trick is no longer
+// reliable -- see show_new_handler() below for how this example actually
+// forces the failure deterministically instead.
 class LargeObject : public NewHandlerSupport<LargeObject>
 {
 public:
     LargeObject() {}
     ~LargeObject() {}
-private:
-    // very large array, will throw out of memory
-    char large_array[2147483646];
 };
 
 // Inherit from the mixture-class again
@@ -37,9 +42,6 @@ class SmallObject : public NewHandlerSupport<SmallObject>
 public:
     SmallObject() {}
     ~SmallObject() {}
-private:
-    // everything ok should be here
-    char large_array[42];
 };
 
 void test_placement_new_handler()
@@ -83,44 +85,54 @@ void show_user_alloc()
         delete x;
     }
 
-    // new_handler replacement new overload
+    // new_handler replacement new overload. sizeof(user_alloc) is tiny,
+    // so a plain `new (handler) user_alloc()` would never actually fail
+    // and the handler would never run -- calling operator new directly
+    // with an explicit, impossible size is the only deterministic way to
+    // prove the handler-replacement path actually works, as opposed to
+    // "happened not to be tested".
     {
         std::cout << "Test placement new overload" << '\n';
-        user_alloc* x = new (test_placement_new_handler)user_alloc();
-        x->test();
-        delete x;
+        try {
+            void* p = user_alloc::operator new(
+                std::numeric_limits<size_t>::max() / 2, test_placement_new_handler);
+            (void)p;
+            assert(false); // unreachable: the handler always throws
+        }
+        catch (const bad_alloc&) {
+            std::cout << "handler-replacement new correctly threw bad_alloc\n";
+        }
     }
 }
 
 void show_new_handler()
 {
-
-    // Showcase of memory pool, mixture-class replacing new_handler
-    // Let's try a very large object
+    // Showcase of the CRTP mixture-class replacing new_handler per class.
+    // Force LargeObject's mixin-provided operator new to request a size
+    // no real system can satisfy, instead of relying on sizeof(LargeObject)
+    // being "large enough to fail" by itself -- see the comment on
+    // LargeObject's declaration for why that no longer works reliably.
     try {
         LargeObject::set_new_handler(NewHandlerSupport<LargeObject>::no_more_memory);
-        LargeObject* x = new LargeObject();
-        delete x;
+        void* p = LargeObject::operator new(std::numeric_limits<size_t>::max() / 2);
+        (void)p;
+        assert(false); // unreachable: no_more_memory() always throws
     }
     catch (const std::bad_alloc& e) {
         std::cerr << "Lack of memory: " << e.what() << '\n';
     }
 
-    // Let's try regular object
-    try {
-        SmallObject::set_new_handler(NewHandlerSupport<SmallObject>::no_more_memory);
-        SmallObject* x = new SmallObject();
-        delete x;
-    }
-    catch (const std::bad_alloc& e) {
-        std::cerr << "Lack of memory: " << e.what() << '\n';
-    }
+    // SmallObject's allocation genuinely, normally succeeds -- its own
+    // per-class handler is installed but is never actually invoked.
+    SmallObject::set_new_handler(NewHandlerSupport<SmallObject>::no_more_memory);
+    SmallObject* x = new SmallObject();
+    delete x;
 }
-
 
 int main()
 {
     show_user_alloc();
+    show_new_handler();
     return 0;
 }
 

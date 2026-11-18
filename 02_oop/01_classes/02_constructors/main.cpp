@@ -2,6 +2,10 @@
 #include <cmath>
 #include <complex>
 #include <algorithm>
+#include <cassert>
+#include <type_traits>
+#include <utility>
+#include <vector>
 
 /*
 
@@ -197,29 +201,11 @@ void show_delegate_constructor()
     cpp::my_delegate d2 { 666 };
 }
 
-//5. static member init(17.4.5)
-namespace cpp
-{
-
-// It is possible to initialize a static member in the class declaration. 
-// The static member must be a const of an integral or enumeration type, 
-// or a constexpr of a literal type (10.4.3), and the initializer must be a constant-expression
-struct my_statics
-{
-    // all these statics ok in the class
-    static const int i1 = 1;
-    static const unsigned long l1 = 1ul;
-    static const long long l2 = 1ll;
-
-    static const int i2 = 1 + 2;
-
-    // sqrt not constexpr
-    // static const int i2 = std::sqrt(9);
-
-    static constexpr std::complex<int> c1 { 1,2 };
-};
-
-} // namespace cpp
+// A static member of integral/enumeration type (static const) or literal
+// type (static constexpr) may be initialized directly in the class body,
+// as long as the initializer is itself a constant expression -- see
+// my_statics in the README; not repeated here since it's pure syntax with
+// nothing to actually exercise at runtime.
 
 //6. Movable. operator= safety(17.5.1)
 namespace cpp
@@ -467,6 +453,127 @@ void show_deleted()
 
 // See more examples with =delete in Ch18
 
+// 10. Rule of 0/3/5 suppression rules, proven at compile time and run time
+//
+// A user-declared destructor suppresses the implicit move constructor and
+// move assignment outright -- they simply don't exist. It does NOT delete
+// the implicit copy constructor; that is only *deprecated* (since C++11,
+// still true through C++23 -- no standard has actually removed it, no
+// matter how often that claim gets repeated).
+//
+// The deceptive consequence: std::is_move_constructible_v<T> can be true
+// for a T with no move constructor at all, because the surviving copy
+// constructor can bind an rvalue too. The trait answers "can T be
+// constructed from a T&&", not "will that actually move anything".
+namespace cpp
+{
+
+struct counting_member
+{
+    static inline int copies = 0;
+    static inline int moves = 0;
+
+    counting_member() = default;
+    counting_member(const counting_member&) { ++copies; }
+    counting_member(counting_member&&) noexcept { ++moves; }
+};
+
+struct rule_of_0
+{
+    counting_member member;
+};
+
+// The ONLY special member declared here is the destructor.
+struct declares_destructor_only
+{
+    ~declares_destructor_only() {}
+    counting_member member;
+};
+
+static_assert(std::is_move_constructible_v<rule_of_0>);
+static_assert(std::is_move_constructible_v<declares_destructor_only>); // true, but misleadingly so
+
+} // namespace cpp
+
+void show_destructor_suppresses_move_not_copy()
+{
+    cpp::counting_member::copies = 0;
+    cpp::counting_member::moves = 0;
+
+    cpp::rule_of_0 a;
+    cpp::rule_of_0 b(std::move(a));
+    // No user-declared special members at all: the implicit move
+    // constructor is generated normally, and actually moves.
+    assert(cpp::counting_member::moves == 1);
+    assert(cpp::counting_member::copies == 0);
+
+    cpp::counting_member::moves = 0;
+    cpp::counting_member::copies = 0;
+
+    cpp::declares_destructor_only c;
+    cpp::declares_destructor_only d(std::move(c));
+    // is_move_constructible_v said this type is move-constructible.
+    // It compiles. It runs. It is, in fact, a copy -- std::move(c) binds
+    // to the (deprecated, still-generated) copy constructor, because no
+    // move constructor exists to prefer instead.
+    assert(cpp::counting_member::copies == 1);
+    assert(cpp::counting_member::moves == 0);
+}
+
+// 11. noexcept on the move constructor changes what std::vector actually
+// does on reallocation, not just what it's "allowed" to do
+namespace cpp
+{
+
+struct throwing_move_element
+{
+    static inline int copies = 0;
+    static inline int moves = 0;
+
+    throwing_move_element() = default;
+    throwing_move_element(const throwing_move_element&) { ++copies; }
+    throwing_move_element(throwing_move_element&&) /* not noexcept */ { ++moves; }
+};
+
+struct nothrow_move_element
+{
+    static inline int copies = 0;
+    static inline int moves = 0;
+
+    nothrow_move_element() = default;
+    nothrow_move_element(const nothrow_move_element&) { ++copies; }
+    nothrow_move_element(nothrow_move_element&&) noexcept { ++moves; }
+};
+
+} // namespace cpp
+
+void show_noexcept_move_changes_vector_growth_strategy()
+{
+    {
+        std::vector<cpp::throwing_move_element> v;
+        v.reserve(1);
+        for (int i = 0; i < 8; ++i)
+            v.emplace_back();
+        // vector uses std::move_if_noexcept internally: since this
+        // element's move constructor is not noexcept (and it HAS an
+        // accessible copy constructor to fall back on), reallocation
+        // copies the existing elements into the new buffer instead of
+        // moving them -- a throwing move mid-reallocation would leave
+        // vector unable to honor its exception-safety guarantee.
+        assert(cpp::throwing_move_element::copies > 0);
+    }
+    {
+        std::vector<cpp::nothrow_move_element> v;
+        v.reserve(1);
+        for (int i = 0; i < 8; ++i)
+            v.emplace_back();
+        // A noexcept move constructor can't throw partway through, so
+        // move_if_noexcept actually moves.
+        assert(cpp::nothrow_move_element::copies == 0);
+        assert(cpp::nothrow_move_element::moves > 0);
+    }
+}
+
 int main()
 {
     cpp::show_memberwise_init();
@@ -476,6 +583,8 @@ int main()
     show_movable();
     show_slicing_protection();
     show_default();
+    show_destructor_suppresses_move_not_copy();
+    show_noexcept_move_changes_vector_growth_strategy();
 
     return 0;
 }

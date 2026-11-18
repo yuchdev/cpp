@@ -1,11 +1,13 @@
-#include <iostream>
+#include <cassert>
+#include <clocale>
+#include <cstdio>
 #include <exception>
+#include <future>
+#include <iostream>
 #include <stdexcept>
 #include <string>
-#include <thread>
-#include <future>
 #include <system_error>
-#include <cstdio>
+#include <thread>
 #include <vector>
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -23,11 +25,15 @@ New features:
 * Error reporting using error codes: system_error (30.4.3)
 
 Examples:
-1. Error propagation basic
-2. Error propagation in multithreading
-3. packaged task propagation
+1. Error propagation basic -- exception_ptr preserves the ORIGINAL
+   dynamic type across the capture boundary, not just "some exception"
+2. Error propagation in multithreading -- same proof, across a
+   std::promise/std::future pair
+3. packaged task propagation -- same proof again, via std::packaged_task
 4. system_error example with file
-5. system_error + error_category
+5. system_error + error_category -- including actually exercising the
+   custom http_error category end to end (constructed below but never
+   once instantiated by the original version of this example)
 6. system_error + error_condition
 */
 
@@ -46,37 +52,49 @@ void propagate_exception(std::exception_ptr ex)
     }
 }
 
-void wrap_exception()
+// std::exception_ptr is a nullable pointer-like type that manages an
+// exception object which has been thrown and captured with
+// std::current_exception (std::make_exception_ptr builds one directly
+// from an exception object instead, without an active throw/catch).
+std::exception_ptr capture_out_of_range()
 {
-    // std::exception_ptr is a nullable pointer-like type that manages an exception object 
-    // which has been thrown and captured with std::current_exception
     std::exception_ptr ex_ptr;
-
-    // std::make_exception_ptr also creates ritht from exception object
 
     try {
         std::string s;
         const char c = s.at(1); // throw here
+        (void)c;
     }
     catch (...) {
         // hold thrown exception in ptr
         ex_ptr = std::current_exception();
     }
 
-    cpp::propagate_exception(ex_ptr);
+    return ex_ptr;
 }
 
 } // namespace cpp
 
 void show_exception_propagation()
 {
+    std::exception_ptr ex = cpp::capture_out_of_range();
+    assert(ex != nullptr);
 
+    bool caught_as_out_of_range = false;
     try {
-        cpp::wrap_exception();
+        cpp::propagate_exception(ex);
     }
-    catch (const std::exception& e) {
+    // Proof, not just a comment: exception_ptr/rethrow_exception carry
+    // the exception's ORIGINAL dynamic type through the capture, not
+    // merely "some std::exception" -- catching only the base here
+    // would not have distinguished the two.
+    catch (const std::out_of_range& e) {
+        caught_as_out_of_range = true;
         std::cout << e.what() << std::endl;
     }
+    catch (const std::exception&) {
+    }
+    assert(caught_as_out_of_range);
 }
 
 
@@ -120,16 +138,24 @@ void show_multithreading_propagation()
 
     std::thread t { cpp::thread_propagate_exception };
 
-    // instead of future current exception is thrown
+    // instead of future current exception is thrown -- and, same proof
+    // as above, the exact out_of_range type survives the trip through
+    // promise::set_exception()/future::get(), across the thread boundary
+    bool caught_as_out_of_range = false;
     try {
         auto f = cpp::global_promise.get_future();
         int result = f.get();
+        (void)result;
     }
-    catch (const std::exception& e) {
+    catch (const std::out_of_range& e) {
+        caught_as_out_of_range = true;
         std::cout << e.what() << std::endl;
+    }
+    catch (const std::exception&) {
     }
 
     t.join();
+    assert(caught_as_out_of_range);
 }
 
 // 3. packaged task propagation
@@ -147,14 +173,20 @@ void show_packaged_task_propagation()
 
     std::thread t { std::move(task) };
 
+    bool caught_as_out_of_range = false;
     try {
         // process exception from get()
         int res = f.get();
+        (void)res;
     }
-    catch (const std::exception& e) {
+    catch (const std::out_of_range& e) {
+        caught_as_out_of_range = true;
         std::cout << e.what() << std::endl;
     }
+    catch (const std::exception&) {
+    }
     t.join();
+    assert(caught_as_out_of_range);
 }
 
 
@@ -177,15 +209,25 @@ void call_system_specific()
 } // namespace cpp
 void show_system_error()
 {
+    bool caught = false;
     try {
         cpp::call_system_specific();
     }
     catch (const std::system_error& e) {
+        caught = true;
         std::cout << "code(): " << e.code() << std::endl;
         std::cout << "what(): " << e.what() << std::endl;
         std::cout << "code().value(): " << e.code().value() << std::endl;
         std::cout << "code().message(): " << e.code().message() << std::endl;
+
+        // EIO's numeric value and the fact it's std::system_category()
+        // are both portable to assert on POSIX; the human-readable
+        // message() text is not (it's libc-specific wording), so that
+        // part stays a printed observation rather than an assert.
+        assert(e.code().value() == EIO);
+        assert(e.code().category() == std::system_category());
     }
+    assert(caught);
 }
 
 
@@ -307,10 +349,52 @@ void show_custom_error_condition()
 
     std::error_code ec;
     cpp::some_http_handler(ec);
-    // TODO: does not work?
-    if (ec == std::errc::permission_denied) {
+    // This equivalence check does work: std::system_category()'s own
+    // default_error_condition() maps the platform EACCES/ERROR_ACCESS_DENIED
+    // value it was assigned to std::errc::permission_denied, so the
+    // comparison below succeeds.
+    bool matched = (ec == std::errc::permission_denied);
+    assert(matched);
+    if (matched) {
         std::cout << "error code:" << ec.default_error_condition().message() << std::endl;
     }
+}
+
+// The http_category_impl/http_error machinery above is fully built but
+// the original version of this example never actually constructed a
+// single std::error_code FROM it -- theory (a custom error_category)
+// with no code exercising it at all. This closes that gap end to end:
+// the is_error_code_enum<http_error> specialization, the implicit
+// conversion it enables, the category's own name()/message(), and the
+// default_error_condition() mapping onto std::errc.
+void show_custom_http_error_category()
+{
+    // is_error_code_enum<http_error> is what makes this implicit
+    // conversion compile at all -- http_error now behaves as a
+    // first-class error_code source, the same relationship std::errc
+    // has with std::generic_category().
+    std::error_code forbidden = cpp::http_error::forbidden;
+
+    assert(std::string(forbidden.category().name()) == "http");
+    assert(forbidden.value() == static_cast<int>(cpp::http_error::forbidden));
+    assert(forbidden.message() == "Forbidden");
+
+    // default_error_condition() is where http_error::forbidden claims
+    // equivalence with the portable std::errc::permission_denied --
+    // this is the mapping the category exists to provide, not merely
+    // code that happens to compile.
+    assert(forbidden == std::errc::permission_denied);
+
+    std::error_code gateway_timeout = cpp::http_error::gateway_timeout;
+    // gateway_timeout has no explicit case in default_error_condition(),
+    // so it falls through to the default branch: a condition under
+    // http_category() itself, equivalent to nothing in std::errc.
+    assert(!(gateway_timeout == std::errc::permission_denied));
+    assert(gateway_timeout.default_error_condition().category() == cpp::http_category());
+
+    std::cout << "http forbidden: " << forbidden.message()
+               << " (equivalent to " << forbidden.default_error_condition().message() << ")"
+               << std::endl;
 }
 
 //6. system_error + error_condition
@@ -366,7 +450,9 @@ void show_error_condition()
     // Step 1: determine whether the enum is an error code or condition
     // Step 2: associate the value with an error category
     // Step 3: implicitly converts from errc to error_condition
-    if (ec == std::errc::file_exists) {
+    bool matched = (ec == std::errc::file_exists);
+    assert(matched);
+    if (matched) {
         std::cout << "error code:" << ec.default_error_condition().message() << std::endl;
     }
 }
@@ -376,7 +462,7 @@ int main()
 {
 
     // correct system messages
-    setlocale(0, "");
+    std::setlocale(LC_ALL, "");
 
     // propagation
     show_exception_propagation();
@@ -386,6 +472,7 @@ int main()
     // system_error
     show_system_error();
     show_custom_error_condition();
+    show_custom_http_error_category();
     show_error_condition();
 
     return 0;

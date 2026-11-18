@@ -8,12 +8,12 @@ The examples in this directory are:
 2. [`02_simple_exception/triangle.h`](02_simple_exception/triangle.h), [`triangle.cpp`](02_simple_exception/triangle.cpp), [`main.cpp`](02_simple_exception/main.cpp) — a small exception hierarchy nested inside the class that throws it; ordering catch clauses from derived to base; catching a private, unnamed derived type only through its public base.
 3. [`03_complex_exception/main.cpp`](03_complex_exception/main.cpp) — exceptions from constructors under multiple/virtual inheritance, private exception inheritance.
 4. [`04_controlled_section/controlled.h`](04_controlled_section/controlled.h), [`controlled.cpp`](04_controlled_section/controlled.cpp), [`main.cpp`](04_controlled_section/main.cpp) — the "controlled constructor" (function-try-block) pattern.
-5. [`05_noexcept/main.cpp`](05_noexcept/main.cpp) — `noexcept` specifier/operator, conditional `noexcept`, a `finally`-style RAII helper, a custom `terminate` handler.
-6. [`06_quick_exit/main.cpp`](06_quick_exit/main.cpp) — `quick_exit` / `at_quick_exit` as a deliberately destructor-skipping shutdown path.
-7. [`07_system_error/system_err.cpp`](07_system_error/system_err.cpp) — `exception_ptr`/`current_exception` propagation across threads, `<system_error>`, a custom `error_category`.
-8. [`08_expected_unexpected/main.cpp`](08_expected_unexpected/main.cpp) — `std::expected`/`std::unexpected` (C++23): a non-exception error channel, `std::bad_expected_access`, and the `transform`/`and_then`/`or_else` monadic operations.
+5. [`05_noexcept/main.cpp`](05_noexcept/main.cpp) — `noexcept` specifier/operator, conditional `noexcept` exercised on both its true and false branch, a `finally`-style RAII helper, a custom `terminate` handler — including a forked child process that actually hits a `noexcept` violation, to show it is `SIGABRT`/`std::terminate()`, not a catchable exception.
+6. [`06_quick_exit/main.cpp`](06_quick_exit/main.cpp) — `quick_exit` / `at_quick_exit` as a deliberately destructor-skipping shutdown path, with two `at_quick_exit` callbacks to show they run in reverse registration order.
+7. [`07_system_error/system_err.cpp`](07_system_error/system_err.cpp) — `exception_ptr`/`current_exception` propagation across threads (proving the exception's *original* dynamic type survives the trip, not just `std::exception`), `<system_error>`, a custom HTTP-status `error_category` constructed **and** exercised end to end (`error_code` conversion, `message()`, `default_error_condition()` equivalence with `std::errc`).
+8. [`08_expected_unexpected/main.cpp`](08_expected_unexpected/main.cpp) — `std::expected`/`std::unexpected` (C++23): a non-exception error channel, `std::bad_expected_access`, and the `transform`/`and_then`/`or_else` monadic operations exercised on both their success and their error/short-circuit paths.
 
-**Build status of these eight leaves, stated once here:** `01_basic_exceptions` through `05_noexcept` and `07_system_error` build and run as part of this repo's CMake tree. Two remain unbuildable on this specific machine, for reasons that are toolchain gaps rather than bugs in the examples: `06_quick_exit` is standards-conformant C++11 but fails to *link* on macOS, because Apple's libc++ declares `quick_exit`/`at_quick_exit` as `using_if_exists` and the platform's own C library doesn't provide them; `08_expected_unexpected` is standards-conformant C++23, but this machine's Xcode 14 libc++ doesn't ship `<expected>` at all yet (confirmed: the header itself is missing, not merely some API surface of it), so it could not be compile-verified here even though it has its own `CXX_STANDARD 23` property set correctly. Read all eight for the ideas; on a newer libc++/libstdc++, expect six of them to run, and all eight once a platform ships `quick_exit`/`<expected>`.
+**Build status of these eight leaves, stated once here:** `01_basic_exceptions` through `05_noexcept` and `07_system_error` build and run as part of this repo's CMake tree. Two remain unbuildable on this specific machine, for reasons that are toolchain gaps rather than bugs in the examples: `06_quick_exit` is standards-conformant C++11 but fails to *compile* on macOS (`error: reference to unresolved using declaration`), because Apple's libc++ declares `quick_exit`/`at_quick_exit` as `using_if_exists` and the platform's own C library doesn't provide them, so the names are declared but never actually resolve; `08_expected_unexpected` is standards-conformant C++23, but this machine's Xcode 14 libc++ doesn't ship `<expected>` at all yet (confirmed: the header itself is missing, not merely some API surface of it), so it could not be compile-verified here even though it has its own `CXX_STANDARD 23` property set correctly. Read all eight for the ideas; on a newer libc++/libstdc++, expect six of them to run, and all eight once a platform ships `quick_exit`/`<expected>`.
 
 `01_basic_exceptions` and `02_simple_exception` were, until recently, excluded from the build for reasons worth recording here even though they're fixed now: `01_basic_exceptions/main.cpp` used to `#include` six headers that either belonged to other leaves, were Windows-SEH-specific content already dropped from this chapter, or were lost entirely — the surviving, in-scope material (built-in-type exceptions, `std::out_of_range`) is what remains, now self-contained in `ex.h`. `02_simple_exception/main.cpp` called into a `triangle` class that had never been checked in; `triangle.h`/`triangle.cpp` reconstruct it from how `main.cpp` already used it.
 
@@ -129,6 +129,8 @@ A container offering the basic or strong guarantee is implicitly asking somethin
 
 ## 3. The controlled constructor (function-try-block)
 
+> **A gap this chapter's examples had to fix to actually test both halves.** `controlled`'s constructor originally threw *unconditionally* — meaning a `controlled` object could never actually finish constructing, which meant `controlled_method()` (the other function-try-block this section is about) could never be reached by any program at all. Both now take a `should_fail` parameter (defaulting to `true`, preserving the original throwing behavior for a default-constructed `controlled`), so `04_controlled_section/main.cpp` can exercise, and `assert`, all four combinations: constructor throws, constructor succeeds, method throws (and does *not* propagate — see below), method succeeds.
+
 ### Intercepting exceptions from the initializer list
 
 A constructor's member-initializer list runs before the constructor body, and an exception thrown there is otherwise invisible to the constructor itself. A **function-try-block constructor** ("controlled constructor") wraps both:
@@ -186,7 +188,7 @@ The specifier can take a compile-time boolean, and the `noexcept` *operator* ans
 
 ```cpp
 template<typename T>
-void copy_function(T& x) noexcept(std::is_pod<T>::value)
+void copy_function(T& x) noexcept(std::is_trivially_copyable_v<T>)
 {
     T tmp(x);
 }
@@ -197,6 +199,8 @@ void call_func(std::vector<T>& v) noexcept(noexcept(func(v[0])))
     for (auto x : v) func(x);
 }
 ```
+
+(`std::is_trivially_copyable_v` here, not `std::is_pod` — `is_pod` was deprecated in C++20; the direct modern replacement for "is a raw, memcpy-style copy of this type safe and non-throwing" is `is_trivially_copyable`, not the old POD category. `05_noexcept/main.cpp` exercises both branches of this conditional — a trivial type, where it's `noexcept`, and a type holding a `std::string`, where it genuinely isn't — rather than only ever instantiating the function with a type that takes the `true` branch.)
 
 This composition — a function's own `noexcept`-ness depending on whether some expression it uses is itself `noexcept` — is exactly how generic standard-library operations (container `swap`, move constructors, etc.) propagate "doesn't throw" guarantees through template code without the author hand-writing it for every instantiation.
 
@@ -232,6 +236,8 @@ terminate_handler old_handler = ::set_terminate(&my_handler);
 
 `std::terminate()` is invoked in several specific situations worth knowing by name: no matching handler is found for a thrown exception; a `noexcept` function tries to let an exception escape; a destructor throws while already unwinding; the exception-handling machinery itself fails; a bare `throw;` executes with no exception currently being handled; a static or thread-local object's constructor or destructor throws out of that context; or an `atexit`-registered function throws. The default terminate handler calls `std::abort()`, which does **not** run destructors or flush buffers. Installing your own handler — as above, calling `std::exit()` instead — lets you run global/static destructors on the way out, at the cost of running on a program state that may be arbitrarily broken.
 
+`05_noexcept/main.cpp` proves both halves of that last sentence rather than just asserting them: it `fork()`s a child process specifically to hit the `check_noexcept2()` violation above, once with the *default* terminate handler installed (the child dies from `SIGABRT`, confirmed via `waitpid`/`WIFSIGNALED`) and once with `my_handler` installed (the child now exits cleanly with status `1`, confirmed via `WIFEXITED`/`WEXITSTATUS`). The fork is necessary, not decorative: hitting this violation directly in the test process would terminate the test binary along with it, which is exactly why the rest of this chapter's examples can `assert()` their way through every other exception path but this one needs a disposable child process instead.
+
 ---
 
 ## 5. `quick_exit` and deliberately skipping cleanup
@@ -247,11 +253,11 @@ std::at_quick_exit(&my_cleanup);
 std::quick_exit(0);
 ```
 
-`quick_exit` sits between `exit()` and `abort()`: like `exit()`, it returns a status code to the OS cleanly, but like `abort()`, it does not run automatic-storage destructors or `atexit`-registered functions. Only callbacks registered specifically via `at_quick_exit` run, in reverse registration order. It exists for situations where normal static-destructor order is itself risky or meaningless (multi-process shutdown, corrupted global state, certain embedded/real-time shutdown paths) but you still want a chance to flush something specific before the process disappears.
+`quick_exit` sits between `exit()` and `abort()`: like `exit()`, it returns a status code to the OS cleanly, but like `abort()`, it does not run automatic-storage destructors or `atexit`-registered functions. Only callbacks registered specifically via `at_quick_exit` run, **in reverse registration order** — the same LIFO rule as `atexit`. `06_quick_exit/main.cpp` registers two callbacks, not one, specifically to exercise that ordering rather than merely state it; a single callback can't distinguish "runs in registration order" from "runs in reverse order." It exists for situations where normal static-destructor order is itself risky or meaningless (multi-process shutdown, corrupted global state, certain embedded/real-time shutdown paths) but you still want a chance to flush something specific before the process disappears.
 
 ### A genuine toolchain gap, not a code defect
 
-This example is standards-conformant C++11 and builds fine on, e.g., recent GCC/Clang-on-Linux or MSVC. On this repo's macOS/Xcode toolchain specifically, it currently fails: Apple's libc++ declares `quick_exit`/`at_quick_exit` with the `using_if_exists` attribute because macOS's own C library doesn't actually provide them, so the declarations exist but the symbols don't link. That is a platform-library gap between the C++ standard and Apple's C runtime, not a defect in the example — worth knowing in general, because "my code didn't build" and "my toolchain doesn't implement this part of the standard yet" are different problems that call for different fixes.
+This example is standards-conformant C++11 and builds fine on, e.g., recent GCC/Clang-on-Linux or MSVC. On this repo's macOS/Xcode toolchain specifically, it currently fails to *compile* (`error: reference to unresolved using declaration`, not a link error): Apple's libc++ declares `quick_exit`/`at_quick_exit` with the `using_if_exists` attribute because macOS's own C library doesn't actually provide them, so the names are declared in `<cstdlib>` but never resolve to anything real. That is a platform-library gap between the C++ standard and Apple's C runtime, not a defect in the example — worth knowing in general, because "my code didn't build" and "my toolchain doesn't implement this part of the standard yet" are different problems that call for different fixes. Because this leaf can't be compiled here, its ordering claim above is checked against the standard and cppreference, not against an actual run on this machine — noted directly in the file too.
 
 ---
 
@@ -302,6 +308,8 @@ if (ec == std::errc::file_exists) { /* true on either platform */ }
 ### Defining your own category
 
 `system_err.cpp` builds a small HTTP-status `error_category` as a worked example: define an enum of your codes, derive a class from `std::error_category` overriding `name()` and `message()`, provide a free function returning a reference to a single static instance of it, provide `make_error_code()`, and specialize `std::is_error_code_enum<YourEnum>` to `true_type` so the standard machinery recognizes your enum as error-code-shaped. This is the same registration mechanism the standard library's own `std::errc` uses internally — nothing about it is special-cased for the standard library's own types.
+
+`show_custom_http_error_category()` is the function that actually exercises all of this: a previous version of this file built the entire `http_category_impl`/`http_error` machinery above and never once constructed an `error_code` from it anywhere in `main()` — fully worked-out theory with no code behind it. It now converts `http_error::forbidden` to an `error_code` through the implicit conversion `is_error_code_enum` enables, checks `category().name()`/`message()` against the category's own overrides, and asserts the `default_error_condition()` equivalence with `std::errc::permission_denied` actually holds — plus the negative case, `http_error::gateway_timeout`, which has no explicit mapping and so falls through to `default_error_condition()`'s fallback branch instead of matching any `std::errc`.
 
 ### Why have both exceptions and error codes at all
 
@@ -372,6 +380,8 @@ auto recovered = parse_int("nope").or_else([](parse_error) -> std::expected<int,
 ```
 
 `transform` runs only on success and leaves an existing error untouched; `and_then` chains another fallible step, short-circuiting at the first failure exactly like a hand-written sequence of early-return error checks would; `or_else` is the error-path mirror of `and_then`, letting a later step recover from (or translate) an earlier failure. All three compose the way `std::optional`'s monadic operations do — `expected` is, in effect, `optional` with a reason attached to the empty case.
+
+`08_expected_unexpected/main.cpp` asserts both branches of each of the three, not just the success path shown above: `transform` on an already-failed `expected` (the function never runs, the original error passes through unchanged), `and_then` short-circuiting on an already-failed input (so a parse failure can never be misread as, say, "parsed as `0`, then divided by zero"), and `or_else` on an already-successful `expected` (the recovery function never runs). As noted at the top of this file, this leaf's `<expected>` header isn't available on this machine's toolchain, so these assertions are checked by hand against the standard's specified behavior rather than by an actual compiler and test run here.
 
 ### Where this fits next to exceptions and `error_code`
 

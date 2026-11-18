@@ -13,8 +13,8 @@ Confusing those questions is how innocent-looking class hierarchies turn into Li
 
 The examples in this directory are:
 
-1. [`01_simple_inheritance/classes.h`, `classes.cpp`](01_simple_inheritance/classes.h) — an `Employee`/`Manager` hierarchy showing plain, non-virtual inheritance: what is and is not inherited, name hiding, and explicit base-class calls.
-2. [`02_polymorphism/virtual.h`, `virtual.cpp`](02_polymorphism/virtual.h) — static vs. dynamic binding, virtual destructors, pure virtual destructors, default-argument binding, covariant return types, and the vtable/vptr model.
+1. [`01_simple_inheritance/classes.h`, `classes.cpp`](01_simple_inheritance/classes.h) — an `Employee`/`Manager` hierarchy showing plain, non-virtual inheritance: what is and is not inherited, name hiding, explicit base-class calls, and (via `TemporaryEmployee`) C++11 inheriting constructors as the contrasting case to writing one by hand.
+2. [`02_polymorphism/virtual.h`, `virtual.cpp`](02_polymorphism/virtual.h) — static vs. dynamic binding, virtual destructors, pure virtual destructors, default-argument binding, covariant return types, the vtable/vptr model, and `override`/`final` (including the one declaration that must *not* compile with `override`, and the function- and class-level forms of `final`, both proven with real negative-compile cases kept behind `#if 0`).
 3. [`03_upcasting/currency.h`, `currency.cpp`](03_upcasting/currency.h) — a `Currency`/`Usd` hierarchy showing upcasting, downcasting, reference polymorphism for free functions, and when operators are worth making virtual.
 4. [`04_interfaces/abstract.h`, `abstract.cpp`](04_interfaces/abstract.h) — a `shape`/`circle`/`rectangle`/`sphere`/`cube` hierarchy showing abstract classes, pure virtual interfaces, and the square/rectangle anti-pattern.
 5. [`05_adapter/adapter.h`, `adapter.cpp`](05_adapter/adapter.h) — the Adapter design pattern built from private and protected inheritance over a `deque`-backed type.
@@ -87,6 +87,8 @@ Manager::Manager(const char* name, short level, int salary)
 ```
 
 If the base has no default constructor, the derived constructor must call a base constructor explicitly in its member-initializer list, as above. Destructors run automatically in reverse order of construction: the most-derived destructor body runs first, then each base destructor up the chain, with no explicit call needed.
+
+"Never inherited" has had one escape hatch since C++11: a derived class can explicitly *opt in* to a base's constructor set with `using Base::Base;` instead of writing forwarding constructors by hand. `classes.h`'s `TemporaryEmployee` does this, right alongside `Manager`'s hand-written constructor, as a direct contrast (Standards timeline, below, has the mechanics).
 
 `operator=` and friend functions follow the same rule: a derived class does not inherit its base's assignment operator or friends. If you need one, write it, and have it call the base's version explicitly.
 
@@ -202,6 +204,8 @@ protected:
 Now `call_protected_function`, still compiled once against `BaseVirt`, dispatches to whichever `func` belongs to the object's actual dynamic type. `virtual`-ness is inherited: once a base declares a function virtual, every override down the hierarchy is virtual too, whether or not the keyword is repeated. Repeating `virtual` in a derived override is legal but discouraged — write `override` instead, so the compiler verifies you actually matched a base signature rather than accidentally declaring an unrelated overload.
 
 An override's signature must match the base's exactly, except that the return type may legally differ in the single, specific way covered below (covariant returns). If the parameter list differs at all, you have not overridden anything — you have hidden the base function with an unrelated overload, exactly as in the non-virtual case, and `override` is what catches that mistake at compile time instead of at a confused debugging session.
+
+`final` (also C++11) goes one step further than `override` in the opposite direction: written on a specific virtual function, it forbids any *further* override of that one function in any class deriving from this one; written directly after a class name, it forbids deriving from the class at all. Both are independent of `override` — a function can be `override final` (confirms it overrides something, *and* stops the chain here), and marking one function `final` has no effect on any other virtual function in the same class, which still overrides normally further down the hierarchy.
 
 ### Polymorphic classes need a virtual destructor
 
@@ -360,6 +364,7 @@ class Currency
 public:
     Currency();
     Currency(double amount);
+    virtual ~Currency();   // section 2's rule applies the moment operator*= below is virtual
     Currency& operator+=(const Currency& other);
     virtual Currency& operator*=(const Currency& other);
     // ...
@@ -696,9 +701,9 @@ Virtual functions, pure virtual functions, abstract classes, multiple and virtua
 
 ### C++11: `override`, `final`, and inheriting constructors
 
-C++11 added the `override` and `final` context-sensitive (not reserved) specifiers for member functions: `override` lets the compiler verify that a declaration actually overrides a base virtual function, and `final` forbids further overriding of that one function — or, applied directly after a class name, forbids further derivation from the class at all. Neither specifier is part of a function's type, and neither may be repeated in an out-of-class definition.
+C++11 added the `override` and `final` context-sensitive (not reserved) specifiers for member functions: `override` lets the compiler verify that a declaration actually overrides a base virtual function, and `final` forbids further overriding of that one function — or, applied directly after a class name, forbids further derivation from the class at all. Neither specifier is part of a function's type, and neither may be repeated in an out-of-class definition. [`02_polymorphism/virtual.h`](02_polymorphism/virtual.h) now uses `override` throughout wherever a declaration genuinely overrides something (and deliberately omits it on `Derived::func`, where `Base::func` isn't virtual and there is nothing to override — adding `override` there is a compile error, which is the point), and demonstrates both forms of `final` with the actual compile errors they produce, kept disabled behind `#if 0` per this repo's convention for code that must not compile.
 
-C++11 also introduced inheriting constructors (`using Base::Base;`), letting a derived class opt in to a base's constructor set instead of re-declaring forwarding constructors by hand.
+C++11 also introduced inheriting constructors (`using Base::Base;`), letting a derived class opt in to a base's constructor set instead of re-declaring forwarding constructors by hand. [`01_simple_inheritance/classes.h`](01_simple_inheritance/classes.h)'s `TemporaryEmployee` does exactly this, deliberately alongside `Manager`, which writes its own constructor by hand — the same base class, two different, equally legitimate choices.
 
 ### C++14: no changes to this topic
 

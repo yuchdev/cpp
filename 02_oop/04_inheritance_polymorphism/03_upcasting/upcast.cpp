@@ -1,6 +1,24 @@
 #include "currency.h"
 
+#include <cassert>
 #include <iostream>
+#include <sstream>
+
+namespace
+{
+    // print() writes directly to std::cout; capturing it lets these
+    // demos assert on what actually ran instead of only printing it for
+    // a human to eyeball.
+    template <typename F>
+    std::string captured_output(F&& f)
+    {
+        std::ostringstream out;
+        std::streambuf* old = std::cout.rdbuf(out.rdbuf());
+        f();
+        std::cout.rdbuf(old);
+        return out.str();
+    }
+}
 
 // Upcasting: a Usd is-a Currency, so a Usd converts implicitly to a
 // Currency reference. print() is NOT declared virtual in Currency, so
@@ -10,10 +28,10 @@
 void show_upcasting()
 {
     Usd u(42.0);
-
     Currency& as_base = u;
-    as_base.print(); // Currency::print(), NOT Usd::print()
-    u.print();        // Usd::print(), called through its own type
+
+    assert(captured_output([&] { as_base.print(); }) == "42 dollars\n"); // Currency::print(), NOT Usd::print()
+    assert(captured_output([&] { u.print(); }) == "42 rubles\n");        // Usd::print(), called through its own type
 }
 
 // Downcasting: converting a base-class object into a derived one.
@@ -26,11 +44,11 @@ void show_downcasting()
     Currency c(10.0);
 
     Usd converted(c);
-    converted.print();
+    assert(captured_output([&] { converted.print(); }) == "10 rubles\n");
 
     Usd u(1.0);
     u = c; // Usd::operator=(const Currency&)
-    u.print();
+    assert(captured_output([&] { u.print(); }) == "10 rubles\n");
 }
 
 // operator+= is non-virtual by design: both Currency and its only override
@@ -44,10 +62,10 @@ void show_friend_operators()
     Currency b(3.0);
 
     Currency sum = a + b;
-    sum.print();
+    assert(captured_output([&] { sum.print(); }) == "8 dollars\n");
 
     Currency diff = a - b;
-    diff.print();
+    assert(captured_output([&] { diff.print(); }) == "2 dollars\n");
 }
 
 int main()

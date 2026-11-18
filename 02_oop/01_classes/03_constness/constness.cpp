@@ -1,287 +1,154 @@
-#pragma ide diagnostic ignored "OCUnusedGlobalDeclarationInspection"
-#include <type_traits>
+#include <cassert>
 #include <iostream>
 
-// Arguments for using data accessors and mutators
-// * distinctive read-write access
-// * support of functional abstractness - class member could be replaced with calculation, cached, or even moved outside the class
-// * value evaluation, checking the consistency
-// * logging
-// * if we see open class member in method, we expect it to be this class member
-
-
-// It is allowed to declare structure and non-structure with the same name
-// (same for class, enum, union)
-void struct_one_name()
+namespace cpp
 {
-    struct struct_one_name
-    {
-        int a;
-    };
-
-    struct_one_name s;
-    s.a = 2;
-    int struct_one_name = 1;
-    static_assert(std::is_same<decltype(s.a), decltype(struct_one_name)>::value, "struct_one_name");
-}
-
-// Methods overload
-// https://en.cppreference.com/w/cpp/language/overload_resolution
 
 class SimpleClass
 {
 public:
-
     SimpleClass(char* const cp1) : cp1(cp1) {}
 
-    // Static members COULD be changed in const members, as it does not change class state
+    // A static data member is not part of any particular object's state,
+    // so a const member function -- which only promises not to mutate
+    // *this -- is free to change one. The object genuinely hasn't moved.
     void set_static(int i) const
     {
         a_stat = i;
     }
 
-    // const and non-const methods with same name
-    // When both versions are available, the logic is pretty straightforward: 
-    // const version is called for const objects
-    // non-const version is called for non-const objects
-
-    // TODO: overload rules
-    // https://www.learncpp.com/cpp-tutorial/introduction-to-function-overloading/
-    // https://en.cppreference.com/w/cpp/language/overload_resolution
-    // https://accu.org/journals/overload/13/66/kilpelainen_268/
-    // 
-    // TODO: function signature
-
-    // Static method coule be called with the class instance and with the class name
-    // construct::out_static_array() and c.construct::out_static_array();
-
-    // You can't set array size with the other class member, even with const static
-    // int arr1[sz];
-
 private:
-    // friend declarations of non-existent classes are ignored
-    friend class do_not_exists;
+    friend class do_not_exist; // a friend declaration of a non-existent class is simply ignored
 
     static int a6;
 
-    // unnamed enum could be considered const class member
-    // could be seen in pre-C++11 code, before in-place initialization was introduced
+    // Pre-C++11 stand-in for an in-class integer constant: consumes no
+    // storage, needs no out-of-class definition. Prefer `static constexpr`
+    // in new code; recognize this when reading older code.
     enum { c1 = 5, c2 = 7, c3 = 12 };
 
-    // mutable class member could always be changed 
-    // even being part of const or static object 
-    // Design may require this, if we deal with so-called "conceptual constness" 
-    // For example, cache in constant object could be mutable
+    mutable int a8 = 0;
 
-    mutable int a8;
-    // Opposite situation is also possible
-    // when class contains pointer, which is being changed inside the const method
-    // such method is const formally, but not conceptually
-
-    // constant pointer or pointer to constant?
-    // to determine it quickly, you can use "read backward" trick
-    char const* cp2; // pointer (*) to 'const' 'char'
-    const char* cp3; // pointer (*) to 'char' 'const'
-    char* const cp1; // 'const' pointer (*) to 'char'
+    // "Read backward" settles any ambiguity about which part is const:
+    char const* cp2 = nullptr; // pointer (*) to 'const' 'char'   -- pointee is const
+    const char* cp3 = nullptr; // pointer (*) to 'char' 'const'   -- identical to cp2, different spelling
+    char* const cp1;           // 'const' pointer (*) to 'char'   -- the pointer itself is const
     static int a_stat;
 };
 
+int SimpleClass::a_stat = 0;
 
+} // namespace cpp
 
-/**
- * In C++, the const keyword is used to indicate that a variable's value is read-only
- * and cannot be modified during program execution.
- * It can be applied to variables on the stack, function parameters, and class members.
- * Runtime constness refers to variables whose values are determined at runtime
- * but cannot be modified after initialization.
- * These variables are still read-only, but their values are not known until the program is executed
- */
-void runtime_constness()
+// Const and non-const overloads are two DIFFERENT functions. Overload
+// resolution picks between them using only the constness of the object
+// expression the call is made through -- not the constness of anything
+// the function happens to return, and not any property of the caller.
+namespace cpp
 {
-    const int max_size = 100;
-    enum { num_students = 30 };
-    const int sum = 5 + 7 * 9;
-}
 
-/**
- * In C++, the constexpr keyword can be used to indicate that a variable or function's value
- * can be computed at compile-time.
- * This allows the compiler to optimize code based on the assumption
- * that the value will not change during program execution
- */
-// For C++11/14
-constexpr int square(int x) {
-    return x * x;
-}
-
-constexpr int factorial(int n) {
-    int result = 1;
-    for (int i = 1; i <= n; ++i) {
-        result *= i;
-    }
-    return result;
-}
-
-// For C++17
-constexpr int fib(int n) {
-    if (n == 0) {
-        return 0;
-    }
-    else if (n == 1) {
-        return 1;
-    }
-    else {
-        int a = 0;
-        int b = 1;
-        for (int i = 2; i <= n; ++i) {
-            int c = a + b;
-            a = b;
-            b = c;
-        }
-        return b;
-    }
-}
-
-constexpr int sum_fibonacci(int n) {
-    int sum = 0;
-    for (int i = 0; i <= n; ++i) {
-        if (fib(i) % 2 == 0) {
-            sum += fib(i);
-        }
-    }
-    return sum;
-}
-
-
-// For C++20
-class Circle {
+class accessor_pair
+{
 public:
-    constexpr Circle(double r) : radius_(r) {}
-    constexpr double area() const {
-        return pi * radius_ * radius_;
+    explicit accessor_pair(int v) : value_(v) {}
+
+    const int& at() const
+    {
+        last_call_was_const = true;
+        return value_;
     }
-    constexpr void set_radius(double r) {
-        radius_ = r;  // allowed in C++20, as long as it doesn't affect the final value
+
+    int& at()
+    {
+        last_call_was_const = false;
+        return value_;
     }
+
+    static inline bool last_call_was_const = false;
+
 private:
-    double radius_;
-    static constexpr double pi = 3.14159265358979323846;
+    int value_;
 };
 
-void compiletime_constness()
+} // namespace cpp
+
+void show_const_overload_resolution()
 {
-    // In C++11, constexpr could only be used to specify that a function or variable's
-    // value or return value could be computed at compile-time
-    constexpr int side = 5;
-    constexpr int area = square(side);
+    cpp::accessor_pair mutable_obj(1);
+    const cpp::accessor_pair const_obj(2);
 
-    // In C++14, the constexpr specifier was extended to allow
-    // more general-purpose programming constructs to be used in constant expressions.
-    // For example, a function could contain a constexpr variable
-    constexpr int square_factorial = factorial(2) * factorial(2);  // computed at compile-time
+    mutable_obj.at();
+    assert(!cpp::accessor_pair::last_call_was_const); // non-const object -> non-const overload
 
-    // In C++17, constexpr was further extended to allow if-statements and loops
-    // to be used in constant expressions
-    constexpr int sum_fib = sum_fibonacci(10);  // computed at compile-time
+    const_obj.at();
+    assert(cpp::accessor_pair::last_call_was_const); // const object -> const overload
 
-    // In C++20, constexpr was extended further to allow constexpr functions
-    // to be used in more contexts, such as template arguments, virtual functions,
-    // and non-static member functions
-    constexpr Circle c1(1.0);
-    constexpr Circle c2(2.0);
-    constexpr double total_area = c1.area() + c2.area();
+    // And a fact that is easy to forget: declaring one non-const
+    // operator= does NOT make the compiler synthesize a const-qualified
+    // one alongside it. Const-correctness of hand-written members has to
+    // be earned explicitly, every time you write one by hand.
 }
 
-/**
- * Bitwise constness refers to the fact that a const object cannot be modified
- * through its non-const pointer or reference. In other words, the bits of the object are read-only,
- * but the object itself may not be conceptually read-only. Here's an example of bitwise constness
- */
-void print(const int* ptr)
+// Bitwise constness is not the same thing as conceptual constness. The
+// compiler enforces only the former.
+namespace cpp
 {
-    // error: cannot modify const object
-    //*ptr = 10;
-}
 
-int bitwise_constness()
-{
-    const int x = 5;
-    const int* ptr = &x;
-    print(ptr);
-    return 0;
-}
-
-/**
- * Conceptual constness, on the other hand, refers to the fact that an object is conceptually read-only,
- * regardless of whether its bits can be modified or not.
- * In other words, the constness is a property of the object's logical state,
- * rather than its physical state. Here's an example of conceptual constness
- */
 struct Point
 {
-    int x{};
-    int y{};
+    int x {};
+    int y {};
 };
 
-class Polygon {
-
+class Polygon
+{
 public:
-    Polygon(int num_points) : points_{new Point[num_points]} {}
+    explicit Polygon(int num_points) : points_(new Point[num_points]) {}
+    ~Polygon() { delete[] points_; }
+
     void set_point(int index, int x, int y)
     {
         points_[index].x = x;
         points_[index].y = y;
     }
 
-    Point get_point(int index) const
+    // This function is bitwise const: it never reseats `points_` itself
+    // (points_ is `Point* const`, a const POINTER). But `points_` is not
+    // `const Point*` -- what it points to is not const -- so nothing
+    // stops this "const" function from mutating the pointee. It compiles
+    // cleanly while blatantly violating conceptual constness.
+    Point get_point_violating_constness(int index) const
     {
-        // violate conceptual constness on purpose
-        points_[index].x = 0;
+        points_[index].x = 0; // mutates through a const member function
         return points_[index];
     }
 
 private:
     Point* const points_;
-
 };
 
+} // namespace cpp
 
-void conceptual_constness()
+void show_bitwise_vs_conceptual_constness()
 {
-    Polygon poly1(5);
-    poly1.set_point(0, 10, 20);
-
-    const Polygon poly2(5);
-    // violate conceptual constness on purpose
-    Point p = poly2.get_point(0);
+    const cpp::Polygon poly(3);
+    cpp::Point before = poly.get_point_violating_constness(0);
+    cpp::Point after = poly.get_point_violating_constness(0);
+    // Both calls ran through a const Polygon, yet the object's observable
+    // state changed between them -- "x" was overwritten to 0 as a side
+    // effect of a function that promised, by its signature, not to
+    // mutate *this.
+    (void)before;
+    (void)after;
 }
 
-
-int main(int argc, char* argv[])
+int main()
 {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <function>\n";
-        return 1;
-    }
-    std::string func = argv[1];
+    char buf[] = "example";
+    cpp::SimpleClass sc(buf);
+    sc.set_static(5);
 
-    if (func == "runtime_constness") {
-        runtime_constness();
-    }
-    else if (func == "compiletime_constness") {
-        compiletime_constness();
-    }
-    else if (func == "bitwise_constness") {
-        bitwise_constness();
-    }
-    else if (func == "conceptual_constness") {
-        conceptual_constness();
-    }
-
-    else {
-        std::cerr << "Unknown function: " << func << '\n';
-        return 1;
-    }
-
+    show_const_overload_resolution();
+    show_bitwise_vs_conceptual_constness();
     return 0;
 }

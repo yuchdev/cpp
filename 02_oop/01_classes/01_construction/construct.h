@@ -1,22 +1,21 @@
 #pragma once
 
-// We consider in this class basic problems of construction and destruction
-// The class could be created and destructed in the number of methods
-// 1. Named object in the automatic memory (in the stack)
-// 2. Object in a free dynamic memory (new/delete).
-// 3. Non-static class member.
-// 4. Object-element of array.
-// 5. Local static object.
-// 6. Global object. // TODO: difference global and static?
+// Nine places an object can come into existence:
+// 1. Named automatic object (stack)
+// 2. Free-store object (new/delete)
+// 3. Non-static class member
+// 4. Element of a C array
+// 5. Local static object
+// 6. Global/namespace-scope object
 // 7. Temporary object
-// 8. Object created by a user-defined allocator.
-// 9. Member of union
+// 8. Object created by a user-defined allocator
+// 9. (Non-case) union member -- a union cannot have members with
+//    constructors/destructors, because the compiler has no way to know
+//    which member's constructor to run
 
-// Unlike method, c-tor can't be virtual, static, and does not return any value
-
-/** @brief
-That's a simple class
-*/
+/** @brief A plain, non-aggregate class: it has a user-declared constructor,
+    so `new T()` and `new T` behave identically for it -- see AggregateOfInts
+    in this header for the case where they genuinely differ. */
 struct SimpleStruct
 {
     int a;
@@ -27,61 +26,55 @@ struct SimpleStruct
 
 class A;
 
-/** @brief
-That's a class, containing other member objects
-*/
+/** @brief A class containing another class as a member. */
 class SimpleClass
 {
 public:
-    // Default c-tor always call default c-tors of aggregated classes
     SimpleClass();
-
-    // C-tor with default members may work like a default
-    SimpleClass(int i/* = 0*/);
-
-    // Note: The compiler does not generate const operator=(const A&) if non-const is defined
+    SimpleClass(int i);
     SimpleClass(const SimpleClass& c);
-
-    // Copy c-tor defines how object behave if returned by value
-    // Move c-tor defines, how object pass its state to another object
     ~SimpleClass();
 
-    // In order to access a static class member, you should define a static method
     static void out_static_array();
 
+    // A forward-declared, incomplete type is legal here, by value, because
+    // this is only a DECLARATION -- the compiler does not need A's layout
+    // to parse a function signature. The moment anyone tries to actually
+    // CALL get_a with a real A object, A must be complete at the call
+    // site; see show_forward_declared_by_value() in construct.cpp.
     A get_a(A a);
 
 private:
-
-    // C-tor of this class is being called in default c-tor
     SimpleStruct intrnal;
     int b {};
 
-    // You can define a C-array member, however, 
-    // on practice it may cause problem with initialization
+    // A C-array member can only ever be default-constructed element by
+    // element (no per-element arguments possible), which is most of why
+    // std::array/std::vector displaced raw array members.
     int arr[5];
 
-    // Such array can only call default c-tors for its members ()
-    // For VC++ it cause warning C4351.
-
-    // You can't define suck array size by another class member, even constant:
-    // int arr1[sz];
-
-    // Such restrictions render C-array members useless
-    // You can use C++ std::array, std::vector
-    // However, static C-arrays were in common use for defining settings,
-    // common for the class in general
     static const char ch_array[];
     static const int int_array[];
 
-    // Integer static class member could be used as an object counter
-    // It is inherited by all the class children!
+    // Shared by every object of the class, inherited as the SAME variable
+    // by every derived class -- not a per-object counter at all.
     static int _counter;
 };
 
-/** @brief
-Placing copy c-tor and assignment in private section was the method to deny class copying before C++11
-*/
+/** @brief An aggregate: no user-declared constructors, no private/protected
+    non-static data members, no virtual functions, no base classes. This is
+    the type `new T()` vs. `new T` actually behaves differently for. */
+struct AggregateOfInts
+{
+    int a;
+    int b;
+};
+
+/** @brief Pre-C++11 non-copyable idiom: private, declared-but-not-defined
+    copy operations. Shown only as a historical footnote -- in new code,
+    delete the operations instead (see 02_constructors/main.cpp for =delete),
+    which gives a clearer compiler diagnostic and documents intent directly
+    in the member list rather than by omission. */
 class NonCopyClass
 {
 private:
@@ -89,33 +82,27 @@ private:
     NonCopyClass(const NonCopyClass& n);
     NonCopyClass& operator=(const NonCopyClass& n);
 public:
-    NonCopyClass() : d(5) {  /*d = 5; - better not to do so*/ }
+    NonCopyClass() : d(5) {}
 };
 
-/** @brief
-The static method for initializing static class members
-*/
-void create_static(int i);
-
-/** @brief
-Meyers' singleton - create and return static member
-*/
-int& return_static();
-
-/** @brief
-This class contains a C-pointer. The pointer could be initialized as any other class member
-*/
+/** @brief A class holding a pointer to another heap object, and a
+    (dangerous if misused) pointer to its own type. */
 class ContainsPointer
 {
-    SimpleClass* _pc = nullptr;
-
-    // The class can contain a pointer to itself
-    // However, be careful with recursion here!
-    ContainsPointer* _p_cp;
-
-    // You can initialize the pointer in declaration, in constructor,
-    // or as a default value of constructor
+public:
     ContainsPointer(SimpleClass* pc = new SimpleClass) : _pc(pc) {}
     ~ContainsPointer() { delete _pc; }
+
+private:
+    SimpleClass* _pc = nullptr;
+    ContainsPointer* _p_cp = nullptr;
 };
 
+void show_forward_declared_by_value();
+
+void create_static(int i);
+
+/** @brief Meyers' singleton: a function-local static, initialized exactly
+    once on first call, in a way the standard guarantees is thread-safe
+    without any explicit locking by the caller (since C++11). */
+int& return_static();

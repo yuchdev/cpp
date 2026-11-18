@@ -6,11 +6,14 @@ include_directories(
     ${CMAKE_SOURCE_DIR}
 )
 
+find_package(Threads REQUIRED)
+
 add_executable(${TARGET} ${SOURCES})
 set_property(TARGET ${TARGET} PROPERTY FOLDER "01Classes")
 
-target_link_libraries(${TARGET}    
+target_link_libraries(${TARGET}
 PRIVATE
     utilities
+    Threads::Threads
 )
 

@@ -1,9 +1,37 @@
 #include "diamond.h"
 
+#include <cassert>
 #include <iostream>
+#include <sstream>
 
-using std::cout;
-using std::endl;
+namespace
+{
+    template <typename F>
+    std::string captured_output(F&& f)
+    {
+        std::ostringstream out;
+        std::streambuf* old = std::cout.rdbuf(out.rdbuf());
+        f();
+        std::cout.rdbuf(old);
+        return out.str();
+    }
+
+    // Counts lines that EXACTLY equal `line` (so "base_v()" never
+    // accidentally matches inside "~base_v()", and two adjacent
+    // identical lines are both counted -- a plain substring search
+    // consumes the newline between them on its first match, which
+    // silently undercounts consecutive occurrences).
+    std::size_t count_exact_lines(const std::string& text, const std::string& line)
+    {
+        std::istringstream in(text);
+        std::string current;
+        std::size_t count = 0;
+        while (std::getline(in, current))
+            if (current == line)
+                ++count;
+        return count;
+    }
+}
 
 // bottom_n inherits base_v twice (through left_n and through right_n),
 // non-virtually both times: it ends up with two separate base_v
@@ -11,6 +39,10 @@ using std::endl;
 // mean and does not compile; you must qualify the path explicitly.
 void show_diamond_ambiguity()
 {
+    // Two independent base_v sub-objects means base_v's constructor runs
+    // TWICE for one bottom_n -- proof that goes beyond sizeof() alone.
+    assert(count_exact_lines(captured_output([] { bottom_n bn; }), "base_v()") == 2);
+
     bottom_n bn;
 
 #if 0
@@ -18,11 +50,12 @@ void show_diamond_ambiguity()
     bn.identify();
 #endif
 
-    bn.left_n::identify();
-    bn.right_n::identify();
+    assert(captured_output([&] { bn.left_n::identify(); }) == "base_v::identify\n");
+    assert(captured_output([&] { bn.right_n::identify(); }) == "base_v::identify\n");
 
-    cout << "sizeof(bottom_n) = " << sizeof(bottom_n)
-         << " (two base_v sub-objects)\n";
+    std::cout << "sizeof(bottom_n) = " << sizeof(bottom_n)
+              << " (two base_v sub-objects)\n";
+    assert(sizeof(bottom_n) == 2 * sizeof(base_v));
 }
 
 // left_v and right_v both inherit base_v virtually, so bottom_v shares a
@@ -33,17 +66,24 @@ void show_diamond_ambiguity()
 // explicitly even though it is not bottom_v's direct base.
 void show_virtual_inheritance_fix()
 {
-    bottom_v bv;
-    bv.identify(); // unambiguous: exactly one base_v exists
+    // Exactly one shared base_v: its constructor runs only ONCE, unlike
+    // bottom_n's two runs above -- the sharing is real, not just a
+    // sizeof() coincidence.
+    assert(count_exact_lines(captured_output([] { bottom_v bv; }), "base_v()") == 1);
 
-    cout << "sizeof(bottom_v) = " << sizeof(bottom_v)
-         << " (one shared base_v sub-object, plus bookkeeping)\n";
+    bottom_v bv;
+    assert(captured_output([&] { bv.identify(); }) == "base_v::identify\n"); // unambiguous: exactly one base_v exists
+
+    std::cout << "sizeof(bottom_v) = " << sizeof(bottom_v)
+              << " (one shared base_v sub-object, plus bookkeeping)\n";
 }
 
 // A self-contained progression showing exactly what virtual inheritance
 // costs in object layout, independent of the diamond.h hierarchy above:
 // each step adds one more thing (a data member, a second virtual branch,
-// a virtual destructor) and shows how sizeof() responds.
+// a virtual destructor) and shows how sizeof() responds. Every number
+// printed below is also asserted -- this machine's actual, measured
+// sizes, not numbers assumed to generalize to every ABI.
 void show_sizes()
 {
     {
@@ -54,10 +94,11 @@ void show_sizes()
         class B2 : public A {};
         class C : public B1, public B2 {};
 
-        cout << "empty diamond: sizeof(A)=" << sizeof(A)
-             << " sizeof(B1)=" << sizeof(B1)
-             << " sizeof(B2)=" << sizeof(B2)
-             << " sizeof(C)=" << sizeof(C) << '\n';
+        std::cout << "empty diamond: sizeof(A)=" << sizeof(A)
+                  << " sizeof(B1)=" << sizeof(B1)
+                  << " sizeof(B2)=" << sizeof(B2)
+                  << " sizeof(C)=" << sizeof(C) << '\n';
+        assert(sizeof(A) == 1 && sizeof(B1) == 1 && sizeof(B2) == 1 && sizeof(C) == 2);
     }
 
     {
@@ -67,10 +108,11 @@ void show_sizes()
         class B2 : public A {};
         class C : public B1, public B2 {};
 
-        cout << "non-virtual diamond: sizeof(A)=" << sizeof(A)
-             << " sizeof(B1)=" << sizeof(B1)
-             << " sizeof(B2)=" << sizeof(B2)
-             << " sizeof(C)=" << sizeof(C) << " (two copies of A)\n";
+        std::cout << "non-virtual diamond: sizeof(A)=" << sizeof(A)
+                  << " sizeof(B1)=" << sizeof(B1)
+                  << " sizeof(B2)=" << sizeof(B2)
+                  << " sizeof(C)=" << sizeof(C) << " (two copies of A)\n";
+        assert(sizeof(A) == 2 && sizeof(C) == 2 * sizeof(A));
     }
 
     {
@@ -82,9 +124,10 @@ void show_sizes()
         class B2 : public A {};
         class C : public B1, public B2 {};
 
-        cout << "one virtual branch: sizeof(B1)=" << sizeof(B1)
-             << " sizeof(B2)=" << sizeof(B2)
-             << " sizeof(C)=" << sizeof(C) << '\n';
+        std::cout << "one virtual branch: sizeof(B1)=" << sizeof(B1)
+                  << " sizeof(B2)=" << sizeof(B2)
+                  << " sizeof(C)=" << sizeof(C) << '\n';
+        assert(sizeof(B1) > sizeof(B2)); // B1 pays virtual-base bookkeeping; B2 doesn't
     }
 
     {
@@ -95,9 +138,10 @@ void show_sizes()
         class B2 : virtual public A {};
         class C : public B1, public B2 {};
 
-        cout << "both branches virtual: sizeof(B1)=" << sizeof(B1)
-             << " sizeof(B2)=" << sizeof(B2)
-             << " sizeof(C)=" << sizeof(C) << " (one shared A)\n";
+        std::cout << "both branches virtual: sizeof(B1)=" << sizeof(B1)
+                  << " sizeof(B2)=" << sizeof(B2)
+                  << " sizeof(C)=" << sizeof(C) << " (one shared A)\n";
+        assert(sizeof(B1) == sizeof(B2)); // symmetric now: both pay the same bookkeeping
     }
 
     {
@@ -113,8 +157,9 @@ void show_sizes()
         class B2 : virtual public A {};
         class C : public B1, public B2 {};
 
-        cout << "virtual dtor added: sizeof(A)=" << sizeof(A)
-             << " sizeof(C)=" << sizeof(C) << '\n';
+        std::cout << "virtual dtor added: sizeof(A)=" << sizeof(A)
+                  << " sizeof(C)=" << sizeof(C) << '\n';
+        assert(sizeof(A) > sizeof(short)); // the vptr grew A past its one data member
     }
 }
 
