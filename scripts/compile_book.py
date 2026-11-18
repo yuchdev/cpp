@@ -78,6 +78,7 @@ def parse_headings(text: str) -> list[Heading]:
 
 def chapter_title_from_h1(h1: Heading) -> str:
     title = H1_NUMBER_PREFIX_RE.sub("", h1.title, count=1).strip()
+    title = re.sub(r"^Chapter\s+\d{1,2}\s*[.:-]\s*", "", title, flags=re.IGNORECASE)
     return CPP_VERSION_SUFFIX_RE.sub("", title).strip()
 
 
@@ -437,7 +438,11 @@ def decompile_book(book_dir: Path) -> int:
         headings = parse_headings(chunk)
         actual_prefix = numeric_prefix(headings[0]) if headings else None
         actual_chapter = actual_prefix[0] if actual_prefix else None
-        if not isinstance(expected_chapter, int) or not headings or headings[0].level != 1 or (actual_chapter is not None and actual_chapter != expected_chapter):
+        if actual_chapter is None and headings:
+            match = re.match(r"^Chapter\s+(\d{1,2})\b", headings[0].title, re.IGNORECASE)
+            if match:
+                actual_chapter = int(match.group(1))
+        if not isinstance(expected_chapter, int) or not headings or headings[0].level != 1 or actual_chapter != expected_chapter:
             print(
                 f"Error: manifest expects chapter {expected_chapter}, "
                 f"but corresponding book chunk starts with chapter {actual_chapter}",
