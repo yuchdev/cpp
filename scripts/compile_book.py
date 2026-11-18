@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compile/decompile Markdown book chapters from chapter README.md files."""
+"""Compile/decompile Markdown books from README.md or CHAPTERNN.md sources."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 CHAPTER_DIR_RE = re.compile(r"^(?P<number>\d{2})(?:_|$)")
+CHAPTER_FILE_RE = re.compile(r"^CHAPTER(?P<number>\d{2})\.md$")
 
 ATX_HEADING_RE = re.compile(r"^(?P<marks>#{1,6})[ \t]+(?P<title>.*?)[ \t]*#*[ \t]*$")
 
@@ -77,6 +78,7 @@ def parse_headings(text: str) -> list[Heading]:
 
 def chapter_title_from_h1(h1: Heading) -> str:
     title = H1_NUMBER_PREFIX_RE.sub("", h1.title, count=1).strip()
+    title = re.sub(r"^Chapter\s+\d{1,2}\s*[.:-]\s*", "", title, flags=re.IGNORECASE)
     return CPP_VERSION_SUFFIX_RE.sub("", title).strip()
 
 
@@ -126,9 +128,12 @@ def validate_headings(label: Union[Path, str], chapter_number: int, headings: li
     if len(h1s) != 1:
         issue(f"expected exactly one H1, found {len(h1s)}")
 
-    max_level = max(heading.level for heading in headings)
-    if max_level < 3:
-        issue(f"maximum heading depth is H{max_level}; expected at least H3")
+    # Numbered legacy chapters and narrative CHAPTERNN.md chapters have
+    # different heading conventions.  Both still require a valid hierarchy.
+    numbered = bool(
+        headings[0].level == 1
+        and re.match(r"^\d{2}(?:\.(?=[ \t]|$))?(?:[ \t]+|$)", headings[0].title)
+    )
 
     previous = headings[0]
     for heading in headings[1:]:
@@ -138,6 +143,11 @@ def validate_headings(label: Union[Path, str], chapter_number: int, headings: li
                 f"to H{heading.level} on line {heading.line}"
             )
         previous = heading
+
+    if not numbered:
+        # Narrative chapters can have H2 titles such as "1. Introduction",
+        # unnumbered H3s, and unnumbered "Further reading" sections.
+        return warnings
 
     active: dict[int, tuple[int, ...]] = {}
     for heading in headings:
@@ -191,6 +201,8 @@ def renumber_markdown(text: str, chapter_number: int) -> str:
 
         level = len(match.group("marks"))
         title = LEADING_NUMBER_RE.sub("", match.group("title").strip(), count=1).strip()
+        if level == 1:
+            title = re.sub(r"^Chapter\s+\d{1,2}\s*[.:-]\s*", "", title, flags=re.IGNORECASE)
 
         if level == 1:
             counters = [0] * 6
@@ -217,14 +229,31 @@ def renumber_markdown(text: str, chapter_number: int) -> str:
     return "\n".join(output).rstrip() + "\n"
 
 
-def find_chapters(input_dir: Path) -> list[tuple[int, Path]]:
+def find_chapters(input_dir: Path, source_kind: str = "chapter") -> list[tuple[int, Path]]:
+    """Find source files in numbered chapter directories for the selected mode."""
+    if source_kind not in {"readme", "chapter"}:
+        raise ValueError(f"unknown source type: {source_kind}")
+
     chapters: list[tuple[int, Path]] = []
     for child in input_dir.iterdir():
-        if child.is_dir():
-            match = CHAPTER_DIR_RE.match(child.name)
-            if match:
-                chapters.append((int(match.group("number")), child))
-    return sorted(chapters, key=lambda item: (item[0], item[1].name))
+        if not child.is_dir():
+            continue
+        match = CHAPTER_DIR_RE.match(child.name)
+        if not match:
+            continue
+
+        chapter_number = int(match.group("number"))
+        if source_kind == "readme":
+            source = child / "README.md"
+        else:
+            source = child / f"CHAPTER{chapter_number:02d}.md"
+
+        if source.is_file():
+            chapters.append((chapter_number, source))
+        else:
+            warn(child, f"{source.name} is missing; chapter skipped")
+
+    return sorted(chapters, key=lambda item: (item[0], item[1].as_posix()))
 
 
 def normalize_chunk(text: str) -> str:
@@ -240,11 +269,17 @@ def relative_source(path: Path) -> str:
 
 
 def compile_book(
-    input_dir: Path, output_dir: Path, do_renumber: bool, do_check: bool, book_title: str | None
+    input_dir: Path,
+    output_dir: Path,
+    do_renumber: bool,
+    do_check: bool,
+    book_title: str | None,
+    source_kind: str = "chapter",
 ) -> int:
-    chapters = find_chapters(input_dir)
+    chapters = find_chapters(input_dir, source_kind)
     if not chapters:
-        print(f"Error: no numbered chapter directories found in {input_dir}", file=sys.stderr)
+        source_name = "README.md" if source_kind == "readme" else "CHAPTERNN.md"
+        print(f"Error: no {source_name} files found in numbered chapter directories under {input_dir}", file=sys.stderr)
         return 1
 
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -254,17 +289,12 @@ def compile_book(
     copied = 0
     total_warnings = 0
 
-    for chapter_number, chapter_dir in chapters:
-        readme = chapter_dir / "README.md"
-        if not readme.is_file():
-            warn(chapter_dir, "README.md is missing; chapter skipped")
-            total_warnings += 1
-            continue
-
+    for chapter_number, source in chapters:
+        chapter_dir = source.parent
         try:
-            text = readme.read_text(encoding="utf-8")
+            text = source.read_text(encoding="utf-8")
         except (OSError, UnicodeError) as exc:
-            warn(chapter_dir, f"cannot read README.md: {exc}; chapter skipped")
+            warn(source, f"cannot read chapter: {exc}; chapter skipped")
             total_warnings += 1
             continue
 
@@ -296,16 +326,17 @@ def compile_book(
         destination.write_text(chapter_text, encoding="utf-8")
         book_chunks.append(chapter_text)
 
+        source_key = "source_readme" if source_kind == "readme" else "source_chapter"
         manifest_entries.append(
             {
                 "chapter": chapter_number,
                 "compiled_file": output_name,
-                "source_readme": relative_source(readme),
-                "source_readme_absolute": str(readme.resolve()),
+                source_key: relative_source(source),
+                f"{source_key}_absolute": str(source.resolve()),
             }
         )
         copied += 1
-        print(f"{readme} -> {destination}")
+        print(f"{source} -> {destination}")
 
     raw_book_name = book_title if book_title is not None else output_dir.name
     safe_book_name = filename_component(raw_book_name)
@@ -330,6 +361,7 @@ def compile_book(
     manifest = {
         "version": 1,
         "input_directory": relative_source(input_dir),
+        "source": source_kind,
         "book_file": book_name,
         "chapters": manifest_entries,
     }
@@ -365,13 +397,15 @@ def split_book(text: str) -> list[str]:
 
 
 def resolve_source_path(entry: dict[str, object]) -> Path:
-    absolute = entry.get("source_readme_absolute")
+    # Both source modes write their respective original paths into the manifest;
+    # older manifests with source_readme keys remain supported.
+    absolute = entry.get("source_chapter_absolute", entry.get("source_readme_absolute"))
     if isinstance(absolute, str):
         return Path(absolute).expanduser()
 
-    source = entry.get("source_readme")
+    source = entry.get("source_chapter", entry.get("source_readme"))
     if not isinstance(source, str):
-        raise ValueError("manifest chapter has no source_readme")
+        raise ValueError("manifest chapter has no source_chapter or source_readme")
     path = Path(source).expanduser()
     return path if path.is_absolute() else (Path.cwd() / path)
 
@@ -418,7 +452,11 @@ def decompile_book(book_dir: Path) -> int:
         headings = parse_headings(chunk)
         actual_prefix = numeric_prefix(headings[0]) if headings else None
         actual_chapter = actual_prefix[0] if actual_prefix else None
-        if not isinstance(expected_chapter, int) or actual_chapter != expected_chapter:
+        if actual_chapter is None and headings:
+            match = re.match(r"^Chapter\s+(\d{1,2})\b", headings[0].title, re.IGNORECASE)
+            if match:
+                actual_chapter = int(match.group(1))
+        if not isinstance(expected_chapter, int) or not headings or headings[0].level != 1 or actual_chapter != expected_chapter:
             print(
                 f"Error: manifest expects chapter {expected_chapter}, "
                 f"but corresponding book chunk starts with chapter {actual_chapter}",
@@ -443,9 +481,9 @@ def decompile_book(book_dir: Path) -> int:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        usage="%(prog)s OUTPUT_DIRECTORY [-h] [--compile | --decompile] [--check] [--renumber] "
-        "[--book-title BOOK_TITLE] [--from-dir INPUT_DIRECTORY]",
-        description="Compile chapter README files into a Markdown book, or decompile it back."
+        usage="%(prog)s OUTPUT_DIRECTORY [-h] [--compile | --decompile] [--source {readme,chapter}] "
+        "[--check] [--renumber] [--book-title BOOK_TITLE] [--from-dir INPUT_DIRECTORY]",
+        description="Compile README.md or CHAPTERNN.md files into a Markdown book, or decompile it back."
     )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument(
@@ -456,7 +494,13 @@ def parse_args() -> argparse.Namespace:
     mode.add_argument(
         "--decompile",
         action="store_true",
-        help="Decompile OUTPUT_DIRECTORY book back to README.md files using manifest.json.",
+        help="Decompile OUTPUT_DIRECTORY book back to source chapter files using manifest.json.",
+    )
+    parser.add_argument(
+        "--source",
+        choices=("readme", "chapter"),
+        default=None,
+        help="Input source for compilation: readme (README.md) or chapter (CHAPTERNN.md, default).",
     )
     parser.add_argument(
         "--check",
@@ -493,9 +537,9 @@ def main() -> int:
     args = parse_args()
 
     if args.decompile:
-        if args.check or args.renumber or args.from_dir is not None or args.book_title is not None:
+        if args.check or args.renumber or args.from_dir is not None or args.book_title is not None or args.source is not None:
             print(
-                "Error: --decompile is incompatible with --check, --renumber, --from-dir, and --book-title",
+                "Error: --decompile is incompatible with --check, --renumber, --from-dir, --book-title, and --source",
                 file=sys.stderr,
             )
             return 2
@@ -511,7 +555,7 @@ def main() -> int:
         print(f"Error: input directory does not exist: {input_dir}", file=sys.stderr)
         return 1
 
-    return compile_book(input_dir, output_dir, args.renumber, args.check, args.book_title)
+    return compile_book(input_dir, output_dir, args.renumber, args.check, args.book_title, args.source or "chapter")
 
 
 if __name__ == "__main__":
